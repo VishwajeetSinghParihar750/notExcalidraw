@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
+import Home from "./pages/Home.tsx";
+
 interface shape {
   draw: (ctx: CanvasRenderingContext2D) => void;
 }
@@ -77,11 +79,14 @@ function App() {
   useEffect(() => {
     if (!canvas.current) return;
 
+    const dpr = window.devicePixelRatio;
+
     let ctx = canvas.current.getContext("2d");
-    canvas.current.width = canvas.current.clientWidth;
-    canvas.current.height = canvas.current.clientHeight;
+    canvas.current.width = canvas.current.clientWidth * dpr;
+    canvas.current.height = canvas.current.clientHeight * dpr;
 
     if (!ctx) return;
+    ctx.scale(dpr, dpr);
 
     //
 
@@ -162,8 +167,9 @@ function App() {
 
   console.log(makeRect, makeLine, makingShape);
   return (
-    <body>
-      <canvas
+    <body className="bg-bg text-fg">
+      <Home />
+      {/* <canvas
         ref={canvas}
         id="canvas"
         className=" w-screen h-screen bg-[#e3c5c533] [image-rendering:pixelated]"
@@ -188,7 +194,7 @@ function App() {
         onClick={() => setMakeLine(() => true)}
       >
         make_line
-      </button>
+      </button> */}
     </body>
   );
 }

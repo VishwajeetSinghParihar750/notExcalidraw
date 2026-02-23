@@ -8,7 +8,7 @@ type Tool =
   | "rect"
   | "rotrect"
   | "circle"
-  | "aero"
+  | "arrow"
   | "line"
   | "pen"
   | "text"
@@ -31,27 +31,33 @@ const useTool = create<toolState>((set) => ({
 
 type fillStyle = "line" | "crosslines" | "fill";
 type strokeStyle = "line" | "dotted" | "smalldotted";
-type arrowTypes = "straight" | "curve" | "snake";
+type arrowType = "straight" | "curve" | "snake";
+type strokeWidth = 1 | 2 | 3;
+type edgeRadius = 0 | 10;
+type opacity = 0 | 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 | 90 | 100;
+type backgroundColor = string;
+type strokeColor = string;
+
 interface toolStyleState {
-  strokeColor: string; // color
-  backgroundColor: string;
+  strokeColor: strokeColor; // color
+  backgroundColor: backgroundColor;
   fillStyle: fillStyle;
-  strokeWidth: number;
+  strokeWidth: strokeWidth;
   strokeStyle: strokeStyle;
-  edgeRadius: number;
-  opacity: number;
-  arrowTypes: arrowTypes;
+  edgeRadius: edgeRadius;
+  opacity: opacity;
+  arrowType: arrowType;
 }
 
 interface toolStyleActions {
-  setStrokeColor: (color: string) => void;
-  setBackgroundColor: (color: string) => void;
+  setStrokeColor: (color: strokeColor) => void;
+  setBackgroundColor: (color: backgroundColor) => void;
   setFillStyle: (style: fillStyle) => void;
-  setStrokeWidth: (width: number) => void;
+  setStrokeWidth: (width: strokeWidth) => void;
   setStrokeStyle: (style: strokeStyle) => void;
-  setEdgeRadius: (radius: number) => void;
-  setOpacity: (opacity: number) => void;
-  setArrowTypes: (type: arrowTypes) => void;
+  setEdgeRadius: (radius: edgeRadius) => void;
+  setOpacity: (opacity: opacity) => void;
+  setArrowType: (type: arrowType) => void;
 }
 
 const useToolStyle = create<toolStyleState & toolStyleActions>((set) => ({
@@ -62,7 +68,7 @@ const useToolStyle = create<toolStyleState & toolStyleActions>((set) => ({
   strokeStyle: "line",
   edgeRadius: 0,
   opacity: 100,
-  arrowTypes: "curve",
+  arrowType: "curve",
 
   setStrokeColor: (color) => set({ strokeColor: color }),
   setBackgroundColor: (color) => set({ backgroundColor: color }),
@@ -71,8 +77,18 @@ const useToolStyle = create<toolStyleState & toolStyleActions>((set) => ({
   setStrokeStyle: (style) => set({ strokeStyle: style }),
   setEdgeRadius: (radius) => set({ edgeRadius: radius }),
   setOpacity: (opacity) => set({ opacity }),
-  setArrowTypes: (type) => set({ arrowTypes: type }),
+  setArrowType: (type) => set({ arrowType: type }),
 }));
 
 export { useTool, useToolStyle };
-export type { Tool, fillStyle, strokeStyle, arrowTypes };
+export type {
+  Tool,
+  fillStyle,
+  strokeStyle,
+  arrowType,
+  strokeWidth,
+  edgeRadius,
+  opacity,
+  backgroundColor,
+  strokeColor,
+};

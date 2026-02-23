@@ -1,16 +1,24 @@
 import type { Shape } from "./Shape";
 
-type strokeStyle = "line" | "dotted" | "large-dotted";
-type edgeRadius = 0 | 10;
+import type {
+  backgroundColor,
+  edgeRadius,
+  opacity,
+  strokeColor,
+  strokeStyle,
+  strokeWidth,
+} from "../store/Tools.store";
 
 export class Rectangle implements Shape {
-  static backgroundColor: string = "null";
-  static strokeColor: string = "black";
-  static strokeWdith: number = 2;
-  static strokeStyle: strokeStyle = "line";
-  static edgeRadius: edgeRadius = 10;
-  static opacity: number = 100;
+  // style properties
+  backgroundColor: backgroundColor = "null";
+  strokeColor: strokeColor = "black";
+  strokeWdith: strokeWidth = 2;
+  strokeStyle: strokeStyle = "line";
+  edgeRadius: edgeRadius = 10;
+  opacity: opacity = 100;
 
+  // shape definition
   startX: number;
   startY: number;
   endX: number;
@@ -37,8 +45,5 @@ export class Rectangle implements Shape {
       this.endX - this.startX,
       this.endY - this.startY,
     );
-    ctx.strokeStyle = Rectangle.strokeColor;
-    ctx.fillStyle = Rectangle.backgroundColor;
-    ctx.lineWidth = Rectangle.strokeWdith;
   }
 }

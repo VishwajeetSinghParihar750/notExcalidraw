@@ -4,6 +4,7 @@
   --color-bg: white;
   --color-fg: black;
   --color-bg-muted: rgba(0, 0, 0, 0.2);
+  --color-bg-muted2: rgba(0, 0, 0, 0.1);
   --color-fg-muted: rgba(255, 255, 255, 0.2);
   --color-brand: rgb(255, 92, 0);
   --color-brand-muted: rgba(255, 92, 0, 0.8);
@@ -14,6 +15,7 @@
     --color-bg: black;
     --color-fg: white;
     --color-bg-muted: rgba(255, 255, 255, 0.2);
+    --color-bg-muted2: rgba(255, 255, 255, 0.1);
     --color-fg-muted: rgba(0, 0, 0, 0.2);
   }
   * {

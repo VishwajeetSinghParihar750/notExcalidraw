@@ -129,7 +129,7 @@ export default function Tools() {
       ),
     },
     {
-      id: "aero",
+      id: "arrow",
       element: (
         <svg
           aria-hidden="true"

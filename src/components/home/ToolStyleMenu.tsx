@@ -238,7 +238,7 @@ export default function ToolStyleMenu() {
   type strokeWidthInfo = { width: strokeWidth; element: ReactElement };
   let strokeFillWidthStyles: strokeWidthInfo[] = [
     {
-      width: 1,
+      width: 2,
       element: (
         <svg
           aria-hidden="true"
@@ -262,7 +262,7 @@ export default function ToolStyleMenu() {
       ),
     },
     {
-      width: 2,
+      width: 4,
       element: (
         <svg
           aria-hidden="true"
@@ -286,7 +286,7 @@ export default function ToolStyleMenu() {
       ),
     },
     {
-      width: 3,
+      width: 6,
       element: (
         <svg
           aria-hidden="true"
@@ -469,7 +469,7 @@ export default function ToolStyleMenu() {
     stylesState.setStrokeStyle("line");
     stylesState.setArrowType("straight");
     stylesState.setEdgeRadius(10);
-    stylesState.setStrokeWidth(1);
+    stylesState.setStrokeWidth(4);
     stylesState.setOpacity(100);
   }, []);
 
@@ -576,7 +576,7 @@ export default function ToolStyleMenu() {
               </div>
             </div>
           )}
-          {selectedTool != "arrow" && (
+          {selectedTool != "arrow" && stylesState.backgroundColor != "none" && (
             <div>
               <div>Fill</div>
               <div className="flex gap-2 mt-2">

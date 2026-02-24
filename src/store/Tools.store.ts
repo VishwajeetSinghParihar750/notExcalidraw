@@ -32,10 +32,10 @@ const useTool = create<toolState>((set) => ({
 type fillStyle = "line" | "crosslines" | "fill";
 type strokeStyle = "line" | "dotted" | "smalldotted";
 type arrowType = "straight" | "curve" | "snake";
-type strokeWidth = 1 | 2 | 3;
+type strokeWidth = 2 | 4 | 6;
 type edgeRadius = 0 | 10;
 type opacity = 0 | 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 | 90 | 100;
-type backgroundColor = string;
+type backgroundColor = string | "none";
 type strokeColor = string;
 
 interface toolStyleState {
@@ -62,9 +62,9 @@ interface toolStyleActions {
 
 const useToolStyle = create<toolStyleState & toolStyleActions>((set) => ({
   strokeColor: "black",
-  backgroundColor: "white",
+  backgroundColor: "none",
   fillStyle: "fill",
-  strokeWidth: 2,
+  strokeWidth: 4,
   strokeStyle: "line",
   edgeRadius: 0,
   opacity: 100,

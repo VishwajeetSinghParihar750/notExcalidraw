@@ -89,96 +89,87 @@ export class Rectangle implements Shape {
   draw(ctx: CanvasRenderingContext2D) {
     let [x1, y1, x2, y2] = this.getEnclosingRectangle();
 
-    ctx.save();
-
-    ctx.globalAlpha = this.opacity / 100.0;
-
-    {
+    if (x2 - x1 > this.edgeRadius && y2 - y1 > this.edgeRadius) {
       ctx.save();
 
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
+      ctx.globalAlpha = this.opacity / 100.0;
 
-      ctx.lineWidth = this.strokeWidth;
-      ctx.strokeStyle = this.strokeColor;
+      {
+        ctx.save();
 
-      if (this.edgeRadius == 0) {
-        ctx.rect(
-          this.startX,
-          this.startY,
-          this.endX - this.startX,
-          this.endY - this.startY,
-        );
-      } else {
-        //
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+
+        ctx.lineWidth = this.strokeWidth;
+        ctx.strokeStyle = this.strokeColor;
 
         ctx.moveTo(x1, y1 + this.edgeRadius);
         ctx.arcTo(x1, y2, x1 + this.edgeRadius, y2, this.edgeRadius);
         ctx.arcTo(x2, y2, x2, y2 - this.edgeRadius, this.edgeRadius);
         ctx.arcTo(x2, y1, x2 - this.edgeRadius, y1, this.edgeRadius);
         ctx.arcTo(x1, y1, x1, y1 + this.edgeRadius, this.edgeRadius);
+
+        if (this.strokeStyle == "smalldotted") {
+          ctx.setLineDash([4, 8]);
+        } else if (this.strokeStyle == "dotted") ctx.setLineDash([8, 16]);
+
+        ctx.stroke();
+
+        ctx.restore();
       }
 
-      if (this.strokeStyle == "smalldotted") {
-        ctx.setLineDash([4, 8]);
-      } else if (this.strokeStyle == "dotted") ctx.setLineDash([8, 16]);
+      if (this.backgroundColor != "none") {
+        ctx.save();
 
-      ctx.stroke();
+        if (this.fillStyle == "fill") {
+          ctx.fillStyle = this.backgroundColor;
+          ctx.fill();
+        } else if (this.fillStyle == "line") {
+          ctx.clip();
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = this.backgroundColor;
+
+          let d = Math.ceil(
+            Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1)),
+          );
+          ctx.beginPath();
+
+          let gap = this.strokeWidth * 5;
+          for (let pos = gap; pos < d * 2; pos += gap) {
+            //
+            ctx.moveTo(x1 + pos, y1);
+            ctx.lineTo(x1, y1 + pos);
+          }
+          ctx.stroke();
+        } else if (this.fillStyle == "crosslines") {
+          ctx.clip();
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = this.backgroundColor;
+
+          let d = Math.ceil(
+            Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1)),
+          );
+          ctx.beginPath();
+
+          let gap = this.strokeWidth * 5;
+          for (let pos = gap; pos < d * 2; pos += gap) {
+            //
+            ctx.moveTo(x1 + pos, y1);
+            ctx.lineTo(x1, y1 + pos);
+          }
+          for (let pos = gap; pos < d * 2; pos += gap) {
+            //
+            ctx.moveTo(x2, y1 + pos);
+            ctx.lineTo(x2 - pos, y1);
+          }
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      }
 
       ctx.restore();
     }
-
-    if (this.backgroundColor != "none") {
-      ctx.save();
-
-      if (this.fillStyle == "fill") {
-        ctx.fillStyle = this.backgroundColor;
-        ctx.fill();
-      } else if (this.fillStyle == "line") {
-        ctx.clip();
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = this.backgroundColor;
-
-        let d = Math.ceil(
-          Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1)),
-        );
-        ctx.beginPath();
-
-        let gap = this.strokeWidth * 5;
-        for (let pos = gap; pos < d * 2; pos += gap) {
-          //
-          ctx.moveTo(x1 + pos, y1);
-          ctx.lineTo(x1, y1 + pos);
-        }
-        ctx.stroke();
-      } else if (this.fillStyle == "crosslines") {
-        ctx.clip();
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = this.backgroundColor;
-
-        let d = Math.ceil(
-          Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1)),
-        );
-        ctx.beginPath();
-
-        let gap = this.strokeWidth * 5;
-        for (let pos = gap; pos < d * 2; pos += gap) {
-          //
-          ctx.moveTo(x1 + pos, y1);
-          ctx.lineTo(x1, y1 + pos);
-        }
-        for (let pos = gap; pos < d * 2; pos += gap) {
-          //
-          ctx.moveTo(x2, y1 + pos);
-          ctx.lineTo(x2 - pos, y1);
-        }
-        ctx.stroke();
-      }
-
-      ctx.restore();
-    }
-
-    ctx.restore();
   }
 
   getEnclosingRectangle(): [number, number, number, number] {

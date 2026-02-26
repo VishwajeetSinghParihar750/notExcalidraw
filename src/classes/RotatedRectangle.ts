@@ -11,7 +11,7 @@ import {
   type strokeWidth,
 } from "../store/Tools.store";
 
-export class Line implements Shape {
+export class RotatedRecangle implements Shape {
   // style properties
   backgroundColor: backgroundColor;
   strokeColor: strokeColor;
@@ -102,11 +102,36 @@ export class Line implements Shape {
       ctx.lineWidth = this.strokeWidth;
       ctx.strokeStyle = this.strokeColor;
 
-      ctx.moveTo(x1, y1 + this.edgeRadius);
-      ctx.arcTo(x1, y2, x1 + this.edgeRadius, y2, this.edgeRadius);
-      ctx.arcTo(x2, y2, x2, y2 - this.edgeRadius, this.edgeRadius);
-      ctx.arcTo(x2, y1, x2 - this.edgeRadius, y1, this.edgeRadius);
-      ctx.arcTo(x1, y1, x1, y1 + this.edgeRadius, this.edgeRadius);
+      {
+        let [x1, y1, x2, y2, x3, y3, x4, y4] = this.getShape();
+
+        let dx = x2 - x1;
+        let dy = y2 - y1;
+        let len = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+
+        if (x2 - x1 > this.edgeRadius && y2 - y1 > this.edgeRadius) {
+          let ux = dx / len;
+          let uy = dy / len;
+
+          let beginx;
+          let beginy;
+          if (Math.abs(dx) > Math.abs(dy)) {
+            beginx = x1 + ux * this.edgeRadius;
+            beginy = y1 + uy * this.edgeRadius;
+          } else {
+            beginx = x2 - ux * this.edgeRadius;
+            beginy = y2 - uy * this.edgeRadius;
+          }
+
+          ctx.moveTo(beginx, beginy);
+
+          ctx.arcTo(x2, y2, x3, y3, this.edgeRadius);
+          ctx.arcTo(x3, y3, x4, y4, this.edgeRadius);
+          ctx.arcTo(x4, y4, x1, y1, this.edgeRadius);
+          ctx.arcTo(x1, y1, x2, y2, this.edgeRadius);
+          ctx.lineTo(beginx, beginy);
+        }
+      }
 
       if (this.strokeStyle == "smalldotted") {
         ctx.setLineDash([4, 8]);
@@ -170,6 +195,20 @@ export class Line implements Shape {
     ctx.restore();
   }
 
+  getShape(): [number, number, number, number, number, number, number, number] {
+    let [x1, y1, x2, y2] = this.getEnclosingRectangle();
+    return [
+      (x1 + x2) / 2,
+      y1,
+      x2,
+      (y1 + y2) / 2,
+      (x1 + x2) / 2,
+      y2,
+      x1,
+      (y1 + y2) / 2,
+    ];
+  }
+
   getEnclosingRectangle(): [number, number, number, number] {
     let x1 = Math.min(this.startX, this.endX);
     let x2 = Math.max(this.startX, this.endX);
@@ -178,21 +217,6 @@ export class Line implements Shape {
     return [x1, y1, x2, y2];
   }
   containsPoint(x: number, y: number) {
-    let sx = this.startX;
-    let ex = this.endX;
-    if (sx > ex) {
-      let t = sx;
-      sx = ex;
-      ex = t;
-    }
-    let sy = this.startX;
-    let ey = this.endX;
-    if (sy > ey) {
-      let t = sy;
-      sy = ey;
-      ey = t;
-    }
-
-    return x >= sx && x <= ex && y >= sy && y <= ey;
+    return true;
   }
 }

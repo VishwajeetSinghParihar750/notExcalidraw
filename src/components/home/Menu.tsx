@@ -1,6 +1,6 @@
 export default function Menu() {
   return (
-    <div className="p-3 bg-bg-muted w-fit  rounded-lg">
+    <div className="p-3 bg-bg-muted w-fit  rounded-lg z-0">
       <div className="w-4 h-4">
         <svg
           aria-hidden="true"

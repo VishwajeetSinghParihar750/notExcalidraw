@@ -3,7 +3,6 @@ import type { Shape } from "./Shape";
 import {
   useToolStyle,
   type backgroundColor,
-  type edgeRadius,
   type fillStyle,
   type opacity,
   type strokeColor,
@@ -11,13 +10,12 @@ import {
   type strokeWidth,
 } from "../store/Tools.store";
 
-export class Line implements Shape {
+export class Circle implements Shape {
   // style properties
   backgroundColor: backgroundColor;
   strokeColor: strokeColor;
   strokeWidth: strokeWidth;
   strokeStyle: strokeStyle;
-  edgeRadius: edgeRadius;
   opacity: opacity;
   fillStyle: fillStyle;
 
@@ -38,7 +36,6 @@ export class Line implements Shape {
       strokeColor,
       strokeWidth,
       strokeStyle,
-      edgeRadius,
       opacity,
       fillStyle,
     } = useToolStyle.getState();
@@ -47,7 +44,6 @@ export class Line implements Shape {
     this.strokeColor = strokeColor;
     this.strokeWidth = strokeWidth;
     this.strokeStyle = strokeStyle;
-    this.edgeRadius = edgeRadius;
     this.opacity = opacity;
     this.fillStyle = fillStyle;
   }
@@ -65,10 +61,6 @@ export class Line implements Shape {
 
   setStrokeStyle(style: strokeStyle) {
     this.strokeStyle = style;
-  }
-
-  setEdgeRadius(radius: edgeRadius) {
-    this.edgeRadius = radius;
   }
 
   setOpacity(opacity: opacity) {
@@ -89,6 +81,11 @@ export class Line implements Shape {
   draw(ctx: CanvasRenderingContext2D) {
     let [x1, y1, x2, y2] = this.getEnclosingRectangle();
 
+    let cx = (x1 + x2) / 2;
+    let cy = (y1 + y2) / 2;
+    let rx = (x2 - x1) / 2;
+    let ry = (y2 - y1) / 2;
+
     ctx.save();
 
     ctx.globalAlpha = this.opacity / 100.0;
@@ -96,17 +93,11 @@ export class Line implements Shape {
     {
       ctx.save();
 
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-
       ctx.lineWidth = this.strokeWidth;
       ctx.strokeStyle = this.strokeColor;
 
-      ctx.moveTo(x1, y1 + this.edgeRadius);
-      ctx.arcTo(x1, y2, x1 + this.edgeRadius, y2, this.edgeRadius);
-      ctx.arcTo(x2, y2, x2, y2 - this.edgeRadius, this.edgeRadius);
-      ctx.arcTo(x2, y1, x2 - this.edgeRadius, y1, this.edgeRadius);
-      ctx.arcTo(x1, y1, x1, y1 + this.edgeRadius, this.edgeRadius);
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
 
       if (this.strokeStyle == "smalldotted") {
         ctx.setLineDash([4, 8]);
@@ -178,21 +169,6 @@ export class Line implements Shape {
     return [x1, y1, x2, y2];
   }
   containsPoint(x: number, y: number) {
-    let sx = this.startX;
-    let ex = this.endX;
-    if (sx > ex) {
-      let t = sx;
-      sx = ex;
-      ex = t;
-    }
-    let sy = this.startX;
-    let ey = this.endX;
-    if (sy > ey) {
-      let t = sy;
-      sy = ey;
-      ey = t;
-    }
-
-    return x >= sx && x <= ex && y >= sy && y <= ey;
+    return true;
   }
 }

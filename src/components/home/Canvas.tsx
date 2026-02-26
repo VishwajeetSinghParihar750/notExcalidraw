@@ -2,12 +2,18 @@ import { useEffect, useRef } from "react";
 import ShapeManager from "../../classes/ShapeManager";
 import RectangleTool from "../../classes/Tools/RectangleTool";
 import { useTool, type Tool } from "../../store/Tools.store";
+import RotatedRectangleTool from "../../classes/Tools/RotatedRectangleTool";
+import CircleTool from "../../classes/Tools/CircleTool";
 
 export default function Canvas() {
   let canvas = useRef<HTMLCanvasElement>(null);
 
   let shapeManager: ShapeManager = new ShapeManager();
   let rectangleTool: RectangleTool = new RectangleTool(shapeManager);
+  let rotatedRectangleTool: RotatedRectangleTool = new RotatedRectangleTool(
+    shapeManager,
+  );
+  let circleTool: CircleTool = new CircleTool(shapeManager);
 
   let activeToolState = useTool((s) => s.selectedTool);
   let activeToolRef = useRef<Tool>(activeToolState);
@@ -29,20 +35,31 @@ export default function Canvas() {
     ctx.scale(dpr, dpr);
 
     const handleMouseDown = (e: MouseEvent) => {
-      console.log("addEventListener down");
       switch (activeToolRef.current) {
         case "rect":
           rectangleTool.onMouseDown(e);
           break;
-
+        case "rotrect":
+          rotatedRectangleTool.onMouseDown(e);
+          break;
+        case "circle":
+          circleTool.onMouseDown(e);
+          break;
         default:
           break;
       }
     };
     const handleMouseup = (e: MouseEvent) => {
+      console.log("addEventListener up");
       switch (activeToolRef.current) {
         case "rect":
           rectangleTool.onMouseUp(e);
+          break;
+        case "rotrect":
+          rotatedRectangleTool.onMouseUp(e);
+          break;
+        case "circle":
+          circleTool.onMouseUp(e);
           break;
 
         default:
@@ -54,15 +71,21 @@ export default function Canvas() {
         case "rect":
           rectangleTool.onMouseMove(e);
           break;
+        case "rotrect":
+          rotatedRectangleTool.onMouseMove(e);
+          break;
+        case "circle":
+          circleTool.onMouseMove(e);
+          break;
 
         default:
           break;
       }
     };
 
-    canvas.current.addEventListener("mousedown", handleMouseDown);
-    canvas.current.addEventListener("mouseup", handleMouseup);
-    canvas.current.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mousedown", handleMouseDown);
+    window.addEventListener("mouseup", handleMouseup);
+    window.addEventListener("mousemove", handleMouseMove);
 
     let animationid: number;
 
@@ -82,16 +105,16 @@ export default function Canvas() {
 
     return () => {
       cancelAnimationFrame(animationid);
-      canvasEl.removeEventListener("mousedown", handleMouseDown);
-      canvasEl.removeEventListener("mouseup", handleMouseup);
-      canvasEl.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mousedown", handleMouseDown);
+      window.removeEventListener("mouseup", handleMouseup);
+      window.removeEventListener("mousemove", handleMouseMove);
     };
   }, []);
   return (
     <canvas
       ref={canvas}
       id="canvas"
-      className=" w-screen h-dvh absolute [image-rendering:pixelated]"
+      className=" w-screen h-dvh absolute [image-rendering:pixelated] "
     ></canvas>
   );
 }

@@ -478,162 +478,141 @@ export default function ToolStyleMenu() {
   return (
     <>
       {torender && (
-        <div className="max-h-[80dvh] flex flex-col gap-4 text-xs  p-5 bg-bg-muted rounded-lg">
-          <div className="">
-            <div>Stroke</div>
-            <div className="flex gap-1 mt-2">
-              {strokeColors.map((color) => {
-                return (
-                  <div
-                    className={
-                      stylesState.strokeColor == color
-                        ? " rounded-sm border-fg border p-px cursor-pointer"
-                        : " rounded-sm p-px cursor-pointer"
-                    }
-                    onClick={() => {
-                      stylesState.setStrokeColor(color);
-                    }}
-                  >
-                    <div
-                      className={`w-6 h-6 rounded-sm `}
-                      style={{ backgroundColor: color }}
-                    ></div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          {(selectedTool == "rect" ||
-            selectedTool == "pen" ||
-            selectedTool == "line" ||
-            selectedTool == "rotrect" ||
-            selectedTool == "circle") && (
+        <div className="bg-bg overflow-hidden rounded-lg">
+          <div className="max-h-[80dvh] flex flex-col gap-4 text-xs  p-5 bg-bg-muted ">
             <div className="">
-              <div>Background</div>
+              <div>Stroke</div>
               <div className="flex gap-1 mt-2">
-                <div
-                  className={
-                    stylesState.backgroundColor == "none"
-                      ? " rounded-sm border-fg border p-px cursor-pointer"
-                      : " rounded-sm p-px cursor-pointer"
-                  }
-                >
-                  <div
-                    className={"w-6 h-6 rounded-sm "}
-                    onClick={() => stylesState.setBackgroundColor("none")}
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      className="w-full h-full"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <defs>
-                        <pattern
-                          id="checker"
-                          width="6"
-                          height="6"
-                          patternUnits="userSpaceOnUse"
-                        >
-                          <rect width="6" height="6" fill="#ffffff" />
-                          <rect width="3" height="3" fill="#d1d5db" />
-                          <rect
-                            x="3"
-                            y="3"
-                            width="3"
-                            height="3"
-                            fill="#d1d5db"
-                          />
-                        </pattern>
-                      </defs>
-
-                      <rect
-                        width="24"
-                        height="24"
-                        rx="4"
-                        fill="url(#checker)"
-                      />
-                    </svg>
-                  </div>
-                </div>
-                {bgColors.map((color) => {
+                {strokeColors.map((color) => {
                   return (
                     <div
                       className={
-                        color == stylesState.backgroundColor
-                          ? " rounded border-fg border p-px"
-                          : "rounded-sm p-px"
+                        stylesState.strokeColor == color
+                          ? " rounded-sm border-fg border p-px cursor-pointer"
+                          : " rounded-sm p-px cursor-pointer"
                       }
+                      onClick={() => {
+                        stylesState.setStrokeColor(color);
+                      }}
                     >
                       <div
-                        key={color}
-                        className={"w-6 h-6 rounded-sm cursor-pointer"}
+                        className={`w-6 h-6 rounded-sm `}
                         style={{ backgroundColor: color }}
-                        onClick={() => stylesState.setBackgroundColor(color)}
                       ></div>
                     </div>
                   );
                 })}
               </div>
             </div>
-          )}
-          {selectedTool != "arrow" && stylesState.backgroundColor != "none" && (
-            <div>
-              <div>Fill</div>
-              <div className="flex gap-2 mt-2">
-                {fillStyles.map((cur) => {
-                  return (
-                    <div
-                      onClick={() => {
-                        stylesState.setFillStyle(cur.fillStyle);
-                      }}
-                      className={
-                        stylesState.fillStyle == cur.fillStyle
-                          ? "w-8 h-8 p-1 bg-brand-muted rounded-sm flex items-center justify-center cursor-pointer"
-                          : "w-8 h-8 p-1 bg-bg-muted2 rounded-sm flex items-center justify-center cursor-pointer"
-                      }
-                    >
-                      {" "}
-                      <div className="w-4 h-4">{cur.element}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-          <div>
-            <div>Stroke Width</div>
-            <div className="flex gap-2 mt-2">
-              {strokeFillWidthStyles.map((cur) => {
-                return (
+            {(selectedTool == "rect" ||
+              selectedTool == "pen" ||
+              selectedTool == "line" ||
+              selectedTool == "rotrect" ||
+              selectedTool == "circle") && (
+              <div className="">
+                <div>Background</div>
+                <div className="flex gap-1 mt-2">
                   <div
-                    onClick={() => {
-                      stylesState.setStrokeWidth(cur.width);
-                    }}
                     className={
-                      stylesState.strokeWidth == cur.width
-                        ? "w-8 h-8 p-1 bg-brand-muted rounded-sm flex items-center justify-center cursor-pointer"
-                        : "w-8 h-8 p-1 bg-bg-muted2 rounded-sm flex items-center justify-center cursor-pointer"
+                      stylesState.backgroundColor == "none"
+                        ? " rounded-sm border-fg border p-px cursor-pointer"
+                        : " rounded-sm p-px cursor-pointer"
                     }
                   >
-                    {" "}
-                    <div className="w-4 h-4">{cur.element}</div>
+                    <div
+                      className={"w-6 h-6 rounded-sm "}
+                      onClick={() => stylesState.setBackgroundColor("none")}
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        className="w-full h-full"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <defs>
+                          <pattern
+                            id="checker"
+                            width="6"
+                            height="6"
+                            patternUnits="userSpaceOnUse"
+                          >
+                            <rect width="6" height="6" fill="#ffffff" />
+                            <rect width="3" height="3" fill="#d1d5db" />
+                            <rect
+                              x="3"
+                              y="3"
+                              width="3"
+                              height="3"
+                              fill="#d1d5db"
+                            />
+                          </pattern>
+                        </defs>
+
+                        <rect
+                          width="24"
+                          height="24"
+                          rx="4"
+                          fill="url(#checker)"
+                        />
+                      </svg>
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-          {selectedTool != "pen" && (
+                  {bgColors.map((color) => {
+                    return (
+                      <div
+                        className={
+                          color == stylesState.backgroundColor
+                            ? " rounded border-fg border p-px"
+                            : "rounded-sm p-px"
+                        }
+                      >
+                        <div
+                          key={color}
+                          className={"w-6 h-6 rounded-sm cursor-pointer"}
+                          style={{ backgroundColor: color }}
+                          onClick={() => stylesState.setBackgroundColor(color)}
+                        ></div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {selectedTool != "arrow" &&
+              stylesState.backgroundColor != "none" && (
+                <div>
+                  <div>Fill</div>
+                  <div className="flex gap-2 mt-2">
+                    {fillStyles.map((cur) => {
+                      return (
+                        <div
+                          onClick={() => {
+                            stylesState.setFillStyle(cur.fillStyle);
+                          }}
+                          className={
+                            stylesState.fillStyle == cur.fillStyle
+                              ? "w-8 h-8 p-1 bg-brand-muted rounded-sm flex items-center justify-center cursor-pointer"
+                              : "w-8 h-8 p-1 bg-bg-muted2 rounded-sm flex items-center justify-center cursor-pointer"
+                          }
+                        >
+                          {" "}
+                          <div className="w-4 h-4">{cur.element}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             <div>
-              <div>Stroke Style</div>
+              <div>Stroke Width</div>
               <div className="flex gap-2 mt-2">
-                {strokeStyleStyles.map((cur) => {
+                {strokeFillWidthStyles.map((cur) => {
                   return (
                     <div
                       onClick={() => {
-                        stylesState.setStrokeStyle(cur.strokeStyle);
+                        stylesState.setStrokeWidth(cur.width);
                       }}
                       className={
-                        stylesState.strokeStyle == cur.strokeStyle
+                        stylesState.strokeWidth == cur.width
                           ? "w-8 h-8 p-1 bg-brand-muted rounded-sm flex items-center justify-center cursor-pointer"
                           : "w-8 h-8 p-1 bg-bg-muted2 rounded-sm flex items-center justify-center cursor-pointer"
                       }
@@ -645,70 +624,93 @@ export default function ToolStyleMenu() {
                 })}
               </div>
             </div>
-          )}
-          {selectedTool == "arrow" && (
-            <div>
-              <div>Arrow Type</div>
-              <div className="flex gap-2 mt-2">
-                {arrowtypeStyles.map((cur) => {
-                  return (
-                    <div
-                      onClick={() => {
-                        stylesState.setArrowType(cur.arrowType);
-                      }}
-                      className={
-                        stylesState.arrowType == cur.arrowType
-                          ? "w-8 h-8 p-1 bg-brand-muted rounded-sm flex items-center justify-center cursor-pointer"
-                          : "w-8 h-8 p-1 bg-bg-muted2 rounded-sm flex items-center justify-center cursor-pointer"
-                      }
-                    >
-                      {" "}
-                      <div className="w-4 h-4">{cur.element}</div>
-                    </div>
-                  );
-                })}
+            {selectedTool != "pen" && (
+              <div>
+                <div>Stroke Style</div>
+                <div className="flex gap-2 mt-2">
+                  {strokeStyleStyles.map((cur) => {
+                    return (
+                      <div
+                        onClick={() => {
+                          stylesState.setStrokeStyle(cur.strokeStyle);
+                        }}
+                        className={
+                          stylesState.strokeStyle == cur.strokeStyle
+                            ? "w-8 h-8 p-1 bg-brand-muted rounded-sm flex items-center justify-center cursor-pointer"
+                            : "w-8 h-8 p-1 bg-bg-muted2 rounded-sm flex items-center justify-center cursor-pointer"
+                        }
+                      >
+                        {" "}
+                        <div className="w-4 h-4">{cur.element}</div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
-          {(selectedTool == "rect" ||
-            selectedTool == "rotrect" ||
-            selectedTool == "line") && (
-            <div>
-              <div>Edges</div>
-              <div className="flex gap-2 mt-2">
-                {edgesRadiusStyles.map((cur) => {
-                  return (
-                    <div
-                      onClick={() => {
-                        stylesState.setEdgeRadius(cur.radius);
-                      }}
-                      className={
-                        stylesState.edgeRadius == cur.radius
-                          ? "w-8 h-8 p-1 bg-brand-muted rounded-sm flex items-center justify-center cursor-pointer"
-                          : "w-8 h-8 p-1 bg-bg-muted2 rounded-sm flex items-center justify-center cursor-pointer"
-                      }
-                    >
-                      {" "}
-                      <div className="w-4 h-4">{cur.element}</div>
-                    </div>
-                  );
-                })}
+            )}
+            {selectedTool == "arrow" && (
+              <div>
+                <div>Arrow Type</div>
+                <div className="flex gap-2 mt-2">
+                  {arrowtypeStyles.map((cur) => {
+                    return (
+                      <div
+                        onClick={() => {
+                          stylesState.setArrowType(cur.arrowType);
+                        }}
+                        className={
+                          stylesState.arrowType == cur.arrowType
+                            ? "w-8 h-8 p-1 bg-brand-muted rounded-sm flex items-center justify-center cursor-pointer"
+                            : "w-8 h-8 p-1 bg-bg-muted2 rounded-sm flex items-center justify-center cursor-pointer"
+                        }
+                      >
+                        {" "}
+                        <div className="w-4 h-4">{cur.element}</div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
-          <div>
-            <div>Opacity</div>
-            <div className="mt-2 relative mb-5">
-              <input
-                type="range"
-                min={0}
-                max={100}
-                step={10}
-                onChange={(e) => {
-                  stylesState.setOpacity(+e.target.value as opacity);
-                }}
-                value={stylesState.opacity}
-                className="appearance-none bg-bg-muted2 h-2 rounded-full cursor-pointer 
+            )}
+            {(selectedTool == "rect" ||
+              selectedTool == "rotrect" ||
+              selectedTool == "line") && (
+              <div>
+                <div>Edges</div>
+                <div className="flex gap-2 mt-2">
+                  {edgesRadiusStyles.map((cur) => {
+                    return (
+                      <div
+                        onClick={() => {
+                          stylesState.setEdgeRadius(cur.radius);
+                        }}
+                        className={
+                          stylesState.edgeRadius == cur.radius
+                            ? "w-8 h-8 p-1 bg-brand-muted rounded-sm flex items-center justify-center cursor-pointer"
+                            : "w-8 h-8 p-1 bg-bg-muted2 rounded-sm flex items-center justify-center cursor-pointer"
+                        }
+                      >
+                        {" "}
+                        <div className="w-4 h-4">{cur.element}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            <div>
+              <div>Opacity</div>
+              <div className="mt-2 relative mb-5">
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={10}
+                  onChange={(e) => {
+                    stylesState.setOpacity(+e.target.value as opacity);
+                  }}
+                  value={stylesState.opacity}
+                  className="appearance-none bg-bg-muted2 h-2 rounded-full cursor-pointer 
                  [&::-webkit-slider-thumb]:bg-brand 
                  [&::-webkit-slider-thumb]:appearance-none
                  [&::-webkit-slider-thumb]:w-4
@@ -719,20 +721,21 @@ export default function ToolStyleMenu() {
                   [&::-moz-range-thumb]:h-4
                   [&::-moz-range-thumb]:rounded-full
                   [&::-moz-range-thumb]:bg-brand w-full"
-              ></input>
-              <div
-                className={
-                  stylesState.opacity == 0
-                    ? "hidden"
-                    : stylesState.opacity > 50
-                      ? `absolute top-5 -translate-x-full`
-                      : "absolute top-5 -translate-x-1/2"
-                }
-                style={{ left: opacityThumbTranslate }}
-              >
-                {stylesState.opacity}
+                ></input>
+                <div
+                  className={
+                    stylesState.opacity == 0
+                      ? "hidden"
+                      : stylesState.opacity > 50
+                        ? `absolute top-5 -translate-x-full`
+                        : "absolute top-5 -translate-x-1/2"
+                  }
+                  style={{ left: opacityThumbTranslate }}
+                >
+                  {stylesState.opacity}
+                </div>
+                <div className="absolute top-5">0</div>
               </div>
-              <div className="absolute top-5">0</div>
             </div>
           </div>
         </div>

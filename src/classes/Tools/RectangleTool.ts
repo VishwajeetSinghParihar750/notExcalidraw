@@ -1,4 +1,4 @@
-import { Rectangle } from "../Rectangle";
+import { Rectangle } from "../Shapes/Rectangle";
 import type ShapeManager from "../ShapeManager";
 
 type state = "idle" | "drawing";

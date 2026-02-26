@@ -1,4 +1,4 @@
-import { RotatedRecangle } from "../RotatedRectangle";
+import { RotatedRecangle } from "../Shapes/RotatedRectangle";
 import type ShapeManager from "../ShapeManager";
 
 type state = "idle" | "drawing";

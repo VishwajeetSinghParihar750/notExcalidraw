@@ -3,21 +3,19 @@ import type { Shape } from "./Shape";
 import {
   useToolStyle,
   type backgroundColor,
-  type edgeRadius,
   type fillStyle,
   type opacity,
   type strokeColor,
   type strokeStyle,
   type strokeWidth,
-} from "../store/Tools.store";
+} from "../../store/Tools.store";
 
-export class RotatedRecangle implements Shape {
+export class Circle implements Shape {
   // style properties
   backgroundColor: backgroundColor;
   strokeColor: strokeColor;
   strokeWidth: strokeWidth;
   strokeStyle: strokeStyle;
-  edgeRadius: edgeRadius;
   opacity: opacity;
   fillStyle: fillStyle;
 
@@ -38,7 +36,6 @@ export class RotatedRecangle implements Shape {
       strokeColor,
       strokeWidth,
       strokeStyle,
-      edgeRadius,
       opacity,
       fillStyle,
     } = useToolStyle.getState();
@@ -47,7 +44,6 @@ export class RotatedRecangle implements Shape {
     this.strokeColor = strokeColor;
     this.strokeWidth = strokeWidth;
     this.strokeStyle = strokeStyle;
-    this.edgeRadius = edgeRadius;
     this.opacity = opacity;
     this.fillStyle = fillStyle;
   }
@@ -65,10 +61,6 @@ export class RotatedRecangle implements Shape {
 
   setStrokeStyle(style: strokeStyle) {
     this.strokeStyle = style;
-  }
-
-  setEdgeRadius(radius: edgeRadius) {
-    this.edgeRadius = radius;
   }
 
   setOpacity(opacity: opacity) {
@@ -89,6 +81,11 @@ export class RotatedRecangle implements Shape {
   draw(ctx: CanvasRenderingContext2D) {
     let [x1, y1, x2, y2] = this.getEnclosingRectangle();
 
+    let cx = (x1 + x2) / 2;
+    let cy = (y1 + y2) / 2;
+    let rx = (x2 - x1) / 2;
+    let ry = (y2 - y1) / 2;
+
     ctx.save();
 
     ctx.globalAlpha = this.opacity / 100.0;
@@ -96,42 +93,11 @@ export class RotatedRecangle implements Shape {
     {
       ctx.save();
 
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-
       ctx.lineWidth = this.strokeWidth;
       ctx.strokeStyle = this.strokeColor;
 
-      {
-        let [x1, y1, x2, y2, x3, y3, x4, y4] = this.getShape();
-
-        let dx = x2 - x1;
-        let dy = y2 - y1;
-        let len = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
-
-        if (x2 - x1 > this.edgeRadius && y2 - y1 > this.edgeRadius) {
-          let ux = dx / len;
-          let uy = dy / len;
-
-          let beginx;
-          let beginy;
-          if (Math.abs(dx) > Math.abs(dy)) {
-            beginx = x1 + ux * this.edgeRadius;
-            beginy = y1 + uy * this.edgeRadius;
-          } else {
-            beginx = x2 - ux * this.edgeRadius;
-            beginy = y2 - uy * this.edgeRadius;
-          }
-
-          ctx.moveTo(beginx, beginy);
-
-          ctx.arcTo(x2, y2, x3, y3, this.edgeRadius);
-          ctx.arcTo(x3, y3, x4, y4, this.edgeRadius);
-          ctx.arcTo(x4, y4, x1, y1, this.edgeRadius);
-          ctx.arcTo(x1, y1, x2, y2, this.edgeRadius);
-          ctx.lineTo(beginx, beginy);
-        }
-      }
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
 
       if (this.strokeStyle == "smalldotted") {
         ctx.setLineDash([4, 8]);
@@ -193,20 +159,6 @@ export class RotatedRecangle implements Shape {
     }
 
     ctx.restore();
-  }
-
-  getShape(): [number, number, number, number, number, number, number, number] {
-    let [x1, y1, x2, y2] = this.getEnclosingRectangle();
-    return [
-      (x1 + x2) / 2,
-      y1,
-      x2,
-      (y1 + y2) / 2,
-      (x1 + x2) / 2,
-      y2,
-      x1,
-      (y1 + y2) / 2,
-    ];
   }
 
   getEnclosingRectangle(): [number, number, number, number] {

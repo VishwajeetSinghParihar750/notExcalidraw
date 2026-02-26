@@ -1,4 +1,4 @@
-import type { Shape } from "./Shape";
+import type { Shape } from "./Shapes/Shape";
 
 export default class ShapeManager {
   shapes: Shape[] = [];

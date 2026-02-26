@@ -4,6 +4,7 @@ import RectangleTool from "../../classes/Tools/RectangleTool";
 import { useTool, type Tool } from "../../store/Tools.store";
 import RotatedRectangleTool from "../../classes/Tools/RotatedRectangleTool";
 import CircleTool from "../../classes/Tools/CircleTool";
+import LineTool from "../../classes/Tools/LineTool";
 
 export default function Canvas() {
   let canvas = useRef<HTMLCanvasElement>(null);
@@ -14,9 +15,11 @@ export default function Canvas() {
     shapeManager,
   );
   let circleTool: CircleTool = new CircleTool(shapeManager);
+  let lineTool: LineTool = new LineTool(shapeManager);
 
   let activeToolState = useTool((s) => s.selectedTool);
   let activeToolRef = useRef<Tool>(activeToolState);
+
   useEffect(() => {
     activeToolRef.current = activeToolState;
   }, [activeToolState]);
@@ -45,6 +48,9 @@ export default function Canvas() {
         case "circle":
           circleTool.onMouseDown(e);
           break;
+        case "line":
+          lineTool.onMouseDown(e);
+          break;
         default:
           break;
       }
@@ -61,6 +67,9 @@ export default function Canvas() {
         case "circle":
           circleTool.onMouseUp(e);
           break;
+        case "line":
+          lineTool.onMouseUp(e);
+          break;
 
         default:
           break;
@@ -76,6 +85,9 @@ export default function Canvas() {
           break;
         case "circle":
           circleTool.onMouseMove(e);
+          break;
+        case "line":
+          lineTool.onMouseMove(e);
           break;
 
         default:

@@ -1,14 +1,14 @@
 import type ShapeManager from "../ShapeManager";
-import { Line } from "../Shapes/Line";
 import { Point } from "../Shapes/Point";
+import { Arrow } from "../Shapes/Arrow";
 
 type state = "idle" | "drawingLine" | "drawingPath";
 
-export default class LineTool {
+export default class ArrowTool {
   shapeManager: ShapeManager;
   curState: state = "idle";
 
-  currentLine: Line | null = null;
+  currentLine: Arrow | null = null;
   lastPointInLine: Point = new Point(-1e18, -1e18);
 
   constructor(shapeManager: ShapeManager) {
@@ -25,7 +25,7 @@ export default class LineTool {
       case "idle":
         {
           this.curState = "drawingLine";
-          this.currentLine = new Line([curPoint, curPoint]);
+          this.currentLine = new Arrow([curPoint, curPoint]);
           this.lastPointInLine = curPoint;
 
           this.shapeManager.addShape(this.currentLine);

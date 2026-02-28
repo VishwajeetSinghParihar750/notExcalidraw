@@ -7,6 +7,7 @@ import CircleTool from "../../classes/Tools/CircleTool";
 import LineTool from "../../classes/Tools/LineTool";
 import ArrowTool from "../../classes/Tools/ArrowTool";
 import PenTool from "../../classes/Tools/PenTool";
+import EraserTool from "../../classes/Tools/EraserTool";
 
 export default function Canvas() {
   let canvas = useRef<HTMLCanvasElement>(null);
@@ -20,6 +21,7 @@ export default function Canvas() {
   let lineTool: LineTool = new LineTool(shapeManager);
   let arrowTool: ArrowTool = new ArrowTool(shapeManager);
   let penTool: PenTool = new PenTool(shapeManager);
+  let eraserTool: EraserTool = new EraserTool(shapeManager);
 
   let activeToolState = useTool((s) => s.selectedTool);
   let activeToolRef = useRef<Tool>(activeToolState);
@@ -61,6 +63,9 @@ export default function Canvas() {
         case "pen":
           penTool.onMouseDown(e);
           break;
+        case "eraser":
+          eraserTool.onMouseDown(e);
+          break;
         default:
           break;
       }
@@ -86,6 +91,9 @@ export default function Canvas() {
         case "pen":
           penTool.onMouseUp(e);
           break;
+        case "eraser":
+          eraserTool.onMouseUp(e);
+          break;
 
         default:
           break;
@@ -110,6 +118,9 @@ export default function Canvas() {
           break;
         case "pen":
           penTool.onMouseMove(e);
+          break;
+        case "eraser":
+          eraserTool.onMouseMove(e);
           break;
 
         default:

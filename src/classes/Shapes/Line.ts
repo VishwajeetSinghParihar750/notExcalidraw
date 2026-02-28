@@ -222,6 +222,7 @@ export class Line implements Shape {
     return [x1, y1, x2, y2];
   }
   containsPoint(x: number, y: number) {
-    return true;
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+    return x >= sx && x <= ex && y >= sy && y <= ey;
   }
 }

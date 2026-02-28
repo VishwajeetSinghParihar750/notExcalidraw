@@ -180,20 +180,7 @@ export class Rectangle implements Shape {
     return [x1, y1, x2, y2];
   }
   containsPoint(x: number, y: number) {
-    let sx = this.startX;
-    let ex = this.endX;
-    if (sx > ex) {
-      let t = sx;
-      sx = ex;
-      ex = t;
-    }
-    let sy = this.startX;
-    let ey = this.endX;
-    if (sy > ey) {
-      let t = sy;
-      sy = ey;
-      ey = t;
-    }
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
 
     return x >= sx && x <= ex && y >= sy && y <= ey;
   }

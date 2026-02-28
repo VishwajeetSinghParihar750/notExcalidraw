@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import ShapeManager from "../../classes/ShapeManager";
 import RectangleTool from "../../classes/Tools/RectangleTool";
 import { useTool, type Tool } from "../../store/Tools.store";
@@ -8,8 +8,12 @@ import LineTool from "../../classes/Tools/LineTool";
 import ArrowTool from "../../classes/Tools/ArrowTool";
 import PenTool from "../../classes/Tools/PenTool";
 import EraserTool from "../../classes/Tools/EraserTool";
+import TextTool from "../../classes/Tools/TextTool";
 
-export default function Canvas() {
+type propsType = {
+  editableTextContainer: React.RefObject<HTMLDivElement | null>;
+};
+export default function Canvas(props: propsType) {
   let canvas = useRef<HTMLCanvasElement>(null);
 
   let shapeManager: ShapeManager = new ShapeManager();
@@ -22,6 +26,11 @@ export default function Canvas() {
   let arrowTool: ArrowTool = new ArrowTool(shapeManager);
   let penTool: PenTool = new PenTool(shapeManager);
   let eraserTool: EraserTool = new EraserTool(shapeManager);
+
+  let textTool: TextTool = new TextTool(
+    shapeManager,
+    props.editableTextContainer,
+  );
 
   let activeToolState = useTool((s) => s.selectedTool);
   let activeToolRef = useRef<Tool>(activeToolState);
@@ -66,6 +75,9 @@ export default function Canvas() {
         case "eraser":
           eraserTool.onMouseDown(e);
           break;
+        case "text":
+          textTool.onMouseDown(e);
+          break;
         default:
           break;
       }
@@ -94,6 +106,9 @@ export default function Canvas() {
         case "eraser":
           eraserTool.onMouseUp(e);
           break;
+        case "text":
+          textTool.onMouseUp(e);
+          break;
 
         default:
           break;
@@ -121,6 +136,9 @@ export default function Canvas() {
           break;
         case "eraser":
           eraserTool.onMouseMove(e);
+          break;
+        case "text":
+          textTool.onMouseMove(e);
           break;
 
         default:

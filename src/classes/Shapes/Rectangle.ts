@@ -1,4 +1,4 @@
-import type { Shape } from "./Shape";
+import type { Shape, ShapeType } from "./Shape";
 
 import {
   useToolStyle,
@@ -12,6 +12,7 @@ import {
 } from "../../store/Tools.store";
 
 export class Rectangle implements Shape {
+  shapeType: ShapeType = "rect";
   // style properties
   backgroundColor: backgroundColor;
   strokeColor: strokeColor;

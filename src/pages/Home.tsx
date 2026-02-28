@@ -2,8 +2,10 @@ import Menu from "../components/home/Menu";
 import Tools from "../components/home/Tools";
 import Canvas from "../components/home/Canvas";
 import ToolStyleMenu from "../components/home/ToolStyleMenu";
+import { useRef } from "react";
 
 export default function Home() {
+  let editableTextContainer = useRef<HTMLDivElement>(null);
   return (
     <body className="bg-bg text-fg w-full h-full">
       <div
@@ -20,8 +22,8 @@ export default function Home() {
           <ToolStyleMenu />
         </div>
       </div>
-      <div className="fixed inset-0 -z-1">
-        <Canvas />
+      <div className="fixed inset-0 -z-2" ref={editableTextContainer}>
+        <Canvas editableTextContainer={editableTextContainer} />
       </div>
     </body>
   );

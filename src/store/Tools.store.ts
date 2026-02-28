@@ -37,6 +37,9 @@ type edgeRadius = 0 | 10;
 type opacity = 0 | 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 | 90 | 100;
 type backgroundColor = string | "none";
 type strokeColor = string;
+type fontFamily = "hand" | "code" | "normal";
+type fontSize = "small" | "medium" | "large" | "extra-large";
+type textAlign = "left" | "center" | "right";
 
 interface toolStyleState {
   strokeColor: strokeColor; // color
@@ -47,6 +50,9 @@ interface toolStyleState {
   edgeRadius: edgeRadius;
   opacity: opacity;
   arrowType: arrowType;
+  fontFamily: fontFamily;
+  fontSize: fontSize;
+  textAlign: textAlign;
 }
 
 interface toolStyleActions {
@@ -58,6 +64,9 @@ interface toolStyleActions {
   setEdgeRadius: (radius: edgeRadius) => void;
   setOpacity: (opacity: opacity) => void;
   setArrowType: (type: arrowType) => void;
+  setFontFamily: (fontFamily: fontFamily) => void;
+  setFontSize: (fontSize: fontSize) => void;
+  setTextAlign: (textAlign: textAlign) => void;
 }
 
 const useToolStyle = create<toolStyleState & toolStyleActions>((set) => ({
@@ -69,6 +78,9 @@ const useToolStyle = create<toolStyleState & toolStyleActions>((set) => ({
   edgeRadius: 0,
   opacity: 100,
   arrowType: "curve",
+  fontFamily: "hand",
+  fontSize: "medium",
+  textAlign: "left",
 
   setStrokeColor: (color) => set({ strokeColor: color }),
   setBackgroundColor: (color) => set({ backgroundColor: color }),
@@ -78,6 +90,9 @@ const useToolStyle = create<toolStyleState & toolStyleActions>((set) => ({
   setEdgeRadius: (radius) => set({ edgeRadius: radius }),
   setOpacity: (opacity) => set({ opacity }),
   setArrowType: (type) => set({ arrowType: type }),
+  setFontFamily: (fontFamily) => set({ fontFamily: fontFamily }),
+  setFontSize: (fontSize) => set({ fontSize: fontSize }),
+  setTextAlign: (textAlign) => set({ textAlign: textAlign }),
 }));
 
 export { useTool, useToolStyle };
@@ -91,4 +106,7 @@ export type {
   opacity,
   backgroundColor,
   strokeColor,
+  fontFamily,
+  fontSize,
+  textAlign,
 };

@@ -1,4 +1,4 @@
-import type { Shape } from "./Shape";
+import type { Shape, ShapeType } from "./Shape";
 
 import {
   useToolStyle,
@@ -9,9 +9,9 @@ import {
   type strokeWidth,
 } from "../../store/Tools.store";
 import { Point } from "./Point";
-import { catmullRomToBezier } from "../../utils/Line";
 
 export class Pen implements Shape {
+  shapeType: ShapeType = "pen";
   // style properties
   backgroundColor: backgroundColor;
   strokeColor: strokeColor;

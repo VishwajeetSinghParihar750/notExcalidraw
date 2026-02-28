@@ -1,4 +1,4 @@
-import type { Shape } from "./Shape";
+import type { Shape, ShapeType } from "./Shape";
 
 import {
   useToolStyle,
@@ -11,6 +11,7 @@ import {
 } from "../../store/Tools.store";
 
 export class Circle implements Shape {
+  shapeType: ShapeType = "circle";
   // style properties
   backgroundColor: backgroundColor;
   strokeColor: strokeColor;

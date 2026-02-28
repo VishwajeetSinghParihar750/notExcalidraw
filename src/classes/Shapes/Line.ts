@@ -1,4 +1,4 @@
-import type { Shape } from "./Shape";
+import type { Shape, ShapeType } from "./Shape";
 import { Point } from "./Point";
 
 import {
@@ -14,6 +14,7 @@ import {
 import { catmullRomToBezier } from "../../utils/Line";
 
 export class Line implements Shape {
+  shapeType: ShapeType = "line";
   // style properties
   backgroundColor: backgroundColor;
   strokeColor: strokeColor;

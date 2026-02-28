@@ -27,3 +27,8 @@
     @apply mx-auto;
   }
 }
+
+@font-face {
+  font-family: "OceanTrace", sans-serif;
+  src: url("/public/fonts/OceanTrace.ttf");
+}

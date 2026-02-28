@@ -5,6 +5,8 @@ import type {
   backgroundColor,
   edgeRadius,
   fillStyle,
+  fontFamily,
+  fontSize,
   opacity,
   strokeColor,
   strokeStyle,
@@ -20,7 +22,8 @@ export default function ToolStyleMenu() {
     selectedTool == "rotrect" ||
     selectedTool == "line" ||
     selectedTool == "pen" ||
-    selectedTool == "arrow";
+    selectedTool == "arrow" ||
+    selectedTool == "text";
 
   let strokeColors: strokeColor[] = [
     "#d3d3d3",
@@ -459,6 +462,196 @@ export default function ToolStyleMenu() {
     },
   ];
 
+  type fontFamilyInfo = { fontFamily: fontFamily; element: ReactElement };
+  let fontFamilyStyles: fontFamilyInfo[] = [
+    {
+      fontFamily: "hand",
+      element: (
+        <svg
+          aria-hidden="true"
+          focusable="false"
+          role="img"
+          viewBox="0 0 20 20"
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <g stroke-width="1.25">
+            <path
+              clip-rule="evenodd"
+              d="m7.643 15.69 7.774-7.773a2.357 2.357 0 1 0-3.334-3.334L4.31 12.357a3.333 3.333 0 0 0-.977 2.357v1.953h1.953c.884 0 1.732-.352 2.357-.977Z"
+            ></path>
+            <path d="m11.25 5.417 3.333 3.333"></path>
+          </g>
+        </svg>
+      ),
+    },
+    {
+      fontFamily: "normal",
+      element: (
+        <svg
+          aria-hidden="true"
+          focusable="false"
+          role="img"
+          viewBox="0 0 20 20"
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <g
+            stroke="currentColor"
+            stroke-width="1.25"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M5.833 16.667v-10a3.333 3.333 0 0 1 3.334-3.334h1.666a3.333 3.333 0 0 1 3.334 3.334v10M5.833 10.833h8.334"></path>
+          </g>
+        </svg>
+      ),
+    },
+    {
+      fontFamily: "code",
+      element: (
+        <svg
+          aria-hidden="true"
+          focusable="false"
+          role="img"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke-width="2"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <g stroke-width="1.5">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+            <path d="M7 8l-4 4l4 4"></path>
+            <path d="M17 8l4 4l-4 4"></path>
+            <path d="M14 4l-4 16"></path>
+          </g>
+        </svg>
+      ),
+    },
+  ];
+  type fontSizeInfo = { fontSize: fontSize; element: ReactElement };
+  let fontSizeStyles: fontSizeInfo[] = [
+    {
+      fontSize: "small",
+      element: (
+        <svg
+          aria-hidden="true"
+          focusable="false"
+          role="img"
+          viewBox="0 0 20 20"
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <g clip-path="url(#a)">
+            <path
+              d="M14.167 6.667a3.333 3.333 0 0 0-3.334-3.334H9.167a3.333 3.333 0 0 0 0 6.667h1.666a3.333 3.333 0 0 1 0 6.667H9.167a3.333 3.333 0 0 1-3.334-3.334"
+              stroke="currentColor"
+              stroke-width="1.25"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </g>
+          <defs>
+            <clipPath id="a">
+              <path fill="#fff" d="M0 0h20v20H0z"></path>
+            </clipPath>
+          </defs>
+        </svg>
+      ),
+    },
+    {
+      fontSize: "medium",
+      element: (
+        <svg
+          aria-hidden="true"
+          focusable="false"
+          role="img"
+          viewBox="0 0 20 20"
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <g clip-path="url(#a)">
+            <path
+              d="M5 16.667V3.333L10 15l5-11.667v13.334"
+              stroke="currentColor"
+              stroke-width="1.25"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </g>
+          <defs>
+            <clipPath id="a">
+              <path fill="#fff" d="M0 0h20v20H0z"></path>
+            </clipPath>
+          </defs>
+        </svg>
+      ),
+    },
+    {
+      fontSize: "large",
+      element: (
+        <svg
+          aria-hidden="true"
+          focusable="false"
+          role="img"
+          viewBox="0 0 20 20"
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <g clip-path="url(#a)">
+            <path
+              d="M5.833 3.333v13.334h8.334"
+              stroke="currentColor"
+              stroke-width="1.25"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </g>
+          <defs>
+            <clipPath id="a">
+              <path fill="#fff" d="M0 0h20v20H0z"></path>
+            </clipPath>
+          </defs>
+        </svg>
+      ),
+    },
+    {
+      fontSize: "extra-large",
+      element: (
+        <svg
+          aria-hidden="true"
+          focusable="false"
+          role="img"
+          viewBox="0 0 20 20"
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="m1.667 3.333 6.666 13.334M8.333 3.333 1.667 16.667M11.667 3.333v13.334h6.666"
+            stroke="currentColor"
+            stroke-width="1.25"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          ></path>
+        </svg>
+      ),
+    },
+  ];
+
   //
   let stylesState = useToolStyle((s) => s);
 
@@ -602,29 +795,31 @@ export default function ToolStyleMenu() {
                   </div>
                 </div>
               )}
-            <div>
-              <div>Stroke Width</div>
-              <div className="flex gap-2 mt-2">
-                {strokeFillWidthStyles.map((cur) => {
-                  return (
-                    <div
-                      onClick={() => {
-                        stylesState.setStrokeWidth(cur.width);
-                      }}
-                      className={
-                        stylesState.strokeWidth == cur.width
-                          ? "w-8 h-8 p-1 bg-brand-muted rounded-sm flex items-center justify-center cursor-pointer"
-                          : "w-8 h-8 p-1 bg-bg-muted2 rounded-sm flex items-center justify-center cursor-pointer"
-                      }
-                    >
-                      {" "}
-                      <div className="w-4 h-4">{cur.element}</div>
-                    </div>
-                  );
-                })}
+            {selectedTool != "text" && (
+              <div>
+                <div>Stroke Width</div>
+                <div className="flex gap-2 mt-2">
+                  {strokeFillWidthStyles.map((cur) => {
+                    return (
+                      <div
+                        onClick={() => {
+                          stylesState.setStrokeWidth(cur.width);
+                        }}
+                        className={
+                          stylesState.strokeWidth == cur.width
+                            ? "w-8 h-8 p-1 bg-brand-muted rounded-sm flex items-center justify-center cursor-pointer"
+                            : "w-8 h-8 p-1 bg-bg-muted2 rounded-sm flex items-center justify-center cursor-pointer"
+                        }
+                      >
+                        {" "}
+                        <div className="w-4 h-4">{cur.element}</div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-            {selectedTool != "pen" && (
+            )}
+            {selectedTool != "pen" && selectedTool != "text" && (
               <div>
                 <div>Stroke Style</div>
                 <div className="flex gap-2 mt-2">
@@ -636,6 +831,54 @@ export default function ToolStyleMenu() {
                         }}
                         className={
                           stylesState.strokeStyle == cur.strokeStyle
+                            ? "w-8 h-8 p-1 bg-brand-muted rounded-sm flex items-center justify-center cursor-pointer"
+                            : "w-8 h-8 p-1 bg-bg-muted2 rounded-sm flex items-center justify-center cursor-pointer"
+                        }
+                      >
+                        {" "}
+                        <div className="w-4 h-4">{cur.element}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {selectedTool == "text" && (
+              <div>
+                <div>Font Family</div>
+                <div className="flex gap-2 mt-2">
+                  {fontFamilyStyles.map((cur) => {
+                    return (
+                      <div
+                        onClick={() => {
+                          stylesState.setFontFamily(cur.fontFamily);
+                        }}
+                        className={
+                          stylesState.fontFamily == cur.fontFamily
+                            ? "w-8 h-8 p-1 bg-brand-muted rounded-sm flex items-center justify-center cursor-pointer"
+                            : "w-8 h-8 p-1 bg-bg-muted2 rounded-sm flex items-center justify-center cursor-pointer"
+                        }
+                      >
+                        {" "}
+                        <div className="w-4 h-4">{cur.element}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {selectedTool == "text" && (
+              <div>
+                <div>Font Size</div>
+                <div className="flex gap-2 mt-2">
+                  {fontSizeStyles.map((cur) => {
+                    return (
+                      <div
+                        onClick={() => {
+                          stylesState.setFontSize(cur.fontSize);
+                        }}
+                        className={
+                          stylesState.fontSize == cur.fontSize
                             ? "w-8 h-8 p-1 bg-brand-muted rounded-sm flex items-center justify-center cursor-pointer"
                             : "w-8 h-8 p-1 bg-bg-muted2 rounded-sm flex items-center justify-center cursor-pointer"
                         }

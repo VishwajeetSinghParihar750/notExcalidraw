@@ -2,6 +2,7 @@ import type React from "react";
 import type ShapeManager from "../ShapeManager";
 import { Point } from "../Shapes/Point";
 import { Text } from "../Shapes/Text";
+import { useToolStyle } from "../../store/Tools.store";
 
 type state = "idle" | "editing";
 
@@ -11,16 +12,95 @@ export default class TextTool {
 
   curText: Text | null = null;
   editableTextContainer: React.RefObject<HTMLDivElement | null>;
+  canvas: React.RefObject<HTMLCanvasElement | null>;
   currentInputElement: HTMLTextAreaElement;
 
   lastMouseDown: Point = new Point(-1e18, -1e18);
 
+  subscribeToState() {
+    useToolStyle.subscribe(
+      (state) => state.fontFamily,
+      (state) => {
+        if (this.curText) {
+          this.curText.setFontFamily(state);
+          switch (this.curText.fontFamily) {
+            case "code":
+              this.currentInputElement.style.fontFamily = "Code";
+              break;
+            case "normal":
+              this.currentInputElement.style.fontFamily = "sans-serif";
+              break;
+            case "hand":
+              this.currentInputElement.style.fontFamily = "Handwriting";
+              break;
+
+            default:
+              break;
+          }
+        }
+      },
+    );
+
+    useToolStyle.subscribe(
+      (state) => state.fontSize,
+      (state) => {
+        if (this.curText) {
+          this.curText.setFontSize(state);
+
+          switch (this.curText.fontSize) {
+            case "small":
+              this.currentInputElement.style.fontSize = "16px";
+              this.currentInputElement.style.lineHeight = "20px";
+              break;
+            case "medium":
+              this.currentInputElement.style.fontSize = "24px";
+              this.currentInputElement.style.lineHeight = "30px";
+              break;
+            case "large":
+              this.currentInputElement.style.fontSize = "32px";
+              this.currentInputElement.style.lineHeight = "38px";
+              break;
+            case "extra-large":
+              this.currentInputElement.style.fontSize = "40px";
+              this.currentInputElement.style.lineHeight = "48px";
+              break;
+
+            default:
+              break;
+          }
+        }
+      },
+    );
+    useToolStyle.subscribe(
+      (state) => state.opacity,
+      (state) => {
+        if (this.curText) {
+          this.currentInputElement.style.opacity = (state / 100).toString();
+          this.curText.setOpacity(state);
+        }
+      },
+    );
+    useToolStyle.subscribe(
+      (state) => state.strokeColor,
+      (state) => {
+        if (this.curText) {
+          this.currentInputElement.style.color = state;
+          this.curText.setStrokeColor(state);
+        }
+      },
+    );
+  }
+
   constructor(
     shapeManager: ShapeManager,
     editableTextContainer: React.RefObject<HTMLDivElement | null>,
+    canvas: React.RefObject<HTMLCanvasElement | null>,
   ) {
+    this.subscribeToState();
+
     this.shapeManager = shapeManager;
     this.editableTextContainer = editableTextContainer;
+    this.canvas = canvas;
 
     this.currentInputElement = document.createElement("textarea");
     this.currentInputElement.onmousedown = (e) => e.stopPropagation();
@@ -45,6 +125,8 @@ export default class TextTool {
   }
 
   onMouseDown(e: MouseEvent) {
+    if (e.target != this.canvas.current) return;
+
     if (this.curState == "idle") this.curState = "editing";
     else if (this.curState == "editing") {
       this.curState = "idle";
@@ -74,6 +156,8 @@ export default class TextTool {
   onMouseMove(e: MouseEvent) {}
 
   onMouseUp(e: MouseEvent) {
+    if (e.target != this.canvas.current) return;
+
     if (!this.editableTextContainer.current) return;
 
     if (this.curState == "editing") {

@@ -40,7 +40,7 @@ export default function Canvas(props: propsType) {
       arrow: new ArrowTool(sm),
       pen: new PenTool(sm),
       eraser: new EraserTool(sm),
-      text: new TextTool(sm, props.editableTextContainer),
+      text: new TextTool(sm, props.editableTextContainer, canvas),
     };
   }
 

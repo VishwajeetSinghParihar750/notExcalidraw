@@ -60,6 +60,13 @@ export class Text implements Shape {
   setOpacity(opacity: opacity) {
     this.opacity = opacity;
   }
+  setFontFamily(fontFamily: fontFamily) {
+    this.fontFamily = fontFamily;
+  }
+  setFontSize(fontSize: fontSize) {
+    this.fontSize = fontSize;
+  }
+
   setCurState(curState: TextShapeState) {
     this.curState = curState;
   }

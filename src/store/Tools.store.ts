@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { subscribeWithSelector } from "zustand/middleware";
 
 //
 
@@ -69,31 +70,33 @@ interface toolStyleActions {
   setTextAlign: (textAlign: textAlign) => void;
 }
 
-const useToolStyle = create<toolStyleState & toolStyleActions>((set) => ({
-  strokeColor: "black",
-  backgroundColor: "none",
-  fillStyle: "fill",
-  strokeWidth: 4,
-  strokeStyle: "line",
-  edgeRadius: 0,
-  opacity: 100,
-  arrowType: "curve",
-  fontFamily: "hand",
-  fontSize: "medium",
-  textAlign: "left",
+const useToolStyle = create<toolStyleState & toolStyleActions>()(
+  subscribeWithSelector((set) => ({
+    strokeColor: "black",
+    backgroundColor: "none",
+    fillStyle: "fill",
+    strokeWidth: 4,
+    strokeStyle: "line",
+    edgeRadius: 0,
+    opacity: 100,
+    arrowType: "curve",
+    fontFamily: "hand",
+    fontSize: "medium",
+    textAlign: "left",
 
-  setStrokeColor: (color) => set({ strokeColor: color }),
-  setBackgroundColor: (color) => set({ backgroundColor: color }),
-  setFillStyle: (style) => set({ fillStyle: style }),
-  setStrokeWidth: (width) => set({ strokeWidth: width }),
-  setStrokeStyle: (style) => set({ strokeStyle: style }),
-  setEdgeRadius: (radius) => set({ edgeRadius: radius }),
-  setOpacity: (opacity) => set({ opacity }),
-  setArrowType: (type) => set({ arrowType: type }),
-  setFontFamily: (fontFamily) => set({ fontFamily: fontFamily }),
-  setFontSize: (fontSize) => set({ fontSize: fontSize }),
-  setTextAlign: (textAlign) => set({ textAlign: textAlign }),
-}));
+    setStrokeColor: (color) => set({ strokeColor: color }),
+    setBackgroundColor: (color) => set({ backgroundColor: color }),
+    setFillStyle: (style) => set({ fillStyle: style }),
+    setStrokeWidth: (width) => set({ strokeWidth: width }),
+    setStrokeStyle: (style) => set({ strokeStyle: style }),
+    setEdgeRadius: (radius) => set({ edgeRadius: radius }),
+    setOpacity: (opacity) => set({ opacity }),
+    setArrowType: (type) => set({ arrowType: type }),
+    setFontFamily: (fontFamily) => set({ fontFamily: fontFamily }),
+    setFontSize: (fontSize) => set({ fontSize: fontSize }),
+    setTextAlign: (textAlign) => set({ textAlign: textAlign }),
+  })),
+);
 
 export { useTool, useToolStyle };
 export type {

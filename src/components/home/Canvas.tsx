@@ -16,21 +16,33 @@ type propsType = {
 export default function Canvas(props: propsType) {
   let canvas = useRef<HTMLCanvasElement>(null);
 
-  let shapeManager: ShapeManager = new ShapeManager();
-  let rectangleTool: RectangleTool = new RectangleTool(shapeManager);
-  let rotatedRectangleTool: RotatedRectangleTool = new RotatedRectangleTool(
-    shapeManager,
-  );
-  let circleTool: CircleTool = new CircleTool(shapeManager);
-  let lineTool: LineTool = new LineTool(shapeManager);
-  let arrowTool: ArrowTool = new ArrowTool(shapeManager);
-  let penTool: PenTool = new PenTool(shapeManager);
-  let eraserTool: EraserTool = new EraserTool(shapeManager);
+  const shapeManagerRef = useRef<ShapeManager | null>(null);
+  const toolsRef = useRef<{
+    rect: RectangleTool;
+    rotrect: RotatedRectangleTool;
+    circle: CircleTool;
+    line: LineTool;
+    arrow: ArrowTool;
+    pen: PenTool;
+    eraser: EraserTool;
+    text: TextTool;
+  } | null>(null);
 
-  let textTool: TextTool = new TextTool(
-    shapeManager,
-    props.editableTextContainer,
-  );
+  if (!shapeManagerRef.current) {
+    const sm = new ShapeManager();
+    shapeManagerRef.current = sm;
+
+    toolsRef.current = {
+      rect: new RectangleTool(sm),
+      rotrect: new RotatedRectangleTool(sm),
+      circle: new CircleTool(sm),
+      line: new LineTool(sm),
+      arrow: new ArrowTool(sm),
+      pen: new PenTool(sm),
+      eraser: new EraserTool(sm),
+      text: new TextTool(sm, props.editableTextContainer),
+    };
+  }
 
   let activeToolState = useTool((s) => s.selectedTool);
   let activeToolRef = useRef<Tool>(activeToolState);
@@ -40,8 +52,11 @@ export default function Canvas(props: propsType) {
   }, [activeToolState]);
 
   useEffect(() => {
-    if (!canvas.current) return;
+    if (!canvas.current || !toolsRef.current || !shapeManagerRef.current)
+      return;
     const canvasEl = canvas.current;
+    const tools = toolsRef.current;
+    const shapeManager = shapeManagerRef.current;
 
     const dpr = window.devicePixelRatio;
 
@@ -53,61 +68,62 @@ export default function Canvas(props: propsType) {
     ctx.scale(dpr, dpr);
 
     const handleMouseDown = (e: MouseEvent) => {
+      // console.log("window down ");
       switch (activeToolRef.current) {
         case "rect":
-          rectangleTool.onMouseDown(e);
+          tools.rect.onMouseDown(e);
           break;
         case "rotrect":
-          rotatedRectangleTool.onMouseDown(e);
+          tools.rotrect.onMouseDown(e);
           break;
         case "circle":
-          circleTool.onMouseDown(e);
+          tools.circle.onMouseDown(e);
           break;
         case "line":
-          lineTool.onMouseDown(e);
+          tools.line.onMouseDown(e);
           break;
         case "arrow":
-          arrowTool.onMouseDown(e);
+          tools.arrow.onMouseDown(e);
           break;
         case "pen":
-          penTool.onMouseDown(e);
+          tools.pen.onMouseDown(e);
           break;
         case "eraser":
-          eraserTool.onMouseDown(e);
+          tools.eraser.onMouseDown(e);
           break;
         case "text":
-          textTool.onMouseDown(e);
+          tools.text.onMouseDown(e);
           break;
         default:
           break;
       }
     };
     const handleMouseup = (e: MouseEvent) => {
-      console.log("addEventListener up");
+      // console.log("window up");
       switch (activeToolRef.current) {
         case "rect":
-          rectangleTool.onMouseUp(e);
+          tools.rect.onMouseUp(e);
           break;
         case "rotrect":
-          rotatedRectangleTool.onMouseUp(e);
+          tools.rotrect.onMouseUp(e);
           break;
         case "circle":
-          circleTool.onMouseUp(e);
+          tools.circle.onMouseUp(e);
           break;
         case "line":
-          lineTool.onMouseUp(e);
+          tools.line.onMouseUp(e);
           break;
         case "arrow":
-          arrowTool.onMouseUp(e);
+          tools.arrow.onMouseUp(e);
           break;
         case "pen":
-          penTool.onMouseUp(e);
+          tools.pen.onMouseUp(e);
           break;
         case "eraser":
-          eraserTool.onMouseUp(e);
+          tools.eraser.onMouseUp(e);
           break;
         case "text":
-          textTool.onMouseUp(e);
+          tools.text.onMouseUp(e);
           break;
 
         default:
@@ -115,30 +131,31 @@ export default function Canvas(props: propsType) {
       }
     };
     const handleMouseMove = (e: MouseEvent) => {
+      // console.log("window move");
       switch (activeToolRef.current) {
         case "rect":
-          rectangleTool.onMouseMove(e);
+          tools.rect.onMouseMove(e);
           break;
         case "rotrect":
-          rotatedRectangleTool.onMouseMove(e);
+          tools.rotrect.onMouseMove(e);
           break;
         case "circle":
-          circleTool.onMouseMove(e);
+          tools.circle.onMouseMove(e);
           break;
         case "line":
-          lineTool.onMouseMove(e);
+          tools.line.onMouseMove(e);
           break;
         case "arrow":
-          arrowTool.onMouseMove(e);
+          tools.arrow.onMouseMove(e);
           break;
         case "pen":
-          penTool.onMouseMove(e);
+          tools.pen.onMouseMove(e);
           break;
         case "eraser":
-          eraserTool.onMouseMove(e);
+          tools.eraser.onMouseMove(e);
           break;
         case "text":
-          textTool.onMouseMove(e);
+          tools.text.onMouseMove(e);
           break;
 
         default:

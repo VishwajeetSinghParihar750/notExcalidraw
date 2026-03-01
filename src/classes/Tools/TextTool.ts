@@ -11,7 +11,7 @@ export default class TextTool {
 
   curText: Text | null = null;
   editableTextContainer: React.RefObject<HTMLDivElement | null>;
-  currentInputElement: HTMLInputElement;
+  currentInputElement: HTMLTextAreaElement;
 
   lastMouseDown: Point = new Point(-1e18, -1e18);
 
@@ -22,60 +22,145 @@ export default class TextTool {
     this.shapeManager = shapeManager;
     this.editableTextContainer = editableTextContainer;
 
-    this.currentInputElement = document.createElement("input");
+    this.currentInputElement = document.createElement("textarea");
     this.currentInputElement.onmousedown = (e) => e.stopPropagation();
     this.currentInputElement.onmouseup = (e) => e.stopPropagation();
     this.currentInputElement.onmousemove = (e) => e.stopPropagation();
+
     this.currentInputElement.id = "textool input element";
+
+    this.currentInputElement.style.whiteSpace = "pre";
+    this.currentInputElement.style.resize = "none";
+    this.currentInputElement.style.overflow = "hidden";
+    this.currentInputElement.style.outline = "none";
+
+    this.currentInputElement.addEventListener("input", (e) => {
+      this.currentInputElement.style.height = "auto";
+      this.currentInputElement.style.height =
+        this.currentInputElement.scrollHeight + "px";
+      this.currentInputElement.style.width = "auto";
+      this.currentInputElement.style.width =
+        this.currentInputElement.scrollWidth + "px";
+    });
   }
 
   onMouseDown(e: MouseEvent) {
+    if (this.curState == "idle") this.curState = "editing";
+    else if (this.curState == "editing") {
+      this.curState = "idle";
+
+      let rect = this.currentInputElement.getBoundingClientRect();
+      this.curText!.setEnclosingRectangleCoordinates([
+        rect.x,
+        rect.y,
+        rect.x + rect.width,
+        rect.y + rect.height,
+      ]);
+
+      this.curText!.text = this.currentInputElement.value;
+      this.curText!.curState = "render";
+      this.currentInputElement.value = "";
+
+      if (this.curText!.text.length == 0)
+        this.shapeManager.removeShape(this.curText!);
+
+      this.editableTextContainer.current?.removeChild(this.currentInputElement);
+    }
+
     this.lastMouseDown.x = e.clientX;
     this.lastMouseDown.y = e.clientY;
   }
 
   onMouseMove(e: MouseEvent) {}
+
   onMouseUp(e: MouseEvent) {
     if (!this.editableTextContainer.current) return;
 
-    console.log("text up mouseup ");
-
-    let curPoint = new Point(Math.floor(e.clientX), Math.floor(e.clientY));
-
     if (this.curState == "editing") {
-      this.curState = "idle";
-      if (this.curText!.text.length == 0) {
-        this.shapeManager.removeShape(this.curText!);
-      } else {
-        this.curText!.curState = "render";
-      }
-      this.editableTextContainer.current?.removeChild(this.currentInputElement);
-    } else if (this.curState == "idle") {
-      this.curState = "editing";
+      const containerRect =
+        this.editableTextContainer.current!.getBoundingClientRect();
+
+      let curPoint = new Point(
+        Math.floor(e.clientX - containerRect.left),
+        Math.floor(e.clientY - containerRect.top),
+      );
+      // let curPoint = new Point(Math.floor(e.clientX), Math.floor(e.clientY));
 
       let shapes = this.shapeManager
-        .getShapesAt(e.clientX, e.clientY)
+        .getShapesAt(curPoint.x, curPoint.y)
         .reverse();
+
       let lastText = shapes.find((shape) => shape.shapeType == "text");
 
-      if (lastText) this.curText = lastText as Text;
-      else this.curText = new Text("edit", []);
+      if (lastText) {
+        this.curText = lastText as Text;
+      } else {
+        this.curText = new Text("edit", "", [
+          new Point(curPoint.x, curPoint.y),
+          new Point(curPoint.x, curPoint.y),
+        ]);
+        this.shapeManager.addShape(this.curText);
+      }
 
-      // this.currentInputElement.classList = `absolute w-100 h-100 bg-pink-200 text-blue-400 `;
+      this.currentInputElement.value = this.curText.text;
+
       this.currentInputElement.style.position = "absolute";
-      this.currentInputElement.style.color = "white";
-      this.currentInputElement.style.top = `${curPoint.y}px`;
-      this.currentInputElement.style.left = `${curPoint.x}px`;
-      this.currentInputElement.style.width = "100px";
-      this.currentInputElement.style.height = "20px";
+      this.currentInputElement.style.top = `${this.curText.startPoint.y}px`;
+      this.currentInputElement.style.left = `${this.curText.startPoint.x}px`;
 
-      // this.currentInputElement.focus();
+      this.currentInputElement.style.color = this.curText.strokeColor;
+      this.currentInputElement.style.opacity = (
+        this.curText.opacity / 100
+      ).toString();
+
+      switch (this.curText.fontSize) {
+        case "small":
+          this.currentInputElement.style.fontSize = "16px";
+          this.currentInputElement.style.lineHeight = "20px";
+          break;
+        case "medium":
+          this.currentInputElement.style.fontSize = "24px";
+          this.currentInputElement.style.lineHeight = "30px";
+          break;
+        case "large":
+          this.currentInputElement.style.fontSize = "32px";
+          this.currentInputElement.style.lineHeight = "38px";
+          break;
+        case "extra-large":
+          this.currentInputElement.style.fontSize = "40px";
+          this.currentInputElement.style.lineHeight = "48px";
+          break;
+
+        default:
+          break;
+      }
+      switch (this.curText.fontFamily) {
+        case "code":
+          this.currentInputElement.style.fontFamily = "Code";
+          break;
+        case "normal":
+          this.currentInputElement.style.fontFamily = "sans-serif";
+          break;
+        case "hand":
+          this.currentInputElement.style.fontFamily = "Handwriting";
+          break;
+
+        default:
+          break;
+      }
 
       this.editableTextContainer.current?.appendChild(this.currentInputElement);
-      // this.currentInputElement.innerText = "this is working fine actually ";
+
+      this.currentInputElement.style.height = "auto";
+      this.currentInputElement.style.height =
+        this.currentInputElement.scrollHeight + "px";
+      this.currentInputElement.style.width = "auto";
+      this.currentInputElement.style.width =
+        this.currentInputElement.scrollWidth + "px";
 
       this.curText.setCurState("edit");
-      //
+
+      this.currentInputElement.select();
     }
   }
 }

@@ -29,6 +29,11 @@
 }
 
 @font-face {
-  font-family: "OceanTrace", sans-serif;
-  src: url("/public/fonts/OceanTrace.ttf");
+  font-family: "Handwriting";
+  src: url("fonts/Almond\ Milky.otf");
+}
+
+@font-face {
+  font-family: "Code";
+  src: url("UbuntuMono-R.ttf");
 }

@@ -6,8 +6,8 @@ import {
   type strokeColor,
   type fontFamily,
   type fontSize,
-  type textAlign,
 } from "../../store/Tools.store";
+import { Point } from "./Point";
 
 type TextShapeState = "render" | "edit";
 type TextMaxWidth = number | "any";
@@ -20,29 +20,35 @@ export class Text implements Shape {
   opacity: opacity;
   fontFamily: fontFamily;
   fontSize: fontSize;
-  textAlign: textAlign;
 
   // shape definition
   curState: TextShapeState;
-  text: string[];
+  text: string;
   maxWidth: TextMaxWidth = "any";
+  startPoint: Point;
+
+  //
+  enclosingRectangle: [Point, Point];
 
   constructor(
     curState: TextShapeState,
-    text: string[],
+    text: string,
+    enclosingRectangle: [Point, Point],
     maxWidth?: TextMaxWidth,
   ) {
-    let { strokeColor, opacity, textAlign, fontFamily, fontSize } =
+    let { strokeColor, opacity, fontFamily, fontSize } =
       useToolStyle.getState();
+
+    this.enclosingRectangle = enclosingRectangle;
 
     this.curState = curState;
     this.text = text;
+    this.startPoint = enclosingRectangle[0];
 
     if (maxWidth) this.maxWidth = maxWidth;
 
     this.strokeColor = strokeColor;
     this.opacity = opacity;
-    this.textAlign = textAlign;
     this.fontFamily = fontFamily;
     this.fontSize = fontSize;
   }
@@ -63,17 +69,42 @@ export class Text implements Shape {
     ctx.save();
     //
     {
+      ctx.globalAlpha = this.opacity / 100;
+
+      let lineHeight = 0;
+      let pixelFontSize = 10;
+      switch (this.fontSize) {
+        case "small":
+          pixelFontSize = 16;
+          lineHeight = 20;
+          break;
+        case "medium":
+          pixelFontSize = 24;
+          lineHeight = 30;
+          break;
+        case "large":
+          pixelFontSize = 32;
+          lineHeight = 38;
+          break;
+        case "extra-large":
+          pixelFontSize = 40;
+          lineHeight = 48;
+          break;
+
+        default:
+          break;
+      }
       switch (this.fontFamily) {
         case "hand":
-          ctx.font = "OceanTrace, sans-serif";
+          ctx.font = `${pixelFontSize}px Handwriting`;
           break;
 
         case "code":
-          ctx.font = "Comic Sans MS, sans-serif";
+          ctx.font = `${pixelFontSize}px Code`;
           break;
 
         case "normal":
-          ctx.font = "sans-serif";
+          ctx.font = `${pixelFontSize}px sans-serif`;
           break;
 
         default:
@@ -81,14 +112,44 @@ export class Text implements Shape {
       }
       //
       ctx.beginPath();
+      ctx.textBaseline = "top";
+      ctx.textAlign = "left";
+
+      const lines = this.text.split("\n");
+      ctx.fillStyle = this.strokeColor;
+
+      lines.forEach((line, ind) => {
+        ctx.fillText(
+          line,
+          this.startPoint.x,
+          this.startPoint.y + ind * lineHeight,
+        );
+      });
     }
 
     ctx.restore();
   }
 
   getEnclosingRectangle(): [number, number, number, number] {
-    return [1, 2, 3, 4];
+    return [
+      this.enclosingRectangle[0].x,
+      this.enclosingRectangle[0].y,
+      this.enclosingRectangle[1].x,
+      this.enclosingRectangle[1].y,
+    ];
   }
+  setEnclosingRectangle(enclosingRectangle: [Point, Point]) {
+    this.enclosingRectangle = enclosingRectangle;
+  }
+  setEnclosingRectangleCoordinates(
+    enclosingRectangle: [number, number, number, number],
+  ) {
+    this.enclosingRectangle[0].x = enclosingRectangle[0];
+    this.enclosingRectangle[0].y = enclosingRectangle[1];
+    this.enclosingRectangle[1].x = enclosingRectangle[2];
+    this.enclosingRectangle[1].y = enclosingRectangle[3];
+  }
+
   containsPoint(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
 

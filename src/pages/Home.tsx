@@ -7,24 +7,20 @@ import { useRef } from "react";
 export default function Home() {
   let editableTextContainer = useRef<HTMLDivElement>(null);
   return (
-    <body className="bg-bg text-fg w-full h-full">
-      <div
-        className="flex justify-between m-5 z-0 relative "
-        onMouseDown={(e) => {
-          e.stopPropagation();
-        }}
-      >
+    <div className="fixed inset-0 bg-bg text-fg ">
+      <div className="absolute left-5 top-5">
         <Menu />
+      </div>
+      <div className="absolute top-5 left-1/2 -translate-x-1/2">
         <Tools />
-        <div>{/* for additional stuff */}</div>
+      </div>
 
-        <div className="absolute top-24 overflow-hidden z-0">
-          <ToolStyleMenu />
-        </div>
+      <div className="absolute left-5 top-24 overflow-hidden z-0">
+        <ToolStyleMenu />
       </div>
       <div className="fixed inset-0 -z-2" ref={editableTextContainer}>
         <Canvas editableTextContainer={editableTextContainer} />
       </div>
-    </body>
+    </div>
   );
 }

@@ -1,10 +1,11 @@
-import type ShapeManager from "../ShapeManager";
+import type ShapeManager from "../Managers/ShapeManager";
 import { Line } from "../Shapes/Line";
 import { Point } from "../Shapes/Point";
+import type Tool from "./Tool";
 
 type state = "idle" | "drawingLine" | "drawingPath";
 
-export default class LineTool {
+export default class LineTool implements Tool {
   shapeManager: ShapeManager;
   curState: state = "idle";
 
@@ -14,6 +15,7 @@ export default class LineTool {
   constructor(shapeManager: ShapeManager) {
     this.shapeManager = shapeManager;
   }
+  destructor(): void {}
 
   onMouseDown(e: MouseEvent) {
     let curPoint: Point = new Point(

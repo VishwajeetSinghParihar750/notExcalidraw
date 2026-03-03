@@ -21,12 +21,14 @@ interface toolState {
   setSelectedTool: (tool: Tool) => void;
 }
 
-const useTool = create<toolState>((set) => ({
-  selectedTool: "rect",
-  setSelectedTool: (tool) => {
-    set(() => ({ selectedTool: tool }));
-  },
-}));
+const useTool = create<toolState>()(
+  subscribeWithSelector((set) => ({
+    selectedTool: "rect",
+    setSelectedTool: (tool) => {
+      set(() => ({ selectedTool: tool }));
+    },
+  })),
+);
 
 // for tool styling
 

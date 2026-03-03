@@ -1,9 +1,10 @@
 import type { opacity } from "../../store/Tools.store";
-import type ShapeManager from "../ShapeManager";
+import type ShapeManager from "../Managers/ShapeManager";
 import type { Shape } from "../Shapes/Shape";
+import type Tool from "./Tool";
 
 type state = "idle" | "erasing";
-export default class EraserTool {
+export default class EraserTool implements Tool {
   shapeManager: ShapeManager;
   curState: state = "idle";
   currentToEraseShapes: Set<Shape> = new Set();
@@ -11,6 +12,7 @@ export default class EraserTool {
   constructor(shapeManager: ShapeManager) {
     this.shapeManager = shapeManager;
   }
+  destructor(): void {}
 
   onMouseDown(e: MouseEvent) {
     this.curState = "erasing";

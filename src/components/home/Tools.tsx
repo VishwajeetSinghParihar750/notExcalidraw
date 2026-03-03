@@ -16,29 +16,6 @@ export default function Tools() {
 
   const tools: toolsInfo[] = [
     {
-      id: "cursor",
-      element: (
-        <svg
-          aria-hidden="true"
-          focusable="false"
-          role="img"
-          viewBox="0 0 22 22"
-          stroke-width="1.25"
-          className={selectedTool == "cursor" ? "fill-fg" : "none"}
-        >
-          <g
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-            <path d="M6 6l4.153 11.793a0.365 .365 0 0 0 .331 .207a0.366 .366 0 0 0 .332 -.207l2.184 -4.793l4.787 -1.994a0.355 .355 0 0 0 .213 -.323a0.355 .355 0 0 0 -.213 -.323l-11.787 -4.36z"></path>
-            <path d="M13.5 13.5l4.5 4.5"></path>
-          </g>
-        </svg>
-      ),
-    },
-    {
       id: "grab",
       element: (
         <svg
@@ -58,6 +35,29 @@ export default function Tools() {
             <path d="M11 5.5v-2a1.5 1.5 0 1 1 3 0v8.5"></path>
             <path d="M14 5.5a1.5 1.5 0 0 1 3 0v6.5"></path>
             <path d="M17 7.5a1.5 1.5 0 0 1 3 0v8.5a6 6 0 0 1 -6 6h-2h.208a6 6 0 0 1 -5.012 -2.7a69.74 69.74 0 0 1 -.196 -.3c-.312 -.479 -1.407 -2.388 -3.286 -5.728a1.5 1.5 0 0 1 .536 -2.022a1.867 1.867 0 0 1 2.28 .28l1.47 1.47"></path>
+          </g>
+        </svg>
+      ),
+    },
+    {
+      id: "cursor",
+      element: (
+        <svg
+          aria-hidden="true"
+          focusable="false"
+          role="img"
+          viewBox="0 0 22 22"
+          stroke-width="1.25"
+          className={selectedTool == "cursor" ? "fill-fg" : "none"}
+        >
+          <g
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+            <path d="M6 6l4.153 11.793a0.365 .365 0 0 0 .331 .207a0.366 .366 0 0 0 .332 -.207l2.184 -4.793l4.787 -1.994a0.355 .355 0 0 0 .213 -.323a0.355 .355 0 0 0 -.213 -.323l-11.787 -4.36z"></path>
+            <path d="M13.5 13.5l4.5 4.5"></path>
           </g>
         </svg>
       ),

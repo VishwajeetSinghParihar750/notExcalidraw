@@ -1,12 +1,13 @@
 import type React from "react";
-import type ShapeManager from "../ShapeManager";
+import type ShapeManager from "../Managers/ShapeManager";
 import { Point } from "../Shapes/Point";
 import { Text } from "../Shapes/Text";
 import { useToolStyle } from "../../store/Tools.store";
+import type Tool from "./Tool";
 
 type state = "idle" | "editing";
 
-export default class TextTool {
+export default class TextTool implements Tool {
   shapeManager: ShapeManager;
   curState: state = "idle";
 
@@ -17,8 +18,9 @@ export default class TextTool {
 
   lastMouseDown: Point = new Point(-1e18, -1e18);
 
+  zustandSubscriptions: any[] = [];
   subscribeToState() {
-    useToolStyle.subscribe(
+    let sub1 = useToolStyle.subscribe(
       (state) => state.fontFamily,
       (state) => {
         if (this.curText) {
@@ -41,7 +43,7 @@ export default class TextTool {
       },
     );
 
-    useToolStyle.subscribe(
+    let sub2 = useToolStyle.subscribe(
       (state) => state.fontSize,
       (state) => {
         if (this.curText) {
@@ -71,7 +73,7 @@ export default class TextTool {
         }
       },
     );
-    useToolStyle.subscribe(
+    let sub3 = useToolStyle.subscribe(
       (state) => state.opacity,
       (state) => {
         if (this.curText) {
@@ -80,7 +82,7 @@ export default class TextTool {
         }
       },
     );
-    useToolStyle.subscribe(
+    let sub4 = useToolStyle.subscribe(
       (state) => state.strokeColor,
       (state) => {
         if (this.curText) {
@@ -89,6 +91,8 @@ export default class TextTool {
         }
       },
     );
+
+    this.zustandSubscriptions.push(sub1, sub2, sub3, sub4);
   }
 
   constructor(
@@ -124,6 +128,10 @@ export default class TextTool {
     });
   }
 
+  destructor() {
+    this.zustandSubscriptions.forEach((unsub) => unsub());
+  }
+
   onMouseDown(e: MouseEvent) {
     if (e.target != this.canvas.current) return;
 
@@ -147,6 +155,7 @@ export default class TextTool {
         this.shapeManager.removeShape(this.curText!);
 
       this.editableTextContainer.current?.removeChild(this.currentInputElement);
+      this.curText = null;
     }
 
     this.lastMouseDown.x = e.clientX;

@@ -1,8 +1,9 @@
 import { RotatedRecangle } from "../Shapes/RotatedRectangle";
-import type ShapeManager from "../ShapeManager";
+import type ShapeManager from "../Managers/ShapeManager";
+import type Tool from "./Tool";
 
 type state = "idle" | "drawing";
-export default class RotatedRectangleTool {
+export default class RotatedRectangleTool implements Tool {
   shapeManager: ShapeManager;
   curState: state = "idle";
   currentRectangle: RotatedRecangle | null = null;
@@ -11,6 +12,7 @@ export default class RotatedRectangleTool {
     this.shapeManager = shapeManager;
   }
 
+  destructor(): void {}
   onMouseDown(e: MouseEvent) {
     this.curState = "drawing";
     this.currentRectangle = new RotatedRecangle(

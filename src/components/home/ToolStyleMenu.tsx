@@ -771,6 +771,7 @@ export default function ToolStyleMenu() {
               </div>
             )}
             {selectedTool != "arrow" &&
+              selectedTool != "text" &&
               stylesState.backgroundColor != "none" && (
                 <div>
                   <div>Fill</div>

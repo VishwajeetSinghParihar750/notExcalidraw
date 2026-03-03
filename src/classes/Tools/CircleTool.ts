@@ -1,8 +1,9 @@
 import { Circle } from "../Shapes/Circle";
-import type ShapeManager from "../ShapeManager";
+import type ShapeManager from "../Managers/ShapeManager";
+import type Tool from "./Tool";
 
 type state = "idle" | "drawing";
-export default class CircleTool {
+export default class CircleTool implements Tool {
   shapeManager: ShapeManager;
   curState: state = "idle";
   currentCircle: Circle | null = null;
@@ -10,6 +11,7 @@ export default class CircleTool {
   constructor(shapeManager: ShapeManager) {
     this.shapeManager = shapeManager;
   }
+  destructor(): void {}
 
   onMouseDown(e: MouseEvent) {
     this.curState = "drawing";

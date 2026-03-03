@@ -1,11 +1,12 @@
-import type ShapeManager from "../ShapeManager";
+import type ShapeManager from "../Managers/ShapeManager";
 import { Point } from "../Shapes/Point";
 import { Arrow } from "../Shapes/Arrow";
 import { useToolStyle } from "../../store/Tools.store";
+import type Tool from "./Tool";
 
 type state = "idle" | "drawingLine" | "drawingPath";
 
-export default class ArrowTool {
+export default class ArrowTool implements Tool {
   shapeManager: ShapeManager;
   curState: state = "idle";
 
@@ -37,6 +38,7 @@ export default class ArrowTool {
         break;
     }
   }
+  destructor(): void {}
 
   onMouseMove(e: MouseEvent) {
     let curPoint: Point = new Point(

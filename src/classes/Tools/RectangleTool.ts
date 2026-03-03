@@ -1,14 +1,18 @@
 import { Rectangle } from "../Shapes/Rectangle";
-import type ShapeManager from "../ShapeManager";
+import type ShapeManager from "../Managers/ShapeManager";
+import type Tool from "./Tool";
 
 type state = "idle" | "drawing";
-export default class RectangleTool {
+export default class RectangleTool implements Tool {
   shapeManager: ShapeManager;
   curState: state = "idle";
   currentRectangle: Rectangle | null = null;
 
   constructor(shapeManager: ShapeManager) {
     this.shapeManager = shapeManager;
+  }
+  destructor(): void {
+    
   }
 
   onMouseDown(e: MouseEvent) {

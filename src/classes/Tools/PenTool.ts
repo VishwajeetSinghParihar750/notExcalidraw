@@ -1,9 +1,10 @@
-import type ShapeManager from "../ShapeManager";
+import type ShapeManager from "../Managers/ShapeManager";
 import { Pen } from "../Shapes/Pen";
 import { Point } from "../Shapes/Point";
+import type Tool from "./Tool";
 
 type state = "idle" | "drawing";
-export default class PenTool {
+export default class PenTool implements Tool {
   shapeManager: ShapeManager;
   curState: state = "idle";
   currentPen: Pen | null = null;
@@ -11,7 +12,7 @@ export default class PenTool {
   constructor(shapeManager: ShapeManager) {
     this.shapeManager = shapeManager;
   }
-
+  destructor(): void {}
   onMouseDown(e: MouseEvent) {
     this.curState = "drawing";
     this.currentPen = new Pen([new Point(e.clientX, e.clientY)]);

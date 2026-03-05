@@ -1,21 +1,28 @@
 import { Rectangle } from "../Shapes/Rectangle";
 import type ShapeManager from "../Managers/ShapeManager";
 import type Tool from "./Tool";
+import type { EventType } from "../Managers/ToolManager";
+import type { Tool as ToolType } from "../../store/Tools.store";
 
 type state = "idle" | "drawing";
 export default class RectangleTool implements Tool {
+  toolType: ToolType = "rect";
+
   shapeManager: ShapeManager;
   curState: state = "idle";
   currentRectangle: Rectangle | null = null;
 
-  constructor(shapeManager: ShapeManager) {
+  emit: (tool: ToolType, event: EventType) => void;
+  constructor(
+    shapeManager: ShapeManager,
+    emit: (tool: ToolType, event: EventType) => void,
+  ) {
     this.shapeManager = shapeManager;
+    this.emit = emit;
   }
-  destructor(): void {
-    
-  }
+  destructor(): void {}
 
-  onMouseDown(e: MouseEvent) {
+  onCanvasMouseDown(e: MouseEvent) {
     this.curState = "drawing";
     this.currentRectangle = new Rectangle(
       e.clientX,
@@ -26,22 +33,33 @@ export default class RectangleTool implements Tool {
     this.shapeManager.addShape(this.currentRectangle);
   }
 
-  onMouseMove(e: MouseEvent) {
+  onCanvasMouseMove(e: MouseEvent) {
     if (this.curState == "drawing") {
       this.currentRectangle!.endX = e.clientX;
       this.currentRectangle!.endY = e.clientY;
     }
   }
-  onMouseUp(e: MouseEvent) {
-    this.curState = "idle";
-    if (
-      Math.floor(this.currentRectangle!.startX) ==
-        Math.floor(this.currentRectangle!.endX) ||
-      Math.floor(this.currentRectangle!.startY) ==
-        Math.floor(this.currentRectangle!.endY)
-    )
-      this.shapeManager.removeShape(this.currentRectangle!);
+  onCanvasMouseUp(e: MouseEvent) {
+    if (this.curState == "drawing") {
+      this.curState = "idle";
+      if (
+        Math.floor(this.currentRectangle!.startX) ==
+          Math.floor(this.currentRectangle!.endX) ||
+        Math.floor(this.currentRectangle!.startY) ==
+          Math.floor(this.currentRectangle!.endY)
+      )
+        this.shapeManager.removeShape(this.currentRectangle!);
+      else this.emit(this.toolType, "taskComplete");
 
-    this.currentRectangle = null;
+      this.currentRectangle = null;
+    }
+  }
+
+  onOtherMouseDown(e: MouseEvent): void {}
+  onOtherMouseMove(e: MouseEvent): void {
+    this.onCanvasMouseMove(e);
+  }
+  onOtherMouseUp(e: MouseEvent): void {
+    this.onCanvasMouseUp(e);
   }
 }

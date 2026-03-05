@@ -1,7 +1,7 @@
-import { useState, type ReactElement } from "react";
+import { type ReactElement } from "react";
 
 import type { Tool } from "../../store/Tools.store";
-import { useTool } from "../../store/Tools.store";
+import { useLock, useTool } from "../../store/Tools.store";
 
 type toolsInfo = {
   id: Tool;
@@ -9,8 +9,8 @@ type toolsInfo = {
 };
 
 export default function Tools() {
-  let [locked, setLocked] = useState<boolean>(false);
-
+  let locked = useLock((state) => state.lockTool);
+  let setLocked = useLock((state) => state.setLockTool);
   let selectedTool = useTool((state) => state.selectedTool);
   let setSelectedTool = useTool((state) => state.setSelectedTool);
 
@@ -248,7 +248,7 @@ export default function Tools() {
               ? " bg-brand-muted p-2 rounded-lg cursor-pointer"
               : "p-2 rounded-lg cursor-pointer"
           }
-          onClick={() => setLocked((lck) => !lck)}
+          onClick={() => setLocked(!locked)}
         >
           <div className="w-4 h-4">
             {locked ? (

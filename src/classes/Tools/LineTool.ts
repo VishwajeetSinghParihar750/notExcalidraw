@@ -1,23 +1,32 @@
 import type ShapeManager from "../Managers/ShapeManager";
+import type { EventType } from "../Managers/ToolManager";
 import { Line } from "../Shapes/Line";
 import { Point } from "../Shapes/Point";
 import type Tool from "./Tool";
+import type { Tool as ToolType } from "../../store/Tools.store";
 
 type state = "idle" | "drawingLine" | "drawingPath";
 
 export default class LineTool implements Tool {
+  toolType: ToolType = "line";
+
   shapeManager: ShapeManager;
   curState: state = "idle";
 
   currentLine: Line | null = null;
   lastPointInLine: Point = new Point(-1e18, -1e18);
 
-  constructor(shapeManager: ShapeManager) {
+  emit: (tool: ToolType, event: EventType) => void;
+  constructor(
+    shapeManager: ShapeManager,
+    emit: (tool: ToolType, event: EventType) => void,
+  ) {
     this.shapeManager = shapeManager;
+    this.emit = emit;
   }
   destructor(): void {}
 
-  onMouseDown(e: MouseEvent) {
+  onCanvasMouseDown(e: MouseEvent) {
     let curPoint: Point = new Point(
       Math.floor(e.clientX),
       Math.floor(e.clientY),
@@ -39,7 +48,7 @@ export default class LineTool implements Tool {
     }
   }
 
-  onMouseMove(e: MouseEvent) {
+  onCanvasMouseMove(e: MouseEvent) {
     let curPoint: Point = new Point(
       Math.floor(e.clientX),
       Math.floor(e.clientY),
@@ -51,7 +60,7 @@ export default class LineTool implements Tool {
     }
   }
 
-  onMouseUp(e: MouseEvent) {
+  onCanvasMouseUp(e: MouseEvent) {
     let curPoint: Point = new Point(
       Math.floor(e.clientX),
       Math.floor(e.clientY),
@@ -78,6 +87,7 @@ export default class LineTool implements Tool {
             ];
 
             this.curState = "idle";
+            this.emit(this.toolType, "taskComplete");
           }
         }
         break;
@@ -100,6 +110,8 @@ export default class LineTool implements Tool {
             this.currentLine = null;
             this.lastPointInLine.x = -1e18;
             this.lastPointInLine.y = -1e18;
+
+            this.emit(this.toolType, "taskComplete");
           } else {
             this.currentLine?.points.push(curPoint);
             this.lastPointInLine = curPoint;
@@ -111,4 +123,7 @@ export default class LineTool implements Tool {
         break;
     }
   }
+  onOtherMouseDown(e: MouseEvent): void {}
+  onOtherMouseMove(e: MouseEvent): void {}
+  onOtherMouseUp(e: MouseEvent): void {}
 }

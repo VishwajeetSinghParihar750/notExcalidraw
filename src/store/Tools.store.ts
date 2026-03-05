@@ -20,6 +20,10 @@ interface toolState {
   selectedTool: Tool;
   setSelectedTool: (tool: Tool) => void;
 }
+interface lockedState {
+  lockTool: boolean;
+  setLockTool: (locktool: boolean) => void;
+}
 
 const useTool = create<toolState>()(
   subscribeWithSelector((set) => ({
@@ -30,6 +34,14 @@ const useTool = create<toolState>()(
   })),
 );
 
+const useLock = create<lockedState>()(
+  subscribeWithSelector((set) => ({
+    lockTool: false,
+    setLockTool: (lock) => {
+      set(() => ({ lockTool: lock }));
+    },
+  })),
+);
 // for tool styling
 
 type fillStyle = "line" | "crosslines" | "fill";
@@ -100,7 +112,7 @@ const useToolStyle = create<toolStyleState & toolStyleActions>()(
   })),
 );
 
-export { useTool, useToolStyle };
+export { useTool, useLock, useToolStyle };
 export type {
   Tool,
   fillStyle,

@@ -1,24 +1,34 @@
 import type { opacity } from "../../store/Tools.store";
 import type ShapeManager from "../Managers/ShapeManager";
+import type { EventType } from "../Managers/ToolManager";
 import type { Shape } from "../Shapes/Shape";
 import type Tool from "./Tool";
+import type { Tool as ToolType } from "../../store/Tools.store";
 
 type state = "idle" | "erasing";
 export default class EraserTool implements Tool {
+  toolType: ToolType = "eraser";
+
   shapeManager: ShapeManager;
   curState: state = "idle";
   currentToEraseShapes: Set<Shape> = new Set();
 
-  constructor(shapeManager: ShapeManager) {
+  emit: (tool: ToolType, event: EventType) => void;
+  constructor(
+    shapeManager: ShapeManager,
+    emit: (tool: ToolType, event: EventType) => void,
+  ) {
     this.shapeManager = shapeManager;
+    this.emit = emit;
   }
+
   destructor(): void {}
 
-  onMouseDown(e: MouseEvent) {
+  onCanvasMouseDown(e: MouseEvent) {
     this.curState = "erasing";
   }
 
-  onMouseMove(e: MouseEvent) {
+  onCanvasMouseMove(e: MouseEvent) {
     if (this.curState == "erasing") {
       let shapes = this.shapeManager.getShapesAt(e.clientX, e.clientY);
       for (let shape of shapes) {
@@ -29,15 +39,22 @@ export default class EraserTool implements Tool {
       }
     }
   }
-  onMouseUp(e: MouseEvent) {
-    this.curState = "idle";
+  onCanvasMouseUp(e: MouseEvent) {
+    if (this.curState == "erasing") {
+      this.curState = "idle";
 
-    this.shapeManager.updateShapes(
-      this.shapeManager.shapes.filter(
-        (shape) => !this.currentToEraseShapes.has(shape),
-      ),
-    );
+      this.shapeManager.updateShapes(
+        this.shapeManager.shapes.filter(
+          (shape) => !this.currentToEraseShapes.has(shape),
+        ),
+      );
 
-    this.currentToEraseShapes.clear();
+      this.currentToEraseShapes.clear();
+
+      this.emit(this.toolType, "taskComplete");
+    }
   }
+  onOtherMouseDown(e: MouseEvent): void {}
+  onOtherMouseMove(e: MouseEvent): void {}
+  onOtherMouseUp(e: MouseEvent): void {}
 }

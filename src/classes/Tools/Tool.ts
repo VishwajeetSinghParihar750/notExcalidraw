@@ -1,6 +1,11 @@
+import type { Tool as ToolType } from "../../store/Tools.store";
 export default interface Tool {
-  onMouseDown(e: MouseEvent): void;
-  onMouseUp(e: MouseEvent): void;
-  onMouseMove(e: MouseEvent): void;
+  toolType: ToolType;
+  onCanvasMouseDown(e: MouseEvent): void;
+  onCanvasMouseUp(e: MouseEvent): void;
+  onCanvasMouseMove(e: MouseEvent): void;
+  onOtherMouseDown(e: MouseEvent): void;
+  onOtherMouseUp(e: MouseEvent): void;
+  onOtherMouseMove(e: MouseEvent): void;
   destructor(): void;
 }

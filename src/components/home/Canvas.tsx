@@ -1,5 +1,4 @@
-import React, { useEffect, useRef } from "react";
-import { useTool, type Tool } from "../../store/Tools.store";
+import React, { useRef } from "react";
 import useCanvas from "../../hooks/useCanvas";
 
 type propsType = {
@@ -12,13 +11,6 @@ export default function Canvas(props: propsType) {
     canvasRef: canvas,
     editableTextContainerRef: props.editableTextContainer,
   });
-
-  let activeToolState = useTool((s) => s.selectedTool);
-  let activeToolRef = useRef<Tool>(activeToolState);
-
-  useEffect(() => {
-    activeToolRef.current = activeToolState;
-  }, [activeToolState]);
 
   return (
     <canvas

@@ -1,25 +1,34 @@
 import type ShapeManager from "../Managers/ShapeManager";
+import type { EventType } from "../Managers/ToolManager";
 import { Pen } from "../Shapes/Pen";
 import { Point } from "../Shapes/Point";
 import type Tool from "./Tool";
+import type { Tool as ToolType } from "../../store/Tools.store";
 
 type state = "idle" | "drawing";
 export default class PenTool implements Tool {
+  toolType: ToolType = "pen";
+
   shapeManager: ShapeManager;
   curState: state = "idle";
   currentPen: Pen | null = null;
 
-  constructor(shapeManager: ShapeManager) {
+  emit: (tool: ToolType, event: EventType) => void;
+  constructor(
+    shapeManager: ShapeManager,
+    emit: (tool: ToolType, event: EventType) => void,
+  ) {
     this.shapeManager = shapeManager;
+    this.emit = emit;
   }
   destructor(): void {}
-  onMouseDown(e: MouseEvent) {
+  onCanvasMouseDown(e: MouseEvent) {
     this.curState = "drawing";
     this.currentPen = new Pen([new Point(e.clientX, e.clientY)]);
     this.shapeManager.addShape(this.currentPen);
   }
 
-  onMouseMove(e: MouseEvent) {
+  onCanvasMouseMove(e: MouseEvent) {
     if (this.curState == "drawing") {
       let newPoint = new Point(e.clientX, e.clientY);
 
@@ -33,8 +42,20 @@ export default class PenTool implements Tool {
       this.currentPen?.points.push(newPoint);
     }
   }
-  onMouseUp(e: MouseEvent) {
-    this.curState = "idle";
-    this.currentPen = null;
+  onCanvasMouseUp(e: MouseEvent) {
+    if (this.curState == "drawing") {
+      this.curState = "idle";
+      this.currentPen = null;
+
+      this.emit(this.toolType, "taskComplete");
+    }
+  }
+
+  onOtherMouseDown(e: MouseEvent): void {}
+  onOtherMouseMove(e: MouseEvent): void {
+    this.onCanvasMouseMove(e);
+  }
+  onOtherMouseUp(e: MouseEvent): void {
+    this.onCanvasMouseUp(e);
   }
 }

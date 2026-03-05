@@ -4,16 +4,19 @@ import { Point } from "../Shapes/Point";
 import { Text } from "../Shapes/Text";
 import { useToolStyle } from "../../store/Tools.store";
 import type Tool from "./Tool";
+import type { EventType } from "../Managers/ToolManager";
+import type { Tool as ToolType } from "../../store/Tools.store";
 
 type state = "idle" | "editing";
 
 export default class TextTool implements Tool {
+  toolType: ToolType = "text";
+
   shapeManager: ShapeManager;
   curState: state = "idle";
 
   curText: Text | null = null;
   editableTextContainer: React.RefObject<HTMLDivElement | null>;
-  canvas: React.RefObject<HTMLCanvasElement | null>;
   currentInputElement: HTMLTextAreaElement;
 
   lastMouseDown: Point = new Point(-1e18, -1e18);
@@ -95,16 +98,17 @@ export default class TextTool implements Tool {
     this.zustandSubscriptions.push(sub1, sub2, sub3, sub4);
   }
 
+  emit: (tool: ToolType, event: EventType) => void;
   constructor(
     shapeManager: ShapeManager,
     editableTextContainer: React.RefObject<HTMLDivElement | null>,
-    canvas: React.RefObject<HTMLCanvasElement | null>,
+    emit: (tool: ToolType, event: EventType) => void,
   ) {
+    this.emit = emit;
     this.subscribeToState();
 
     this.shapeManager = shapeManager;
     this.editableTextContainer = editableTextContainer;
-    this.canvas = canvas;
 
     this.currentInputElement = document.createElement("textarea");
     this.currentInputElement.onmousedown = (e) => e.stopPropagation();
@@ -132,9 +136,7 @@ export default class TextTool implements Tool {
     this.zustandSubscriptions.forEach((unsub) => unsub());
   }
 
-  onMouseDown(e: MouseEvent) {
-    if (e.target != this.canvas.current) return;
-
+  onCanvasMouseDown(e: MouseEvent) {
     if (this.curState == "idle") this.curState = "editing";
     else if (this.curState == "editing") {
       this.curState = "idle";
@@ -156,17 +158,17 @@ export default class TextTool implements Tool {
 
       this.editableTextContainer.current?.removeChild(this.currentInputElement);
       this.curText = null;
+
+      this.emit(this.toolType, "taskComplete");
     }
 
     this.lastMouseDown.x = e.clientX;
     this.lastMouseDown.y = e.clientY;
   }
 
-  onMouseMove(e: MouseEvent) {}
+  onCanvasMouseMove(e: MouseEvent) {}
 
-  onMouseUp(e: MouseEvent) {
-    if (e.target != this.canvas.current) return;
-
+  onCanvasMouseUp(e: MouseEvent) {
     if (!this.editableTextContainer.current) return;
 
     if (this.curState == "editing") {
@@ -256,4 +258,10 @@ export default class TextTool implements Tool {
       this.currentInputElement.select();
     }
   }
+
+  onOtherMouseDown(e: MouseEvent): void {
+    if (this.curState == "editing") this.onCanvasMouseDown(e);
+  }
+  onOtherMouseMove(e: MouseEvent): void {}
+  onOtherMouseUp(e: MouseEvent): void {}
 }

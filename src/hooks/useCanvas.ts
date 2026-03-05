@@ -41,9 +41,9 @@ export default function useCanvas(props: useCanvasProps) {
       toolManager.onMouseMove(e);
     };
 
-    window.addEventListener("mousedown", handleMouseDown);
-    window.addEventListener("mouseup", handleMouseup);
-    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("pointerdown", handleMouseDown);
+    window.addEventListener("pointerup", handleMouseup);
+    window.addEventListener("pointermove", handleMouseMove);
 
     let animationid: number;
 
@@ -65,9 +65,9 @@ export default function useCanvas(props: useCanvasProps) {
       cancelAnimationFrame(animationid);
       toolManager.destructor();
 
-      window.removeEventListener("mousedown", handleMouseDown);
-      window.removeEventListener("mouseup", handleMouseup);
-      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("pointerdown", handleMouseDown);
+      window.removeEventListener("pointerup", handleMouseup);
+      window.removeEventListener("pointermove", handleMouseMove);
     };
   }, []);
 }

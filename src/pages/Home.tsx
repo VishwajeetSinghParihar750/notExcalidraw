@@ -6,6 +6,7 @@ import { useRef } from "react";
 
 export default function Home() {
   let editableTextContainer = useRef<HTMLDivElement>(null);
+
   return (
     <div className="fixed inset-0 bg-bg text-fg ">
       <div className="absolute left-5 top-5">

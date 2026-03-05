@@ -3,21 +3,31 @@ import { Point } from "../Shapes/Point";
 import { Arrow } from "../Shapes/Arrow";
 import { useToolStyle } from "../../store/Tools.store";
 import type Tool from "./Tool";
+import type { EventType } from "../Managers/ToolManager";
 
+import type { Tool as ToolType } from "../../store/Tools.store";
 type state = "idle" | "drawingLine" | "drawingPath";
 
 export default class ArrowTool implements Tool {
+  toolType: ToolType = "arrow";
+
   shapeManager: ShapeManager;
   curState: state = "idle";
 
   currentLine: Arrow | null = null;
   lastPointInLine: Point = new Point(-1e18, -1e18);
 
-  constructor(shapeManager: ShapeManager) {
+  emit: (tool: ToolType, event: EventType) => void;
+
+  constructor(
+    shapeManager: ShapeManager,
+    eventCallback: (tool: ToolType, event: EventType) => void,
+  ) {
     this.shapeManager = shapeManager;
+    this.emit = eventCallback;
   }
 
-  onMouseDown(e: MouseEvent) {
+  onCanvasMouseDown(e: MouseEvent) {
     let curPoint: Point = new Point(
       Math.floor(e.clientX),
       Math.floor(e.clientY),
@@ -40,7 +50,7 @@ export default class ArrowTool implements Tool {
   }
   destructor(): void {}
 
-  onMouseMove(e: MouseEvent) {
+  onCanvasMouseMove(e: MouseEvent) {
     let curPoint: Point = new Point(
       Math.floor(e.clientX),
       Math.floor(e.clientY),
@@ -84,7 +94,7 @@ export default class ArrowTool implements Tool {
     }
   }
 
-  onMouseUp(e: MouseEvent) {
+  onCanvasMouseUp(e: MouseEvent) {
     let curPoint: Point = new Point(
       Math.floor(e.clientX),
       Math.floor(e.clientY),
@@ -147,6 +157,7 @@ export default class ArrowTool implements Tool {
             }
 
             this.curState = "idle";
+            this.emit(this.toolType, "taskComplete");
           }
         }
         break;
@@ -166,6 +177,8 @@ export default class ArrowTool implements Tool {
             }
 
             this.curState = "idle";
+            this.emit(this.toolType, "taskComplete");
+
             this.currentLine = null;
             this.lastPointInLine.x = -1e18;
             this.lastPointInLine.y = -1e18;
@@ -180,4 +193,7 @@ export default class ArrowTool implements Tool {
         break;
     }
   }
+  onOtherMouseDown(e: MouseEvent): void {}
+  onOtherMouseMove(e: MouseEvent): void {}
+  onOtherMouseUp(e: MouseEvent): void {}
 }

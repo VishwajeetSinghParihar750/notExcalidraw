@@ -26,7 +26,7 @@ export default class ArrowTool implements Tool {
     this.shapeManager = shapeManager;
     this.emit = eventCallback;
   }
-  onSwitchTool(oldTool: ToolType, newTool: ToolType): void {}
+
   onCanvasMouseDown(e: MouseEvent) {
     let curPoint: Point = new Point(
       Math.floor(e.clientX),
@@ -196,4 +196,6 @@ export default class ArrowTool implements Tool {
   onOtherMouseDown(e: MouseEvent): void {}
   onOtherMouseMove(e: MouseEvent): void {}
   onOtherMouseUp(e: MouseEvent): void {}
+
+  onSwitchTool(oldTool: ToolType, newTool: ToolType): void {}
 }

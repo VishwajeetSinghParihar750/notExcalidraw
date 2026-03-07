@@ -1,3 +1,4 @@
+import type { Point } from "../Shapes/Point";
 import type { Shape } from "../Shapes/Shape";
 
 export default class ShapeManager {
@@ -17,5 +18,8 @@ export default class ShapeManager {
 
   getShapesAt(x: number, y: number): Shape[] {
     return this.shapes.filter((shape) => shape.containsPoint(x, y));
+  }
+  getShapesInside(point1: Point, point2: Point) {
+    return this.shapes.filter((shape) => shape.liesInside(point1, point2));
   }
 }

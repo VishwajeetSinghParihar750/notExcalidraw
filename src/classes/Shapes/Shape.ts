@@ -1,4 +1,5 @@
 import type { opacity } from "../../store/Tools.store";
+import type { Point } from "./Point";
 
 export type ShapeType =
   | "arrow"
@@ -7,13 +8,16 @@ export type ShapeType =
   | "rotrect"
   | "pen"
   | "text"
-  | "circle";
+  | "circle"
+  | "selection";
 export interface Shape {
   shapeType: ShapeType;
 
-  opacity: opacity;
-  setOpacity: (opacity: opacity) => void;
+  opacity?: opacity;
+  setOpacity?: (opacity: opacity) => void;
 
   draw: (ctx: CanvasRenderingContext2D) => void;
   containsPoint: (x: number, y: number) => boolean;
+  liesInside: (point1: Point, point2: Point) => boolean;
+  getEnclosingRectangle: () => [number, number, number, number];
 }

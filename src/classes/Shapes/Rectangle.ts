@@ -10,6 +10,7 @@ import {
   type strokeStyle,
   type strokeWidth,
 } from "../../store/Tools.store";
+import type { Point } from "./Point";
 
 export class Rectangle implements Shape {
   shapeType: ShapeType = "rect";
@@ -180,9 +181,26 @@ export class Rectangle implements Shape {
     let y2 = Math.max(this.startY, this.endY);
     return [x1, y1, x2, y2];
   }
+
+  updateEnclosingRectangle(x1: number, y1: number, x2: number, y2: number) {
+    this.startX = x1;
+    this.startY = y1;
+    this.endX = x2;
+    this.endY = y2;
+  }
+
   containsPoint(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
 
     return x >= sx && x <= ex && y >= sy && y <= ey;
+  }
+  liesInside(point1: Point, point2: Point) {
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+    let minx = Math.min(point1.x, point2.x);
+    let miny = Math.min(point1.y, point2.y);
+    let maxx = Math.max(point1.x, point2.x);
+    let maxy = Math.max(point1.y, point2.y);
+
+    return sx >= minx && ex <= maxx && sy >= miny && ey <= maxy;
   }
 }

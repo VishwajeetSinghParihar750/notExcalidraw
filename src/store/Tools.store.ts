@@ -27,7 +27,7 @@ interface lockedState {
 
 const useTool = create<toolState>()(
   subscribeWithSelector((set) => ({
-    selectedTool: "rect",
+    selectedTool: "cursor",
     setSelectedTool: (tool) => {
       set(() => ({ selectedTool: tool }));
     },

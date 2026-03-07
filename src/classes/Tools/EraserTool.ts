@@ -57,4 +57,6 @@ export default class EraserTool implements Tool {
   onOtherMouseDown(e: MouseEvent): void {}
   onOtherMouseMove(e: MouseEvent): void {}
   onOtherMouseUp(e: MouseEvent): void {}
+
+  onSwitchTool(oldTool: ToolType, newTool: ToolType): void {}
 }

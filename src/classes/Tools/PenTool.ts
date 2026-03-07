@@ -58,4 +58,6 @@ export default class PenTool implements Tool {
   onOtherMouseUp(e: MouseEvent): void {
     this.onCanvasMouseUp(e);
   }
+
+  onSwitchTool(oldTool: ToolType, newTool: ToolType): void {}
 }

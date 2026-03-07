@@ -126,4 +126,6 @@ export default class LineTool implements Tool {
   onOtherMouseDown(e: MouseEvent): void {}
   onOtherMouseMove(e: MouseEvent): void {}
   onOtherMouseUp(e: MouseEvent): void {}
+
+  onSwitchTool(oldTool: ToolType, newTool: ToolType): void {}
 }

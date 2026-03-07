@@ -8,4 +8,5 @@ export default interface Tool {
   onOtherMouseUp(e: MouseEvent): void;
   onOtherMouseMove(e: MouseEvent): void;
   destructor(): void;
+  onSwitchTool(oldTool: ToolType, newTool: ToolType): void;
 }

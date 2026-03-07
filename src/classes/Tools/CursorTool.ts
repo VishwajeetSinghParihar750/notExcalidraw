@@ -18,6 +18,9 @@ export default class CursorTool implements Tool {
     this.shapeManager = shapeManager;
     this.emit = emit;
   }
+  onSwitchTool( oldTool: ToolType, newTool: ToolType ): void {
+    
+  }
   destructor(): void {}
   onCanvasMouseDown(e: MouseEvent) {}
 

@@ -31,6 +31,7 @@ export default class ToolManager {
     let sub1 = useTool.subscribe(
       (tool) => tool.selectedTool,
       (newTool) => {
+        this.tools[this.activeTool].onSwitchTool(this.activeTool, newTool);
         this.activeTool = newTool;
       },
     );

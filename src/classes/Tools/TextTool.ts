@@ -259,9 +259,28 @@ export default class TextTool implements Tool {
     }
   }
 
-  onOtherMouseDown(e: MouseEvent): void {
-    if (this.curState == "editing") this.onCanvasMouseDown(e);
-  }
+  onOtherMouseDown(e: MouseEvent): void {}
   onOtherMouseMove(e: MouseEvent): void {}
   onOtherMouseUp(e: MouseEvent): void {}
+
+  onSwitchTool(oldTool: ToolType, newTool: ToolType): void {
+    if (oldTool == this.toolType && this.curState == "editing") {
+      this.curState = "idle";
+      let rect = this.currentInputElement.getBoundingClientRect();
+      this.curText!.setEnclosingRectangleCoordinates([
+        rect.x,
+        rect.y,
+        rect.x + rect.width,
+        rect.y + rect.height,
+      ]);
+      this.curText!.text = this.currentInputElement.value;
+      this.curText!.curState = "render";
+      this.currentInputElement.value = "";
+      if (this.curText!.text.length == 0)
+        this.shapeManager.removeShape(this.curText!);
+      this.editableTextContainer.current?.removeChild(this.currentInputElement);
+      this.curText = null;
+      this.emit(this.toolType, "taskComplete");
+    }
+  }
 }

@@ -20,4 +20,5 @@ export interface Shape {
   containsPoint: (x: number, y: number) => boolean;
   liesInside: (point1: Point, point2: Point) => boolean;
   getEnclosingRectangle: () => [number, number, number, number];
+  moveEnclosingRectangle: (delX: number, delY: number) => void;
 }

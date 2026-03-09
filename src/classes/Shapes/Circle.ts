@@ -163,6 +163,14 @@ export class Circle implements Shape {
     ctx.restore();
   }
 
+  moveEnclosingRectangle(delX: number, delY: number) {
+    //
+    this.startX += delX;
+    this.endX += delX;
+    this.startY += delY;
+    this.endY += delY;
+  }
+
   getEnclosingRectangle(): [number, number, number, number] {
     let x1 = Math.min(this.startX, this.endX);
     let x2 = Math.max(this.startX, this.endX);

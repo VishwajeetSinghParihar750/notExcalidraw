@@ -145,6 +145,13 @@ export class Text implements Shape {
       this.enclosingRectangle[1].y,
     ];
   }
+  moveEnclosingRectangle(delX: number, delY: number) {
+    //
+    this.enclosingRectangle[0].x += delX;
+    this.enclosingRectangle[1].x += delX;
+    this.enclosingRectangle[0].y += delY;
+    this.enclosingRectangle[1].y += delY;
+  }
   setEnclosingRectangle(enclosingRectangle: [Point, Point]) {
     this.enclosingRectangle = enclosingRectangle;
   }

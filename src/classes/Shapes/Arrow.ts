@@ -180,7 +180,12 @@ export class Arrow implements Shape {
     }
     return [x1, y1, x2, y2];
   }
-
+  moveEnclosingRectangle(delX: number, delY: number) {
+    for (let point of this.points) {
+      point.x += delX;
+      point.y += delY;
+    }
+  }
   updateEnclosingRectangle(x1: number, y1: number, x2: number, y2: number) {
     let [sx, sy, bx, by] = this.getEnclosingRectangle();
     let xdis = bx - sx;

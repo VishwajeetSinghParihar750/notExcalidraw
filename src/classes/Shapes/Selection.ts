@@ -125,10 +125,6 @@ export class Selection implements Shape {
     ctx.restore();
   }
 
-  setSelectedShapes(selectedShapes: Shape[]) {
-    this.selectedShapes = selectedShapes;
-  }
-
   getEnclosingRectangle(): [number, number, number, number] {
     let x1 = 1e18;
     let x2 = -1e18;
@@ -146,7 +142,13 @@ export class Selection implements Shape {
     return [x1, y1, x2, y2];
   }
 
-  updateEnclosingRectangle(x1: number, y1: number, x2: number, y2: number) {}
+  // updateEnclosingRectangle(x1: number, y1: number, x2: number, y2: number) {}
+
+  moveEnclosingRectangle(delX: number, delY: number) {
+    this.selectedShapes.forEach((shape) =>
+      shape.moveEnclosingRectangle(delX, delY),
+    );
+  }
 
   containsPoint(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
@@ -157,6 +159,7 @@ export class Selection implements Shape {
   isControlPoint(x: number, y: number): boolean {
     return false;
   }
+
   isTopLeftCorner(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
     sx -= this.padding;
@@ -198,10 +201,23 @@ export class Selection implements Shape {
     return Point.isSamePoint(curPoint, tocheck);
   }
 
-  isTopBoundary(x: number, y: number) {}
-  isBottomBoundary(x: number, y: number) {}
-  isLeftBoundary(x: number, y: number) {}
-  isRightBoundary(x: number, y: number) {}
+  isTopBoundary(x: number, y: number) {
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+    return x >= sx && x <= ex && Math.abs(y - sy) <= 4;
+  }
+
+  isBottomBoundary(x: number, y: number) {
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+    return x >= sx && x <= ex && Math.abs(y - ey) <= 4;
+  }
+  isLeftBoundary(x: number, y: number) {
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+    return y >= sy && y <= ey && Math.abs(x - sx) <= 4;
+  }
+  isRightBoundary(x: number, y: number) {
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+    return y >= sy && y <= ey && Math.abs(x - ex) <= 4;
+  }
 
   liesInside(point1: Point, point2: Point) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();

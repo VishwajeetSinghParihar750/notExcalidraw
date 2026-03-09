@@ -12,10 +12,15 @@ type state =
   | "selecting"
   | "selected"
   | "movingSelection"
-  | "scaling"
-  | "scalingX"
-  | "scalingY"
+  // | "scaling"
+  // | "scalingX"
+  // | "scalingY"
   | "movingControlPoint";
+
+type movingSelectionInfo = {
+  lastPoint: Point;
+  reset: () => void;
+};
 
 export default class CursorTool implements Tool {
   toolType: ToolType = "arrow";
@@ -26,13 +31,21 @@ export default class CursorTool implements Tool {
   selectionStart: Point = new Point(-1e18, -1e18);
   selectionEnd: Point = new Point(-1e18, -1e18);
 
+  selectedShapes: Shape[] = [];
   curSelection: Selection = new Selection(
     [this.selectionStart, this.selectionEnd],
-    [],
+    this.selectedShapes,
   );
-  selectedShapes: Shape[] = [];
 
   curPoint: Point = new Point(-1e18, -1e18);
+
+  curMovingSelectionInfo: movingSelectionInfo = {
+    lastPoint: new Point(0, 0),
+    reset: () => {
+      this.curMovingSelectionInfo.lastPoint.x = 0;
+      this.curMovingSelectionInfo.lastPoint.y = 0;
+    },
+  };
 
   emit: (tool: ToolType, event: EventType) => void;
 
@@ -52,19 +65,54 @@ export default class CursorTool implements Tool {
     this.curPoint.y = Math.floor(e.y);
 
     switch (this.curState) {
+      case "idle":
+        {
+          //
+          let shapesAtCurPoint = this.shapeManager.getShapesAt(
+            this.curPoint.x,
+            this.curPoint.y,
+          );
+          if (shapesAtCurPoint.length > 0) {
+            document.body.style.cursor = "move";
+          } else document.body.style.cursor = "default";
+        }
+        break;
+      case "selected":
+        {
+          //
+          let shapesAtCurPoint = this.shapeManager.getShapesAt(
+            this.curPoint.x,
+            this.curPoint.y,
+          );
+          if (shapesAtCurPoint.length > 0) {
+            document.body.style.cursor = "move";
+          } else document.body.style.cursor = "default";
+        }
+        break;
       case "selecting":
         {
           this.selectionEnd.x = this.curPoint.x;
           this.selectionEnd.y = this.curPoint.y;
 
           if (!Point.isSamePoint(this.curPoint, this.selectionStart)) {
-            this.selectedShapes = this.shapeManager
-              .getShapesInside(this.selectionStart, this.selectionEnd)
-              .filter((shape) => shape.shapeType != "selection");
-            this.curSelection.setSelectedShapes(this.selectedShapes);
+            this.selectedShapes.length = 0;
+
+            this.selectedShapes.push(
+              ...this.shapeManager
+                .getShapesInside(this.selectionStart, this.selectionEnd)
+                .filter((shape) => shape.shapeType != "selection"),
+            );
           }
         }
+        break;
+      case "movingSelection":
+        {
+          let delx = this.curPoint.x - this.curMovingSelectionInfo.lastPoint.x;
+          let dely = this.curPoint.y - this.curMovingSelectionInfo.lastPoint.y;
+          this.curSelection.moveEnclosingRectangle(delx, dely);
 
+          this.curMovingSelectionInfo.lastPoint = { ...this.curPoint };
+        }
         break;
 
       default:
@@ -78,14 +126,31 @@ export default class CursorTool implements Tool {
     switch (this.curState) {
       case "idle":
         {
-          this.curState = "selecting";
+          //
+          let shapesAtCurPoint = this.shapeManager.getShapesAt(
+            this.curPoint.x,
+            this.curPoint.y,
+          );
+          if (shapesAtCurPoint.length > 0) {
+            this.curState = "movingSelection";
+            this.selectedShapes.length = 1;
+            this.selectedShapes[0] =
+              shapesAtCurPoint[shapesAtCurPoint.length - 1];
 
-          this.selectionStart.x = this.curPoint.x;
-          this.selectionStart.y = this.curPoint.y;
-          this.selectionEnd.x = this.curPoint.x;
-          this.selectionEnd.y = this.curPoint.y;
+            this.curMovingSelectionInfo.lastPoint = { ...this.curPoint };
 
-          this.curSelection.setDrawSelectionArea(true);
+            this.curSelection.setDrawSelectionArea(false);
+          } else {
+            this.curState = "selecting";
+
+            this.selectionStart.x = this.curPoint.x;
+            this.selectionStart.y = this.curPoint.y;
+            this.selectionEnd.x = this.curPoint.x;
+            this.selectionEnd.y = this.curPoint.y;
+
+            this.curSelection.setDrawSelectionArea(true);
+          }
+
           this.shapeManager.addShape(this.curSelection);
         }
         break;
@@ -99,6 +164,7 @@ export default class CursorTool implements Tool {
             this.curSelection.containsPoint(this.curPoint.x, this.curPoint.y)
           ) {
             this.curState = "movingSelection";
+            this.curMovingSelectionInfo.lastPoint = { ...this.curPoint };
           } else {
             this.curState = "selecting";
 
@@ -107,7 +173,7 @@ export default class CursorTool implements Tool {
             this.selectionEnd.x = this.curPoint.x;
             this.selectionEnd.y = this.curPoint.y;
 
-            this.curSelection.setSelectedShapes([]);
+            this.selectedShapes.length = 0;
             this.curSelection.setDrawSelectionArea(true);
           }
         }
@@ -123,25 +189,6 @@ export default class CursorTool implements Tool {
     switch (this.curState) {
       case "selecting":
         {
-          if (Point.isSamePoint(this.selectionEnd, this.selectionStart)) {
-            //
-            let shapes = this.shapeManager
-              .getShapesAt(this.selectionStart.x, this.selectionStart.y)
-              .filter((shape) => shape.shapeType != "selection");
-
-            if (shapes.length > 0)
-              this.selectedShapes = [shapes[shapes.length - 1]];
-            else this.selectedShapes = [];
-          } else {
-            let shapes = this.shapeManager
-              .getShapesInside(this.selectionStart, this.selectionEnd)
-              .filter((shape) => shape.shapeType != "selection");
-
-            if (shapes.length > 0)
-              this.selectedShapes = [shapes[shapes.length - 1]];
-            else this.selectedShapes = [];
-          }
-
           if (this.selectedShapes.length > 0) {
             this.curState = "selected";
             this.curSelection.setDrawSelectionArea(false);
@@ -149,11 +196,14 @@ export default class CursorTool implements Tool {
             this.curState = "idle";
             this.shapeManager.removeShape(this.curSelection);
           }
-
-          console.log(this.curState);
         }
         break;
-
+      case "movingSelection":
+        {
+          this.curState = "selected";
+          this.curMovingSelectionInfo.reset();
+        }
+        break;
       default:
         break;
     }

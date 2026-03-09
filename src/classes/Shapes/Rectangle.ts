@@ -188,6 +188,13 @@ export class Rectangle implements Shape {
     this.endX = x2;
     this.endY = y2;
   }
+  moveEnclosingRectangle(delX: number, delY: number) {
+    //
+    this.startX += delX;
+    this.endX += delX;
+    this.startY += delY;
+    this.endY += delY;
+  }
 
   containsPoint(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();

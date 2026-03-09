@@ -222,6 +222,15 @@ export class Line implements Shape {
     }
     return [x1, y1, x2, y2];
   }
+
+  moveEnclosingRectangle(delX: number, delY: number) {
+
+    for (let point of this.points) {
+      //
+      point.x += delX;
+      point.y += delY;
+    }
+  }
   containsPoint(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
     return x >= sx && x <= ex && y >= sy && y <= ey;

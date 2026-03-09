@@ -150,6 +150,13 @@ export class Pen implements Shape {
     ctx.restore();
   }
 
+  moveEnclosingRectangle(delX: number, delY: number) {
+    for (let point of this.points) {
+      //
+      point.x += delX;
+      point.y += delY;
+    }
+  }
   getEnclosingRectangle(): [number, number, number, number] {
     let x1 = 1e18;
     let x2 = -1e18;
@@ -167,7 +174,7 @@ export class Pen implements Shape {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
     return x >= sx && x <= ex && y >= sy && y <= ey;
   }
- liesInside(point1: Point, point2: Point) {
+  liesInside(point1: Point, point2: Point) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
     let minx = Math.min(point1.x, point2.x);
     let miny = Math.min(point1.y, point2.y);

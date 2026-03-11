@@ -40,10 +40,14 @@ export default function useCanvas(props: useCanvasProps) {
     const handleMouseMove = (e: MouseEvent) => {
       toolManager.onMouseMove(e);
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      toolManager.onKeyPress(e);
+    };
 
-    window.addEventListener("pointerdown", handleMouseDown);
-    window.addEventListener("pointerup", handleMouseup);
-    window.addEventListener("pointermove", handleMouseMove);
+    document.addEventListener("pointerdown", handleMouseDown);
+    document.addEventListener("pointerup", handleMouseup);
+    document.addEventListener("pointermove", handleMouseMove);
+    document.addEventListener("keydown", handleKeyDown);
 
     let animationid: number;
 
@@ -65,9 +69,10 @@ export default function useCanvas(props: useCanvasProps) {
       cancelAnimationFrame(animationid);
       toolManager.destructor();
 
-      window.removeEventListener("pointerdown", handleMouseDown);
-      window.removeEventListener("pointerup", handleMouseup);
-      window.removeEventListener("pointermove", handleMouseMove);
+      document.removeEventListener("pointerdown", handleMouseDown);
+      document.removeEventListener("pointerup", handleMouseup);
+      document.removeEventListener("pointermove", handleMouseMove);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
 }

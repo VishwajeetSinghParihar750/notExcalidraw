@@ -77,7 +77,6 @@ export class Selection implements Shape {
 
       if (this.drawSelectionArea) {
         ctx.save();
-        console.log(this.selectionArea);
 
         {
           ctx.beginPath();

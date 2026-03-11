@@ -105,4 +105,11 @@ export default class ToolManager {
       this.tools[this.activeTool].onCanvasMouseUp(e);
     else this.tools[this.activeTool].onOtherMouseUp(e);
   }
+
+  onKeyPress(e: KeyboardEvent) {
+    if (this.activeTool != "cursor") return;
+
+    if (e.key == "Delete" || e.key == "Backspace")
+      (this.tools["cursor"] as CursorTool).handleDeleteAction();
+  }
 }

@@ -354,6 +354,8 @@ export default class CursorTool implements Tool {
         this.shapeManager.removeShape(shape),
       );
       this.updateSelectedShapes([]);
+      useSelectedShapes.setState({ selectedShapes: new Set() });
+
       this.shapeManager.removeShape(this.curSelection);
       this.curState = "idle";
     }

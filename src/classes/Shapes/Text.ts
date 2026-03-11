@@ -70,6 +70,18 @@ export class Text implements Shape {
   setCurState(curState: TextShapeState) {
     this.curState = curState;
   }
+  setEnclosingRectangleCoordinates(
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+  ) {
+    this.enclosingRectangle[0].x = x1;
+    this.enclosingRectangle[1].x = x2;
+    this.enclosingRectangle[0].y = y1;
+    this.enclosingRectangle[1].y = y2;
+  }
+
   draw(ctx: CanvasRenderingContext2D) {
     if (this.curState != "render") return;
 
@@ -83,24 +95,23 @@ export class Text implements Shape {
       switch (this.fontSize) {
         case "small":
           pixelFontSize = 16;
-          lineHeight = 20;
           break;
         case "medium":
           pixelFontSize = 24;
-          lineHeight = 30;
           break;
         case "large":
           pixelFontSize = 32;
-          lineHeight = 38;
           break;
         case "extra-large":
           pixelFontSize = 40;
-          lineHeight = 48;
           break;
 
         default:
+          pixelFontSize = this.fontSize;
           break;
       }
+      lineHeight = pixelFontSize * 1.2;
+
       switch (this.fontFamily) {
         case "hand":
           ctx.font = `${pixelFontSize}px Handwriting`;
@@ -145,6 +156,7 @@ export class Text implements Shape {
       this.enclosingRectangle[1].y,
     ];
   }
+
   moveEnclosingRectangle(delX: number, delY: number) {
     //
     this.enclosingRectangle[0].x += delX;
@@ -152,16 +164,15 @@ export class Text implements Shape {
     this.enclosingRectangle[0].y += delY;
     this.enclosingRectangle[1].y += delY;
   }
-  setEnclosingRectangle(enclosingRectangle: [Point, Point]) {
-    this.enclosingRectangle = enclosingRectangle;
-  }
-  setEnclosingRectangleCoordinates(
-    enclosingRectangle: [number, number, number, number],
-  ) {
-    this.enclosingRectangle[0].x = enclosingRectangle[0];
-    this.enclosingRectangle[0].y = enclosingRectangle[1];
-    this.enclosingRectangle[1].x = enclosingRectangle[2];
-    this.enclosingRectangle[1].y = enclosingRectangle[3];
+
+  // i will be scaling this only on all size chages from selection, no other updates
+  updateEnclosingRectangle(nsx: number, nsy: number, nex: number, ney: number) {
+    const lines = this.text.split("\n").length;
+    let lineHeight = (ney - nsy) / lines;
+    let fontsizevalue = lineHeight / 1.2;
+
+    this.setFontSize(fontsizevalue);
+    this.setEnclosingRectangleCoordinates(nsx, nsy, nex, ney);
   }
 
   containsPoint(x: number, y: number) {

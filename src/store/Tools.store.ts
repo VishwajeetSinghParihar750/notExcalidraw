@@ -53,7 +53,7 @@ type opacity = 0 | 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 | 90 | 100;
 type backgroundColor = string | "none";
 type strokeColor = string;
 type fontFamily = "hand" | "code" | "normal";
-type fontSize = "small" | "medium" | "large" | "extra-large";
+type fontSize = "small" | "medium" | "large" | "extra-large" | number;
 type textAlign = "left" | "center" | "right";
 
 interface toolStyleState {

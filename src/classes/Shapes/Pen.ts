@@ -64,7 +64,7 @@ export class Pen implements Shape {
 
       let len = this.points.length - 1;
 
-      if (len > 1) {
+      if (len > 0) {
         {
           ctx.beginPath();
 
@@ -133,7 +133,7 @@ export class Pen implements Shape {
 
           ctx.restore();
         }
-      } else if (len == 1) {
+      } else if (len == 0) {
         ctx.beginPath();
         ctx.arc(
           this.points[0].x,
@@ -157,6 +157,22 @@ export class Pen implements Shape {
       point.y += delY;
     }
   }
+
+  updateEnclosingRectangle(nsx: number, nsy: number, nex: number, ney: number) {
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+
+    this.points.forEach((point) => {
+      let x1 = point.x;
+      let y1 = point.y;
+
+      x1 = nsx + ((x1 - sx) * (nex - nsx)) / (ex - sx);
+      y1 = nsy + ((y1 - sy) * (ney - nsy)) / (ey - sy);
+
+      point.x = x1;
+      point.y = y1;
+    });
+  }
+
   getEnclosingRectangle(): [number, number, number, number] {
     let x1 = 1e18;
     let x2 = -1e18;

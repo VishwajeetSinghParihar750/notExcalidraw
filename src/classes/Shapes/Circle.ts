@@ -171,6 +171,12 @@ export class Circle implements Shape {
     this.endY += delY;
   }
 
+  updateEnclosingRectangle(x1: number, y1: number, x2: number, y2: number) {
+    this.startX = x1;
+    this.startY = y1;
+    this.endX = x2;
+    this.endY = y2;
+  }
   getEnclosingRectangle(): [number, number, number, number] {
     let x1 = Math.min(this.startX, this.endX);
     let x2 = Math.max(this.startX, this.endX);

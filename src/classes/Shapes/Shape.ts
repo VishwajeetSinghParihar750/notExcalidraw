@@ -19,6 +19,14 @@ export interface Shape {
   draw: (ctx: CanvasRenderingContext2D) => void;
   containsPoint: (x: number, y: number) => boolean;
   liesInside: (point1: Point, point2: Point) => boolean;
+
   getEnclosingRectangle: () => [number, number, number, number];
+  updateEnclosingRectangle: (
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+  ) => void;
+
   moveEnclosingRectangle: (delX: number, delY: number) => void;
 }

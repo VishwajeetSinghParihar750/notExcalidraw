@@ -142,13 +142,12 @@ export class Selection implements Shape {
     return [x1, y1, x2, y2];
   }
 
-  // updateEnclosingRectangle(x1: number, y1: number, x2: number, y2: number) {}
-
   moveEnclosingRectangle(delX: number, delY: number) {
     this.selectedShapes.forEach((shape) =>
       shape.moveEnclosingRectangle(delX, delY),
     );
   }
+  updateEnclosingRectangle(x1: number, y1: number, x2: number, y2: number) {}
 
   containsPoint(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
@@ -217,6 +216,264 @@ export class Selection implements Shape {
   isRightBoundary(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
     return y >= sy && y <= ey && Math.abs(x - ex) <= 4;
+  }
+
+  updateShapesEnclsosingRectangles(
+    oldRect: [number, number, number, number],
+    newRect: [number, number, number, number],
+  ) {
+    let [sx, sy, ex, ey] = oldRect;
+    let [nsx, nsy, nex, ney] = newRect;
+
+    this.selectedShapes.forEach((shape) => {
+      let [x1, y1, x2, y2] = shape.getEnclosingRectangle();
+
+      x1 = nsx + ((x1 - sx) * (nex - nsx)) / (ex - sx);
+      y1 = nsy + ((y1 - sy) * (ney - nsy)) / (ey - sy);
+
+      x2 = nsx + ((x2 - sx) * (nex - nsx)) / (ex - sx);
+      y2 = nsy + ((y2 - sy) * (ney - nsy)) / (ey - sy);
+
+      shape.updateEnclosingRectangle(x1, y1, x2, y2);
+    });
+  }
+
+  scaleTopLeftCorner(
+    sx: number,
+    sy: number,
+    ex: number,
+    ey: number,
+    delY: number,
+  ) {
+    let nsy = sy + delY;
+    let nex = ex;
+    let ney = ey;
+
+    let nsx = nex - ((ex - sx) * (ney - nsy)) / (ey - sy);
+
+    this.updateShapesEnclsosingRectangles(
+      [sx, sy, ex, ey],
+      [nsx, nsy, nex, ney],
+    );
+  }
+  scaleTopLeftCornerX(
+    sx: number,
+    sy: number,
+    ex: number,
+    ey: number,
+    delX: number,
+  ) {
+    let nsx = sx + delX;
+    let nex = ex;
+    let ney = ey;
+
+    let nsy = ney - ((nex - nsx) * (ey - sy)) / (ex - sx);
+
+    this.updateShapesEnclsosingRectangles(
+      [sx, sy, ex, ey],
+      [nsx, nsy, nex, ney],
+    );
+  }
+  scaleTopRightCorner(
+    sx: number,
+    sy: number,
+    ex: number,
+    ey: number,
+    delY: number,
+  ) {
+    let nsy = sy + delY;
+    let nsx = sx;
+    let ney = ey;
+
+    let nex = nsx + ((ex - sx) * (ney - nsy)) / (ey - sy);
+
+    this.updateShapesEnclsosingRectangles(
+      [sx, sy, ex, ey],
+      [nsx, nsy, nex, ney],
+    );
+  }
+  scaleBottomRightCorner(
+    sx: number,
+    sy: number,
+    ex: number,
+    ey: number,
+    delY: number,
+  ) {
+    let nsx = sx;
+    let nsy = sy;
+    let ney = ey + delY;
+    let nex = nsx + ((ex - sx) * (ney - nsy)) / (ey - sy);
+
+    this.updateShapesEnclsosingRectangles(
+      [sx, sy, ex, ey],
+      [nsx, nsy, nex, ney],
+    );
+  }
+  scaleBottomRightCornerX(
+    sx: number,
+    sy: number,
+    ex: number,
+    ey: number,
+    delX: number,
+  ) {
+    let nsx = sx;
+    let nsy = sy;
+
+    let nex = ex + delX;
+    let ney = nsy + ((nex - nsx) * (ey - sy)) / (ex - sx);
+
+    this.updateShapesEnclsosingRectangles(
+      [sx, sy, ex, ey],
+      [nsx, nsy, nex, ney],
+    );
+  }
+  scaleBottomLeftCorner(
+    sx: number,
+    sy: number,
+    ex: number,
+    ey: number,
+    delY: number,
+  ) {
+    let nex = ex;
+    let nsy = sy;
+
+    let ney = ey + delY;
+    let nsx = nex - ((ex - sx) * (ney - nsy)) / (ey - sy);
+
+    this.updateShapesEnclsosingRectangles(
+      [sx, sy, ex, ey],
+      [nsx, nsy, nex, ney],
+    );
+  }
+
+  moveTopLeftCorner(delX: number, delY: number) {
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+
+    let nsx = sx + delX;
+    let nsy = sy + delY;
+    let nex = ex;
+    let ney = ey;
+
+    if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
+      this.scaleTopLeftCorner(sx, sy, ex, ey, delY);
+    else
+      this.updateShapesEnclsosingRectangles(
+        [sx, sy, ex, ey],
+        [nsx, nsy, nex, ney],
+      );
+  }
+  moveTopRightCorner(delX: number, delY: number) {
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+
+    let nsx = sx;
+    let nsy = sy + delY;
+    let nex = ex + delX;
+    let ney = ey;
+
+    if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
+      this.scaleTopRightCorner(sx, sy, ex, ey, delY);
+    else
+      this.updateShapesEnclsosingRectangles(
+        [sx, sy, ex, ey],
+        [nsx, nsy, nex, ney],
+      );
+  }
+  moveBottomLeftCorner(delX: number, delY: number) {
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+
+    let nsx = sx + delX;
+    let nsy = sy;
+    let nex = ex;
+    let ney = ey + delY;
+
+    if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
+      this.scaleBottomLeftCorner(sx, sy, ex, ey, delY);
+    else
+      this.updateShapesEnclsosingRectangles(
+        [sx, sy, ex, ey],
+        [nsx, nsy, nex, ney],
+      );
+  }
+  moveBottomRightCorner(delX: number, delY: number) {
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+
+    let nsx = sx;
+    let nsy = sy;
+    let nex = ex + delX;
+    let ney = ey + delY;
+
+    if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
+      this.scaleBottomRightCorner(sx, sy, ex, ey, delY);
+    else
+      this.updateShapesEnclsosingRectangles(
+        [sx, sy, ex, ey],
+        [nsx, nsy, nex, ney],
+      );
+  }
+
+  moveTopBoundary(delY: number) {
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+
+    let nsx = sx;
+    let nsy = sy + delY;
+    let nex = ex;
+    let ney = ey;
+
+    if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
+      this.scaleTopLeftCorner(sx, sy, ex, ey, delY);
+    else
+      this.updateShapesEnclsosingRectangles(
+        [sx, sy, ex, ey],
+        [nsx, nsy, nex, ney],
+      );
+  }
+  moveLeftBoundary(delX: number) {
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+
+    let nsx = sx + delX;
+    let nsy = sy;
+    let nex = ex;
+    let ney = ey;
+
+    if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
+      this.scaleTopLeftCornerX(sx, sy, ex, ey, delX);
+    else
+      this.updateShapesEnclsosingRectangles(
+        [sx, sy, ex, ey],
+        [nsx, nsy, nex, ney],
+      );
+  }
+  moveRightBoundary(delX: number) {
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+
+    let nsx = sx;
+    let nsy = sy;
+    let nex = ex + delX;
+    let ney = ey;
+
+    if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
+      this.scaleBottomRightCornerX(sx, sy, ex, ey, delX);
+    else
+      this.updateShapesEnclsosingRectangles(
+        [sx, sy, ex, ey],
+        [nsx, nsy, nex, ney],
+      );
+  }
+  moveBottomBoundary(delY: number) {
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+
+    let nsx = sx;
+    let nsy = sy;
+    let nex = ex;
+    let ney = ey + delY;
+
+    if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
+      this.scaleBottomRightCorner(sx, sy, ex, ey, delY);
+    else
+      this.updateShapesEnclsosingRectangles(
+        [sx, sy, ex, ey],
+        [nsx, nsy, nex, ney],
+      );
   }
 
   liesInside(point1: Point, point2: Point) {

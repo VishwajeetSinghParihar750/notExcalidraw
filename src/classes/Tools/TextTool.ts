@@ -19,6 +19,16 @@ export default class TextTool implements Tool {
   editableTextContainer: React.RefObject<HTMLDivElement | null>;
   currentInputElement: HTMLTextAreaElement;
 
+  updateCurrentEnclosingRectangle() {
+    let rect = this.currentInputElement.getBoundingClientRect();
+    this.curText!.setEnclosingRectangleCoordinates(
+      rect.x,
+      rect.y,
+      rect.x + rect.width,
+      rect.y + rect.height,
+    );
+  }
+
   lastMouseDown: Point = new Point(-1e18, -1e18);
 
   zustandSubscriptions: any[] = [];
@@ -42,6 +52,16 @@ export default class TextTool implements Tool {
             default:
               break;
           }
+
+          requestAnimationFrame(() => {
+            this.currentInputElement.style.height = "auto";
+            this.currentInputElement.style.height =
+              this.currentInputElement.scrollHeight + "px";
+
+            this.currentInputElement.style.width = "auto";
+            this.currentInputElement.style.width =
+              this.currentInputElement.scrollWidth + "px";
+          });
         }
       },
     );
@@ -73,6 +93,16 @@ export default class TextTool implements Tool {
             default:
               break;
           }
+
+          requestAnimationFrame(() => {
+            this.currentInputElement.style.height = "auto";
+            this.currentInputElement.style.height =
+              this.currentInputElement.scrollHeight + "px";
+
+            this.currentInputElement.style.width = "auto";
+            this.currentInputElement.style.width =
+              this.currentInputElement.scrollWidth + "px";
+          });
         }
       },
     );
@@ -117,12 +147,19 @@ export default class TextTool implements Tool {
 
     this.currentInputElement.id = "textool input element";
 
+    this.currentInputElement.style.height = "0px";
+    this.currentInputElement.style.width = "0px";
+    this.currentInputElement.style.boxSizing = "content-box";
+    this.currentInputElement.rows = 1;
+    this.currentInputElement.cols = 1;
+
     this.currentInputElement.style.whiteSpace = "pre";
+
     this.currentInputElement.style.resize = "none";
     this.currentInputElement.style.overflow = "hidden";
     this.currentInputElement.style.outline = "none";
 
-    this.currentInputElement.addEventListener("input", (e) => {
+    this.currentInputElement.addEventListener("input", () => {
       this.currentInputElement.style.height = "auto";
       this.currentInputElement.style.height =
         this.currentInputElement.scrollHeight + "px";
@@ -141,13 +178,7 @@ export default class TextTool implements Tool {
     else if (this.curState == "editing") {
       this.curState = "idle";
 
-      let rect = this.currentInputElement.getBoundingClientRect();
-      this.curText!.setEnclosingRectangleCoordinates([
-        rect.x,
-        rect.y,
-        rect.x + rect.width,
-        rect.y + rect.height,
-      ]);
+      this.updateCurrentEnclosingRectangle();
 
       this.curText!.text = this.currentInputElement.value;
       this.curText!.curState = "render";
@@ -208,27 +239,31 @@ export default class TextTool implements Tool {
         this.curText.opacity / 100
       ).toString();
 
+      let fontsizevalue = this.curText.fontSize;
+
       switch (this.curText.fontSize) {
         case "small":
-          this.currentInputElement.style.fontSize = "16px";
-          this.currentInputElement.style.lineHeight = "20px";
+          fontsizevalue = 16;
           break;
         case "medium":
-          this.currentInputElement.style.fontSize = "24px";
-          this.currentInputElement.style.lineHeight = "30px";
+          fontsizevalue = 24;
           break;
         case "large":
-          this.currentInputElement.style.fontSize = "32px";
-          this.currentInputElement.style.lineHeight = "38px";
+          fontsizevalue = 32;
           break;
         case "extra-large":
-          this.currentInputElement.style.fontSize = "40px";
-          this.currentInputElement.style.lineHeight = "48px";
+          fontsizevalue = 40;
           break;
 
         default:
+          fontsizevalue = this.curText.fontSize;
+          useToolStyle.setState({ fontSize: fontsizevalue });
           break;
       }
+
+      this.currentInputElement.style.lineHeight = fontsizevalue * 1.2 + "px";
+      this.currentInputElement.style.fontSize = fontsizevalue + "px";
+
       switch (this.curText.fontFamily) {
         case "code":
           this.currentInputElement.style.fontFamily = "Code";
@@ -266,13 +301,9 @@ export default class TextTool implements Tool {
   onSwitchTool(oldTool: ToolType, newTool: ToolType): void {
     if (oldTool == this.toolType && this.curState == "editing") {
       this.curState = "idle";
-      let rect = this.currentInputElement.getBoundingClientRect();
-      this.curText!.setEnclosingRectangleCoordinates([
-        rect.x,
-        rect.y,
-        rect.x + rect.width,
-        rect.y + rect.height,
-      ]);
+
+      this.updateCurrentEnclosingRectangle();
+
       this.curText!.text = this.currentInputElement.value;
       this.curText!.curState = "render";
       this.currentInputElement.value = "";

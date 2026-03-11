@@ -186,17 +186,19 @@ export class Arrow implements Shape {
       point.y += delY;
     }
   }
-  updateEnclosingRectangle(x1: number, y1: number, x2: number, y2: number) {
-    let [sx, sy, bx, by] = this.getEnclosingRectangle();
-    let xdis = bx - sx;
-    let ydis = by - sy;
 
-    let newxdis = x2 - x1;
-    let newydis = y2 - y1;
+  updateEnclosingRectangle(nsx: number, nsy: number, nex: number, ney: number) {
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
 
     this.points.forEach((point) => {
-      point.x = ((point.x - sx) * newxdis) / xdis;
-      point.y = ((point.y - sy) * newydis) / ydis;
+      let x1 = point.x;
+      let y1 = point.y;
+
+      x1 = nsx + ((x1 - sx) * (nex - nsx)) / (ex - sx);
+      y1 = nsy + ((y1 - sy) * (ney - nsy)) / (ey - sy);
+
+      point.x = x1;
+      point.y = y1;
     });
   }
 

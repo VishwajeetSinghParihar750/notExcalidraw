@@ -224,13 +224,28 @@ export class Line implements Shape {
   }
 
   moveEnclosingRectangle(delX: number, delY: number) {
-
     for (let point of this.points) {
       //
       point.x += delX;
       point.y += delY;
     }
   }
+
+  updateEnclosingRectangle(nsx: number, nsy: number, nex: number, ney: number) {
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+
+    this.points.forEach((point) => {
+      let x1 = point.x;
+      let y1 = point.y;
+
+      x1 = nsx + ((x1 - sx) * (nex - nsx)) / (ex - sx);
+      y1 = nsy + ((y1 - sy) * (ney - nsy)) / (ey - sy);
+
+      point.x = x1;
+      point.y = y1;
+    });
+  }
+
   containsPoint(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
     return x >= sx && x <= ex && y >= sy && y <= ey;

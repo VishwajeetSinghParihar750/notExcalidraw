@@ -721,23 +721,12 @@ export default class CursorTool implements Tool {
                 Math.floor(e.clientX - containerRect.left),
                 Math.floor(e.clientY - containerRect.top),
               );
-              // let curPoint = new Point(Math.floor(e.clientX), Math.floor(e.clientY));
 
-              let shapes = this.shapeManager
-                .getShapesAt(curPoint.x, curPoint.y)
-                .reverse();
-
-              let lastText = shapes.find((shape) => shape.shapeType == "text");
-
-              if (lastText) {
-                this.curText = lastText as Text;
-              } else {
-                this.curText = new Text("edit", "", [
-                  new Point(curPoint.x, curPoint.y),
-                  new Point(curPoint.x, curPoint.y),
-                ]);
-                this.shapeManager.addShape(this.curText);
-              }
+              this.curText = new Text("edit", "", [
+                new Point(curPoint.x, curPoint.y),
+                new Point(curPoint.x, curPoint.y),
+              ]);
+              this.shapeManager.addShape(this.curText);
 
               this.currentInputElement.value = this.curText.text;
 
@@ -821,8 +810,112 @@ export default class CursorTool implements Tool {
 
       case "movingSelection":
         {
-          this.curState = "selected";
-          this.curSelectionMovementInfo.reset();
+          if (
+            this.selectedShapes.length == 1 &&
+            this.selectedShapes[0].shapeType == "text"
+          ) {
+            //ch3ecking double click
+            if (
+              this.curtextEditingInitiliazeInfo.lastWasEmtpyArea &&
+              new Date().getMilliseconds() -
+                this.curtextEditingInitiliazeInfo.lastTime.getMilliseconds() <
+                300 &&
+              Point.isSamePoint(
+                this.curPoint,
+                this.curtextEditingInitiliazeInfo.lastMouseup,
+              )
+            ) {
+              //
+              this.curState = "editingText";
+
+              this.curText = this.selectedShapes[0] as Text;
+
+              this.updateSelectedShapes([]);
+              useSelectedShapes.setState({ selectedShapes: new Set(["text"]) });
+
+              this.currentInputElement.value = this.curText.text;
+
+              this.currentInputElement.style.position = "absolute";
+              this.currentInputElement.style.top = `${this.curText.startPoint.y}px`;
+              this.currentInputElement.style.left = `${this.curText.startPoint.x}px`;
+
+              this.currentInputElement.style.color = this.curText.strokeColor;
+              this.currentInputElement.style.opacity = (
+                this.curText.opacity / 100
+              ).toString();
+
+              let fontsizevalue = this.curText.fontSize;
+
+              switch (this.curText.fontSize) {
+                case "small":
+                  fontsizevalue = 16;
+                  break;
+                case "medium":
+                  fontsizevalue = 24;
+                  break;
+                case "large":
+                  fontsizevalue = 32;
+                  break;
+                case "extra-large":
+                  fontsizevalue = 40;
+                  break;
+
+                default:
+                  fontsizevalue = this.curText.fontSize;
+                  useToolStyle.setState({ fontSize: fontsizevalue });
+                  break;
+              }
+
+              this.currentInputElement.style.lineHeight =
+                fontsizevalue * 1.2 + "px";
+              this.currentInputElement.style.fontSize = fontsizevalue + "px";
+
+              switch (this.curText.fontFamily) {
+                case "code":
+                  this.currentInputElement.style.fontFamily = "Code";
+                  break;
+                case "normal":
+                  this.currentInputElement.style.fontFamily = "sans-serif";
+                  break;
+                case "hand":
+                  this.currentInputElement.style.fontFamily = "Handwriting";
+                  break;
+
+                default:
+                  break;
+              }
+
+              this.editableTextContainer.current?.appendChild(
+                this.currentInputElement,
+              );
+
+              this.currentInputElement.style.height = "auto";
+              this.currentInputElement.style.height =
+                this.currentInputElement.scrollHeight + "px";
+              this.currentInputElement.style.width = "auto";
+              this.currentInputElement.style.width =
+                this.currentInputElement.scrollWidth + "px";
+
+              this.curText.setCurState("edit");
+
+              this.currentInputElement.select();
+              this.curtextEditingInitiliazeInfo.reset();
+
+              this.shapeManager.removeShape(this.curSelection);
+            } else {
+              this.curState = "selected";
+              this.curSelectionMovementInfo.reset();
+
+              this.curtextEditingInitiliazeInfo.lastMouseup.x = this.curPoint.x;
+              this.curtextEditingInitiliazeInfo.lastMouseup.y = this.curPoint.y;
+              this.curtextEditingInitiliazeInfo.lastTime = new Date();
+              this.curtextEditingInitiliazeInfo.lastWasEmtpyArea = true;
+            }
+          } else {
+            this.curState = "selected";
+            this.curSelectionMovementInfo.reset();
+            this.curtextEditingInitiliazeInfo.reset();
+          }
         }
         break;
       case "movingBottomBoundary":

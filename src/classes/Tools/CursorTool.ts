@@ -44,11 +44,6 @@ export default class CursorTool implements Tool {
   updateSelectedShapes(shapes: Shape[]) {
     this.selectedShapes.length = 0;
     this.selectedShapes.push(...shapes);
-    useSelectedShapes.setState({
-      selectedShapes: new Set(
-        this.selectedShapes.map((shape) => shape.shapeType),
-      ),
-    });
   }
 
   curSelection: Selection = new Selection(
@@ -175,7 +170,20 @@ export default class CursorTool implements Tool {
     this.zustandSubscriptions.forEach((unsub) => unsub());
   }
 
-  onSwitchTool(oldTool: ToolType, newTool: ToolType): void {}
+  onSwitchTool(oldTool: ToolType, newTool: ToolType): void {
+    {
+      if (this.curState == "selecting" || this.curState == "selected") {
+        this.curState = "idle";
+        this.shapeManager.removeShape(this.curSelection);
+      }
+
+      useSelectedShapes.setState({
+        selectedShapes: new Set(
+          this.selectedShapes.map((shape) => shape.shapeType),
+        ),
+      });
+    }
+  }
 
   onCanvasMouseMove(e: MouseEvent) {
     this.curPoint.x = Math.floor(e.x);
@@ -259,6 +267,11 @@ export default class CursorTool implements Tool {
                 .getShapesInside(this.selectionStart, this.selectionEnd)
                 .filter((shape) => shape.shapeType != "selection"),
             );
+            useSelectedShapes.setState({
+              selectedShapes: new Set(
+                this.selectedShapes.map((shape) => shape.shapeType),
+              ),
+            });
           }
         }
         break;
@@ -376,6 +389,11 @@ export default class CursorTool implements Tool {
             this.updateSelectedShapes([
               shapesAtCurPoint[shapesAtCurPoint.length - 1],
             ]);
+            useSelectedShapes.setState({
+              selectedShapes: new Set(
+                this.selectedShapes.map((shape) => shape.shapeType),
+              ),
+            });
 
             this.curSelectionMovementInfo.lastPoint = { ...this.curPoint };
 
@@ -387,6 +405,8 @@ export default class CursorTool implements Tool {
             this.selectionStart.y = this.curPoint.y;
             this.selectionEnd.x = this.curPoint.x;
             this.selectionEnd.y = this.curPoint.y;
+
+            useSelectedShapes.setState({ selectedShapes: new Set() });
 
             this.curSelection.setDrawSelectionArea(true);
           }
@@ -461,6 +481,7 @@ export default class CursorTool implements Tool {
             this.selectionEnd.y = this.curPoint.y;
 
             this.updateSelectedShapes([]);
+            useSelectedShapes.setState({ selectedShapes: new Set() });
             this.curSelection.setDrawSelectionArea(true);
           }
         }
@@ -483,6 +504,12 @@ export default class CursorTool implements Tool {
             this.curState = "idle";
             this.shapeManager.removeShape(this.curSelection);
           }
+
+          useSelectedShapes.setState({
+            selectedShapes: new Set(
+              this.selectedShapes.map((shape) => shape.shapeType),
+            ),
+          });
         }
         break;
 
@@ -546,6 +573,10 @@ export default class CursorTool implements Tool {
   }
 
   onOtherMouseDown(e: MouseEvent): void {}
-  onOtherMouseMove(e: MouseEvent): void {}
-  onOtherMouseUp(e: MouseEvent): void {}
+  onOtherMouseMove(e: MouseEvent): void {
+    this.onCanvasMouseMove(e);
+  }
+  onOtherMouseUp(e: MouseEvent): void {
+    this.onCanvasMouseUp(e);
+  }
 }

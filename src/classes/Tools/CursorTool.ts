@@ -4,6 +4,7 @@ import type { EventType } from "../Managers/ToolManager";
 
 import {
   useSelectedShapes,
+  useSelectionActions,
   useToolStyle,
   type Tool as ToolType,
 } from "../../store/Tools.store";
@@ -272,6 +273,18 @@ export default class CursorTool implements Tool {
         }
       },
     );
+
+    // for selection actions
+    let sub15 = useSelectionActions.subscribe(
+      (state) => state.currentActionTriggered,
+      (newval, oldval) => {
+        if (newval == "delete") {
+          this.handleDeleteAction();
+        } else if (newval == "duplicate") {
+          this.handleDuplicateAction();
+        }
+      },
+    );
     this.zustandSubscriptions.push(
       sub1,
       sub2,
@@ -287,6 +300,7 @@ export default class CursorTool implements Tool {
       sub12,
       sub13,
       sub14,
+      sub15,
     );
   }
 
@@ -332,6 +346,32 @@ export default class CursorTool implements Tool {
   }
   destructor(): void {
     this.zustandSubscriptions.forEach((unsub) => unsub());
+  }
+
+  handleDeleteAction() {
+    if (this.curState == "selected") {
+      this.selectedShapes.forEach((shape) =>
+        this.shapeManager.removeShape(shape),
+      );
+      this.updateSelectedShapes([]);
+      this.shapeManager.removeShape(this.curSelection);
+      this.curState = "idle";
+    }
+  }
+  handleDuplicateAction() {
+    if (this.curState == "selected") {
+      let newSelection = this.curSelection.clone();
+      newSelection.moveEnclosingRectangle(10, 10);
+      newSelection.selectedShapes.forEach((shape) =>
+        this.shapeManager.addShape(shape),
+      );
+
+      this.shapeManager.removeShape(this.curSelection);
+      this.curSelection = newSelection;
+      this.shapeManager.addShape(this.curSelection);
+      this.selectedShapes = this.curSelection.selectedShapes;
+      this.curSelection.setDrawSelectionArea(false);
+    }
   }
 
   onSwitchTool(oldTool: ToolType, newTool: ToolType): void {

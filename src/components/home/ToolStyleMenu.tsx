@@ -1,6 +1,7 @@
 import { useEffect, type ReactElement } from "react";
 import {
   useSelectedShapes,
+  useSelectionActions,
   useTool,
   useToolStyle,
 } from "../../store/Tools.store";
@@ -18,6 +19,7 @@ import type {
   Tool,
 } from "../../store/Tools.store";
 import type { ShapeType } from "../../classes/Shapes/Shape";
+import type { selectionAction } from "../../store/Tools.store";
 
 let strokeColors: strokeColor[] = [
   "#d3d3d3",
@@ -638,6 +640,53 @@ let fontFamilyStyles: fontFamilyInfo[] = [
   },
 ];
 
+type actionInfoType = { name: selectionAction; element: ReactElement };
+let actions: actionInfoType[] = [
+  {
+    name: "duplicate",
+    element: (
+      <svg
+        aria-hidden="true"
+        focusable="false"
+        role="img"
+        viewBox="0 0 20 20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <g stroke-width="1.25">
+          <path d="M14.375 6.458H8.958a2.5 2.5 0 0 0-2.5 2.5v5.417a2.5 2.5 0 0 0 2.5 2.5h5.417a2.5 2.5 0 0 0 2.5-2.5V8.958a2.5 2.5 0 0 0-2.5-2.5Z"></path>
+          <path
+            clip-rule="evenodd"
+            d="M11.667 3.125c.517 0 .986.21 1.325.55.34.338.55.807.55 1.325v1.458H8.333c-.485 0-.927.185-1.26.487-.343.312-.57.75-.609 1.24l-.005 5.357H5a1.87 1.87 0 0 1-1.326-.55 1.87 1.87 0 0 1-.549-1.325V5c0-.518.21-.987.55-1.326.338-.34.807-.549 1.325-.549h6.667Z"
+          ></path>
+        </g>
+      </svg>
+    ),
+  },
+  {
+    name: "delete",
+    element: (
+      <svg
+        aria-hidden="true"
+        focusable="false"
+        role="img"
+        viewBox="0 0 20 20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          stroke-width="1.25"
+          d="M3.333 5.833h13.334M8.333 9.167v5M11.667 9.167v5M4.167 5.833l.833 10c0 .92.746 1.667 1.667 1.667h6.666c.92 0 1.667-.746 1.667-1.667l.833-10M7.5 5.833v-2.5c0-.46.373-.833.833-.833h3.334c.46 0 .833.373.833.833v2.5"
+        ></path>
+      </svg>
+    ),
+  },
+];
+
 function shouldRender(
   selectedTool: Tool,
   selectedShapes: Set<ShapeType>,
@@ -734,8 +783,11 @@ export default function ToolStyleMenu() {
     ["text"],
     ["text"],
   );
-
+  let torenderActions = selectedTool == "cursor";
   //
+  let setSelectionAction = useSelectionActions(
+    (state) => state.setCurrentActionTriggered,
+  );
 
   return (
     <>
@@ -1042,6 +1094,28 @@ export default function ToolStyleMenu() {
                 <div className="absolute top-5">0</div>
               </div>
             </div>
+            {torenderActions && (
+              <div>
+                <div>Actions</div>
+                <div className="flex gap-2 mt-2">
+                  {actions.map((cur) => {
+                    return (
+                      <div
+                        onClick={() => {
+                          setSelectionAction(cur.name);
+                        }}
+                        className={
+                          "w-8 h-8 p-1 bg-bg-muted2 hover:bg-brand-muted rounded-sm flex items-center justify-center cursor-pointer"
+                        }
+                      >
+                        {" "}
+                        <div className="w-4 h-4">{cur.element}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

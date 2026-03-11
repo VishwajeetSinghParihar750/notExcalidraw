@@ -27,6 +27,10 @@ export class Circle implements Shape {
   endX: number;
   endY: number;
 
+  clone() {
+    return new Circle(this.startX, this.startY, this.endX, this.endY);
+  }
+
   constructor(startX: number, startY: number, endX: number, endY: number) {
     this.startX = startX;
     this.startY = startY;

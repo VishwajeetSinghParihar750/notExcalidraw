@@ -24,6 +24,10 @@ export class Arrow implements Shape {
 
   points: Point[];
 
+  clone() {
+    return new Arrow(structuredClone(this.points));
+  }
+
   constructor(points: Point[]) {
     this.points = points;
 

@@ -27,6 +27,9 @@ export class Line implements Shape {
   // shape definition
 
   points: Point[];
+  clone() {
+    return new Line(structuredClone(this.points));
+  }
 
   constructor(points: Point[]) {
     this.points = points;

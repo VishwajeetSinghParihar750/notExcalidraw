@@ -56,6 +56,21 @@ const useSelectedShapes = create<selectedShapesState>()(
   })),
 );
 
+type selectionAction = "delete" | "duplicate" | "none";
+interface selectionActionState {
+  currentActionTriggered: selectionAction;
+  setCurrentActionTriggered: (curAction: selectionAction) => void;
+}
+
+const useSelectionActions = create<selectionActionState>()(
+  subscribeWithSelector((set) => ({
+    currentActionTriggered: "none",
+    setCurrentActionTriggered: (currentAction) => {
+      set(() => ({ currentActionTriggered: currentAction }));
+      set(() => ({ currentActionTriggered: "none" }));
+    },
+  })),
+);
 // for tool styling
 
 type fillStyle = "line" | "crosslines" | "fill";
@@ -126,7 +141,13 @@ const useToolStyle = create<toolStyleState & toolStyleActions>()(
   })),
 );
 
-export { useTool, useLock, useToolStyle, useSelectedShapes };
+export {
+  useTool,
+  useLock,
+  useToolStyle,
+  useSelectedShapes,
+  useSelectionActions,
+};
 export type {
   Tool,
   fillStyle,
@@ -139,5 +160,6 @@ export type {
   strokeColor,
   fontFamily,
   fontSize,
+  selectionAction,
   textAlign,
 };

@@ -22,6 +22,10 @@ export class Pen implements Shape {
   // shape definition
   points: Point[] = [];
 
+  clone() {
+    return new Pen(structuredClone(this.points));
+  }
+
   constructor(points: Point[]) {
     this.points = points;
 

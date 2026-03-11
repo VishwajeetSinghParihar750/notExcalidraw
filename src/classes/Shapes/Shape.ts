@@ -40,6 +40,8 @@ export interface Shape {
 
   moveEnclosingRectangle: (delX: number, delY: number) => void;
 
+  clone: () => Shape;
+
   setEdgeRadius?: (radius: edgeRadius) => void;
   setStrokeColor?: (color: strokeColor) => void;
   setStrokeWidth?: (width: strokeWidth) => void;

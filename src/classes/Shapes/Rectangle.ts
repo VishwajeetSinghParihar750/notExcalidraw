@@ -29,6 +29,9 @@ export class Rectangle implements Shape {
   endX: number;
   endY: number;
 
+  clone() {
+    return new Rectangle(this.startX, this.startY, this.endX, this.endY);
+  }
   constructor(startX: number, startY: number, endX: number, endY: number) {
     this.startX = startX;
     this.startY = startY;

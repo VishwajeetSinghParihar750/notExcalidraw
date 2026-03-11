@@ -8,9 +8,16 @@ export class Selection implements Shape {
   selectionArea: [Point, Point];
   selectedShapes: Shape[] = [];
   drawSelectionArea: boolean = true;
-  padding = 5;
+  enclosingRectanglePadding = 5;
 
   shapeResizeThreshold = 5;
+
+  clone() {
+    return new Selection(
+      this.selectionArea,
+      this.selectedShapes.map((shape) => shape.clone()),
+    );
+  }
 
   constructor(selectionArea: [Point, Point], selectedShapes: Shape[]) {
     this.selectedShapes = selectedShapes;
@@ -70,6 +77,7 @@ export class Selection implements Shape {
 
       if (this.drawSelectionArea) {
         ctx.save();
+        console.log(this.selectionArea);
 
         {
           ctx.beginPath();
@@ -94,10 +102,10 @@ export class Selection implements Shape {
 
           if (this.selectedShapes.length > 1) ctx.setLineDash([2, 4]);
           //
-          sx -= this.padding;
-          sy -= this.padding;
-          ex += this.padding;
-          ey += this.padding;
+          sx -= this.enclosingRectanglePadding;
+          sy -= this.enclosingRectanglePadding;
+          ex += this.enclosingRectanglePadding;
+          ey += this.enclosingRectanglePadding;
 
           ctx.beginPath();
           ctx.rect(sx, sy, ex - sx, ey - sy);
@@ -110,10 +118,10 @@ export class Selection implements Shape {
         this.selectedShapes.forEach((shape) => {
           let [sx, sy, ex, ey] = shape.getEnclosingRectangle();
 
-          sx -= this.padding;
-          sy -= this.padding;
-          ex += this.padding;
-          ey += this.padding;
+          sx -= this.enclosingRectanglePadding;
+          sy -= this.enclosingRectanglePadding;
+          ex += this.enclosingRectanglePadding;
+          ey += this.enclosingRectanglePadding;
 
           ctx.beginPath();
           ctx.rect(sx, sy, ex - sx, ey - sy);
@@ -163,8 +171,8 @@ export class Selection implements Shape {
 
   isTopLeftCorner(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
-    sx -= this.padding;
-    sy -= this.padding;
+    sx -= this.enclosingRectanglePadding;
+    sy -= this.enclosingRectanglePadding;
 
     let curPoint = new Point(sx, sy);
     let tocheck = new Point(x, y);
@@ -173,8 +181,8 @@ export class Selection implements Shape {
   }
   isTopRightCorner(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
-    ex += this.padding;
-    sy -= this.padding;
+    ex += this.enclosingRectanglePadding;
+    sy -= this.enclosingRectanglePadding;
 
     let curPoint = new Point(ex, sy);
     let tocheck = new Point(x, y);
@@ -183,8 +191,8 @@ export class Selection implements Shape {
   }
   isBottomLeftCorner(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
-    sx -= this.padding;
-    ey += this.padding;
+    sx -= this.enclosingRectanglePadding;
+    ey += this.enclosingRectanglePadding;
 
     let curPoint = new Point(sx, ey);
     let tocheck = new Point(x, y);
@@ -193,8 +201,8 @@ export class Selection implements Shape {
   }
   isBottomRightCorner(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
-    ex += this.padding;
-    ey += this.padding;
+    ex += this.enclosingRectanglePadding;
+    ey += this.enclosingRectanglePadding;
 
     let curPoint = new Point(ex, ey);
     let tocheck = new Point(x, y);

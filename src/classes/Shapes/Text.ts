@@ -10,7 +10,6 @@ import {
 import { Point } from "./Point";
 
 type TextShapeState = "render" | "edit";
-type TextMaxWidth = number | "any";
 
 export class Text implements Shape {
   shapeType: ShapeType = "text";
@@ -24,7 +23,6 @@ export class Text implements Shape {
   // shape definition
   curState: TextShapeState;
   text: string;
-  maxWidth: TextMaxWidth = "any";
   startPoint: Point;
 
   shouldUpdateRectangleBasedOnText = false;
@@ -32,11 +30,17 @@ export class Text implements Shape {
   //
   enclosingRectangle: [Point, Point];
 
+  clone() {
+    return new Text(
+      structuredClone(this.curState),
+      structuredClone(this.text),
+      structuredClone(this.enclosingRectangle),
+    );
+  }
   constructor(
     curState: TextShapeState,
     text: string,
     enclosingRectangle: [Point, Point],
-    maxWidth?: TextMaxWidth,
   ) {
     let { strokeColor, opacity, fontFamily, fontSize } =
       useToolStyle.getState();
@@ -46,8 +50,6 @@ export class Text implements Shape {
     this.curState = curState;
     this.text = text;
     this.startPoint = enclosingRectangle[0];
-
-    if (maxWidth) this.maxWidth = maxWidth;
 
     this.strokeColor = strokeColor;
     this.opacity = opacity;

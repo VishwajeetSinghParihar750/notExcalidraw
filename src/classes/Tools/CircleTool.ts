@@ -14,9 +14,7 @@ export default class CircleTool implements Tool {
 
   emit: (tool: ToolType, event: EventType) => void;
 
-  onSwitchTool( oldTool: ToolType, newTool: ToolType ): void {
-    
-  }
+  onSwitchTool(oldTool: ToolType, newTool: ToolType): void {}
   constructor(
     shapeManager: ShapeManager,
     emit: (tool: ToolType, event: EventType) => void,
@@ -33,6 +31,7 @@ export default class CircleTool implements Tool {
   }
 
   onCanvasMouseMove(e: MouseEvent) {
+    document.body.style.cursor = "crosshair";
     if (this.curState == "drawing") {
       this.currentCircle!.endX = e.clientX;
       this.currentCircle!.endY = e.clientY;
@@ -56,6 +55,7 @@ export default class CircleTool implements Tool {
   onOtherMouseDown(e: MouseEvent): void {}
   onOtherMouseMove(e: MouseEvent): void {
     this.onCanvasMouseMove(e);
+    document.body.style.cursor = "default";
   }
   onOtherMouseUp(e: MouseEvent): void {
     this.onCanvasMouseUp(e);

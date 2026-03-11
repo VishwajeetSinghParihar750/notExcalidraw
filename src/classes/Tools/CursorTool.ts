@@ -172,16 +172,17 @@ export default class CursorTool implements Tool {
 
   onSwitchTool(oldTool: ToolType, newTool: ToolType): void {
     {
-      if (this.curState == "selecting" || this.curState == "selected") {
-        this.curState = "idle";
-        this.shapeManager.removeShape(this.curSelection);
-      }
+      if (oldTool == "cursor") {
+        if (this.curState == "selecting" || this.curState == "selected") {
+          this.curState = "idle";
+          this.shapeManager.removeShape(this.curSelection);
+        }
 
-      useSelectedShapes.setState({
-        selectedShapes: new Set(
-          this.selectedShapes.map((shape) => shape.shapeType),
-        ),
-      });
+        this.updateSelectedShapes([]);
+        useSelectedShapes.setState({
+          selectedShapes: new Set(),
+        });
+      }
     }
   }
 

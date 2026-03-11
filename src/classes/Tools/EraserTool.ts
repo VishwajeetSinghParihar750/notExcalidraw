@@ -29,12 +29,13 @@ export default class EraserTool implements Tool {
   }
 
   onCanvasMouseMove(e: MouseEvent) {
+    document.body.style.cursor = "crosshair";
     if (this.curState == "erasing") {
       let shapes = this.shapeManager.getShapesAt(e.clientX, e.clientY);
       for (let shape of shapes) {
         if (!this.currentToEraseShapes.has(shape)) {
           this.currentToEraseShapes.add(shape);
-          shape.setOpacity(Math.max(0, shape.opacity - 50) as opacity);
+          shape.setOpacity?.(Math.max(0, shape.opacity! - 50) as opacity);
         }
       }
     }
@@ -55,7 +56,9 @@ export default class EraserTool implements Tool {
     }
   }
   onOtherMouseDown(e: MouseEvent): void {}
-  onOtherMouseMove(e: MouseEvent): void {}
+  onOtherMouseMove(e: MouseEvent): void {
+    document.body.style.cursor = "default";
+  }
   onOtherMouseUp(e: MouseEvent): void {}
 
   onSwitchTool(oldTool: ToolType, newTool: ToolType): void {}

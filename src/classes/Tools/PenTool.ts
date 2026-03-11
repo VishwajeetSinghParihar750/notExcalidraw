@@ -29,6 +29,7 @@ export default class PenTool implements Tool {
   }
 
   onCanvasMouseMove(e: MouseEvent) {
+    document.body.style.cursor = "crosshair";
     if (this.curState == "drawing") {
       let newPoint = new Point(e.clientX, e.clientY);
 
@@ -37,6 +38,8 @@ export default class PenTool implements Tool {
       if (Point.isSamePoint(firstPoint, newPoint)) {
         newPoint.x = firstPoint.x;
         newPoint.y = firstPoint.y;
+
+        document.body.style.cursor = "pointer";
       }
 
       this.currentPen?.points.push(newPoint);
@@ -54,6 +57,7 @@ export default class PenTool implements Tool {
   onOtherMouseDown(e: MouseEvent): void {}
   onOtherMouseMove(e: MouseEvent): void {
     this.onCanvasMouseMove(e);
+    document.body.style.cursor = "default";
   }
   onOtherMouseUp(e: MouseEvent): void {
     this.onCanvasMouseUp(e);

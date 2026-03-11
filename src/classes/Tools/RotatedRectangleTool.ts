@@ -33,6 +33,7 @@ export default class RotatedRectangleTool implements Tool {
   }
 
   onCanvasMouseMove(e: MouseEvent) {
+    document.body.style.cursor = "crosshair";
     if (this.curState == "drawing") {
       this.currentRectangle!.endX = e.clientX;
       this.currentRectangle!.endY = e.clientY;
@@ -57,6 +58,7 @@ export default class RotatedRectangleTool implements Tool {
   onOtherMouseDown(e: MouseEvent): void {}
   onOtherMouseMove(e: MouseEvent): void {
     this.onCanvasMouseMove(e);
+    document.body.style.cursor = "default";
   }
   onOtherMouseUp(e: MouseEvent): void {
     this.onCanvasMouseUp(e);

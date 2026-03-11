@@ -51,6 +51,8 @@ export default class ArrowTool implements Tool {
   destructor(): void {}
 
   onCanvasMouseMove(e: MouseEvent) {
+    document.body.style.cursor = "crosshair";
+
     let curPoint: Point = new Point(
       Math.floor(e.clientX),
       Math.floor(e.clientY),
@@ -194,8 +196,13 @@ export default class ArrowTool implements Tool {
     }
   }
   onOtherMouseDown(e: MouseEvent): void {}
-  onOtherMouseMove(e: MouseEvent): void {}
-  onOtherMouseUp(e: MouseEvent): void {}
+  onOtherMouseMove(e: MouseEvent): void {
+    this.onCanvasMouseMove(e);
+    document.body.style.cursor = "default";
+  }
+  onOtherMouseUp(e: MouseEvent): void {
+    this.onCanvasMouseUp(e);
+  }
 
   onSwitchTool(oldTool: ToolType, newTool: ToolType): void {}
 }

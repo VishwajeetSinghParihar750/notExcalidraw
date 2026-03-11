@@ -197,7 +197,22 @@ export default class TextTool implements Tool {
     this.lastMouseDown.y = e.clientY;
   }
 
-  onCanvasMouseMove(e: MouseEvent) {}
+  onCanvasMouseMove(e: MouseEvent) {
+    const containerRect =
+      this.editableTextContainer.current!.getBoundingClientRect();
+    let curPoint = new Point(
+      Math.floor(e.clientX - containerRect.left),
+      Math.floor(e.clientY - containerRect.top),
+    );
+    let shapes = this.shapeManager
+      .getShapesAt(curPoint.x, curPoint.y)
+      .reverse();
+
+    let lastText = shapes.find((shape) => shape.shapeType == "text");
+
+    if (lastText) document.body.style.cursor = "text";
+    else document.body.style.cursor = "crosshair";
+  }
 
   onCanvasMouseUp(e: MouseEvent) {
     if (!this.editableTextContainer.current) return;
@@ -295,7 +310,9 @@ export default class TextTool implements Tool {
   }
 
   onOtherMouseDown(e: MouseEvent): void {}
-  onOtherMouseMove(e: MouseEvent): void {}
+  onOtherMouseMove(e: MouseEvent): void {
+    document.body.style.cursor = "default";
+  }
   onOtherMouseUp(e: MouseEvent): void {}
 
   onSwitchTool(oldTool: ToolType, newTool: ToolType): void {

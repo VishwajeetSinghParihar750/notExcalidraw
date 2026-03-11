@@ -2,7 +2,11 @@ import type ShapeManager from "../Managers/ShapeManager";
 import type Tool from "./Tool";
 import type { EventType } from "../Managers/ToolManager";
 
-import type { Tool as ToolType } from "../../store/Tools.store";
+import {
+  useSelectedShapes,
+  useToolStyle,
+  type Tool as ToolType,
+} from "../../store/Tools.store";
 import { Point } from "../Shapes/Point";
 import type { Shape } from "../Shapes/Shape";
 import { Selection } from "../Shapes/Selection";
@@ -37,6 +41,16 @@ export default class CursorTool implements Tool {
   selectionEnd: Point = new Point(-1e18, -1e18);
 
   selectedShapes: Shape[] = [];
+  updateSelectedShapes(shapes: Shape[]) {
+    this.selectedShapes.length = 0;
+    this.selectedShapes.push(...shapes);
+    useSelectedShapes.setState({
+      selectedShapes: new Set(
+        this.selectedShapes.map((shape) => shape.shapeType),
+      ),
+    });
+  }
+
   curSelection: Selection = new Selection(
     [this.selectionStart, this.selectionEnd],
     this.selectedShapes,
@@ -54,14 +68,112 @@ export default class CursorTool implements Tool {
 
   emit: (tool: ToolType, event: EventType) => void;
 
+  zustandSubscriptions: any[] = [];
+  zustandSubscribe() {
+    let sub1 = useToolStyle.subscribe(
+      (state) => state.arrowType,
+      (newval) => {
+        this.selectedShapes.forEach((shape) => {
+          shape.setArrowType?.(newval);
+        });
+      },
+    );
+    let sub2 = useToolStyle.subscribe(
+      (state) => state.edgeRadius,
+      (newval) => {
+        this.selectedShapes.forEach((shape) => {
+          shape.setEdgeRadius?.(newval);
+        });
+      },
+    );
+    let sub10 = useToolStyle.subscribe(
+      (state) => state.fontSize,
+      (newval) => {
+        this.selectedShapes.forEach((shape) => {
+          shape.setFontSize?.(newval);
+        });
+      },
+    );
+    let sub9 = useToolStyle.subscribe(
+      (state) => state.fontFamily,
+      (newval) => {
+        this.selectedShapes.forEach((shape) => {
+          shape.setFontFamily?.(newval);
+        });
+      },
+    );
+    let sub8 = useToolStyle.subscribe(
+      (state) => state.fillStyle,
+      (newval) => {
+        this.selectedShapes.forEach((shape) => {
+          shape.setFillStyle?.(newval);
+        });
+      },
+    );
+    let sub7 = useToolStyle.subscribe(
+      (state) => state.backgroundColor,
+      (newval) => {
+        this.selectedShapes.forEach((shape) => {
+          shape.setBackgroundColor?.(newval);
+        });
+      },
+    );
+    let sub6 = useToolStyle.subscribe(
+      (state) => state.opacity,
+      (newval) => {
+        this.selectedShapes.forEach((shape) => {
+          shape.setOpacity?.(newval);
+        });
+      },
+    );
+    let sub5 = useToolStyle.subscribe(
+      (state) => state.strokeStyle,
+      (newval) => {
+        this.selectedShapes.forEach((shape) => {
+          shape.setStrokeStyle?.(newval);
+        });
+      },
+    );
+    let sub4 = useToolStyle.subscribe(
+      (state) => state.strokeWidth,
+      (newval) => {
+        this.selectedShapes.forEach((shape) => {
+          shape.setStrokeWidth?.(newval);
+        });
+      },
+    );
+    let sub3 = useToolStyle.subscribe(
+      (state) => state.strokeColor,
+      (newval) => {
+        this.selectedShapes.forEach((shape) => {
+          shape.setStrokeColor?.(newval);
+        });
+      },
+    );
+    this.zustandSubscriptions.push(
+      sub1,
+      sub2,
+      sub3,
+      sub4,
+      sub5,
+      sub6,
+      sub7,
+      sub8,
+      sub9,
+      sub10,
+    );
+  }
   constructor(
     shapeManager: ShapeManager,
     eventCallback: (tool: ToolType, event: EventType) => void,
   ) {
+    this.zustandSubscribe();
     this.shapeManager = shapeManager;
     this.emit = eventCallback;
   }
-  destructor(): void {}
+  destructor(): void {
+    this.zustandSubscriptions.forEach((unsub) => unsub());
+  }
 
   onSwitchTool(oldTool: ToolType, newTool: ToolType): void {}
 
@@ -142,10 +254,8 @@ export default class CursorTool implements Tool {
           this.selectionEnd.y = this.curPoint.y;
 
           if (!Point.isSamePoint(this.curPoint, this.selectionStart)) {
-            this.selectedShapes.length = 0;
-
-            this.selectedShapes.push(
-              ...this.shapeManager
+            this.updateSelectedShapes(
+              this.shapeManager
                 .getShapesInside(this.selectionStart, this.selectionEnd)
                 .filter((shape) => shape.shapeType != "selection"),
             );
@@ -262,9 +372,10 @@ export default class CursorTool implements Tool {
           );
           if (shapesAtCurPoint.length > 0) {
             this.curState = "movingSelection";
-            this.selectedShapes.length = 1;
-            this.selectedShapes[0] =
-              shapesAtCurPoint[shapesAtCurPoint.length - 1];
+
+            this.updateSelectedShapes([
+              shapesAtCurPoint[shapesAtCurPoint.length - 1],
+            ]);
 
             this.curSelectionMovementInfo.lastPoint = { ...this.curPoint };
 
@@ -349,7 +460,7 @@ export default class CursorTool implements Tool {
             this.selectionEnd.x = this.curPoint.x;
             this.selectionEnd.y = this.curPoint.y;
 
-            this.selectedShapes.length = 0;
+            this.updateSelectedShapes([]);
             this.curSelection.setDrawSelectionArea(true);
           }
         }

@@ -1,5 +1,9 @@
 import { useEffect, type ReactElement } from "react";
-import { useTool, useToolStyle } from "../../store/Tools.store";
+import {
+  useSelectedShapes,
+  useTool,
+  useToolStyle,
+} from "../../store/Tools.store";
 import type {
   arrowType,
   backgroundColor,
@@ -11,19 +15,48 @@ import type {
   strokeColor,
   strokeStyle,
   strokeWidth,
+  Tool,
 } from "../../store/Tools.store";
+import type { ShapeType } from "../../classes/Shapes/Shape";
+
+function shouldRender(
+  selectedTool: Tool,
+  selectedShapes: Set<ShapeType>,
+  tools: Tool[],
+  shapes: ShapeType[],
+) {
+  return (
+    tools.includes(selectedTool) ||
+    (selectedTool === "cursor" &&
+      shapes.some((shape) => selectedShapes.has(shape)))
+  );
+}
 
 export default function ToolStyleMenu() {
   let selectedTool = useTool((s) => s.selectedTool);
+  let stylesState = useToolStyle((s) => s);
 
-  let torender =
-    selectedTool == "circle" ||
-    selectedTool == "rect" ||
-    selectedTool == "rotrect" ||
-    selectedTool == "line" ||
-    selectedTool == "pen" ||
-    selectedTool == "arrow" ||
-    selectedTool == "text";
+  useEffect(() => {
+    stylesState.setStrokeColor(strokeColors[0]);
+    stylesState.setBackgroundColor("none");
+    stylesState.setFillStyle("fill");
+    stylesState.setStrokeStyle("line");
+    stylesState.setArrowType("straight");
+    stylesState.setEdgeRadius(10);
+    stylesState.setStrokeWidth(4);
+    stylesState.setOpacity(100);
+  }, []);
+
+  let opacityThumbTranslate = stylesState.opacity + "%";
+
+  let selectedShapes = useSelectedShapes((state) => state.selectedShapes);
+
+  let torender = shouldRender(
+    selectedTool,
+    selectedShapes,
+    ["circle", "rect", "rotrect", "line", "pen", "arrow", "text"],
+    ["circle", "rect", "rotrect", "line", "pen", "arrow", "text"],
+  );
 
   let strokeColors: strokeColor[] = [
     "#d3d3d3",
@@ -32,12 +65,29 @@ export default function ToolStyleMenu() {
     "#56a2e8",
     "#b76100",
   ];
+
+  let torenderBackground = shouldRender(
+    selectedTool,
+    selectedShapes,
+    ["rect", "pen", "line", "rotrect", "circle"],
+    ["rect", "pen", "line", "rotrect", "circle"],
+  );
+
   let bgColors: backgroundColor[] = [
     "#5b2c2c",
     "#043b0c",
     "#154163",
     "#362500",
   ];
+
+  let torenderFill =
+    stylesState.backgroundColor != "none" &&
+    shouldRender(
+      selectedTool,
+      selectedShapes,
+      ["rect", "pen", "line", "rotrect", "circle"],
+      ["rect", "pen", "line", "rotrect", "circle"],
+    );
 
   type fillSectionInfo = { fillStyle: fillStyle; element: ReactElement };
   let fillStyles: fillSectionInfo[] = [
@@ -170,6 +220,13 @@ export default function ToolStyleMenu() {
     },
   ];
 
+  let torenderArrowType = shouldRender(
+    selectedTool,
+    selectedShapes,
+    ["arrow"],
+    ["arrow"],
+  );
+
   type arrowtypeInfo = { arrowType: arrowType; element: ReactElement };
   let arrowtypeStyles: arrowtypeInfo[] = [
     {
@@ -238,6 +295,14 @@ export default function ToolStyleMenu() {
       ),
     },
   ];
+
+  let torenderStrokeWidth = shouldRender(
+    selectedTool,
+    selectedShapes,
+    ["rect", "pen", "line", "rotrect", "circle", "arrow"],
+    ["rect", "pen", "line", "rotrect", "circle", "arrow"],
+  );
+
   type strokeWidthInfo = { width: strokeWidth; element: ReactElement };
   let strokeFillWidthStyles: strokeWidthInfo[] = [
     {
@@ -314,6 +379,13 @@ export default function ToolStyleMenu() {
     },
   ];
 
+  let torenderStrokeStyle = shouldRender(
+    selectedTool,
+    selectedShapes,
+    ["rect", "line", "rotrect", "circle", "arrow"],
+    ["rect", "line", "rotrect", "circle", "arrow"],
+  );
+
   type strokeStyleInfo = { strokeStyle: strokeStyle; element: ReactElement };
   let strokeStyleStyles: strokeStyleInfo[] = [
     {
@@ -389,6 +461,13 @@ export default function ToolStyleMenu() {
     },
   ];
 
+  let torenderEdgeRadius = shouldRender(
+    selectedTool,
+    selectedShapes,
+    ["rect", "line", "rotrect"],
+    ["rect", "line", "rotrect"],
+  );
+
   type edgesRadiusInfo = { radius: edgeRadius; element: ReactElement };
   let edgesRadiusStyles: edgesRadiusInfo[] = [
     {
@@ -462,6 +541,12 @@ export default function ToolStyleMenu() {
     },
   ];
 
+  let torenderFontFamily = shouldRender(
+    selectedTool,
+    selectedShapes,
+    ["text"],
+    ["text"],
+  );
   type fontFamilyInfo = { fontFamily: fontFamily; element: ReactElement };
   let fontFamilyStyles: fontFamilyInfo[] = [
     {
@@ -535,6 +620,13 @@ export default function ToolStyleMenu() {
       ),
     },
   ];
+  let torenderFontSize = shouldRender(
+    selectedTool,
+    selectedShapes,
+    ["text"],
+    ["text"],
+  );
+
   type fontSizeInfo = { fontSize: fontSize; element: ReactElement };
   let fontSizeStyles: fontSizeInfo[] = [
     {
@@ -653,26 +745,12 @@ export default function ToolStyleMenu() {
   ];
 
   //
-  let stylesState = useToolStyle((s) => s);
-
-  useEffect(() => {
-    stylesState.setStrokeColor(strokeColors[0]);
-    stylesState.setBackgroundColor("none");
-    stylesState.setFillStyle("fill");
-    stylesState.setStrokeStyle("line");
-    stylesState.setArrowType("straight");
-    stylesState.setEdgeRadius(10);
-    stylesState.setStrokeWidth(4);
-    stylesState.setOpacity(100);
-  }, []);
-
-  let opacityThumbTranslate = stylesState.opacity + "%";
 
   return (
     <>
       {torender && (
         <div className="bg-bg overflow-hidden rounded-lg">
-          <div className="max-h-[80dvh] flex flex-col gap-4 text-xs  p-5 bg-bg-muted ">
+          <div className="max-h-[80dvh] overflow-y-auto flex flex-col gap-4 text-xs  p-5 bg-bg-muted ">
             <div className="">
               <div>Stroke</div>
               <div className="flex gap-1 mt-2">
@@ -697,11 +775,7 @@ export default function ToolStyleMenu() {
                 })}
               </div>
             </div>
-            {(selectedTool == "rect" ||
-              selectedTool == "pen" ||
-              selectedTool == "line" ||
-              selectedTool == "rotrect" ||
-              selectedTool == "circle") && (
+            {torenderBackground && (
               <div className="">
                 <div>Background</div>
                 <div className="flex gap-1 mt-2">
@@ -770,33 +844,31 @@ export default function ToolStyleMenu() {
                 </div>
               </div>
             )}
-            {selectedTool != "arrow" &&
-              selectedTool != "text" &&
-              stylesState.backgroundColor != "none" && (
-                <div>
-                  <div>Fill</div>
-                  <div className="flex gap-2 mt-2">
-                    {fillStyles.map((cur) => {
-                      return (
-                        <div
-                          onClick={() => {
-                            stylesState.setFillStyle(cur.fillStyle);
-                          }}
-                          className={
-                            stylesState.fillStyle == cur.fillStyle
-                              ? "w-8 h-8 p-1 bg-brand-muted rounded-sm flex items-center justify-center cursor-pointer"
-                              : "w-8 h-8 p-1 bg-bg-muted2 rounded-sm flex items-center justify-center cursor-pointer"
-                          }
-                        >
-                          {" "}
-                          <div className="w-4 h-4">{cur.element}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
+            {torenderFill && (
+              <div>
+                <div>Fill</div>
+                <div className="flex gap-2 mt-2">
+                  {fillStyles.map((cur) => {
+                    return (
+                      <div
+                        onClick={() => {
+                          stylesState.setFillStyle(cur.fillStyle);
+                        }}
+                        className={
+                          stylesState.fillStyle == cur.fillStyle
+                            ? "w-8 h-8 p-1 bg-brand-muted rounded-sm flex items-center justify-center cursor-pointer"
+                            : "w-8 h-8 p-1 bg-bg-muted2 rounded-sm flex items-center justify-center cursor-pointer"
+                        }
+                      >
+                        {" "}
+                        <div className="w-4 h-4">{cur.element}</div>
+                      </div>
+                    );
+                  })}
                 </div>
-              )}
-            {selectedTool != "text" && (
+              </div>
+            )}
+            {torenderStrokeWidth && (
               <div>
                 <div>Stroke Width</div>
                 <div className="flex gap-2 mt-2">
@@ -820,7 +892,7 @@ export default function ToolStyleMenu() {
                 </div>
               </div>
             )}
-            {selectedTool != "pen" && selectedTool != "text" && (
+            {torenderStrokeStyle && (
               <div>
                 <div>Stroke Style</div>
                 <div className="flex gap-2 mt-2">
@@ -844,7 +916,7 @@ export default function ToolStyleMenu() {
                 </div>
               </div>
             )}
-            {selectedTool == "text" && (
+            {torenderFontFamily && (
               <div>
                 <div>Font Family</div>
                 <div className="flex gap-2 mt-2">
@@ -868,7 +940,7 @@ export default function ToolStyleMenu() {
                 </div>
               </div>
             )}
-            {selectedTool == "text" && (
+            {torenderFontSize && (
               <div>
                 <div>Font Size</div>
                 <div className="flex gap-2 mt-2">
@@ -892,7 +964,7 @@ export default function ToolStyleMenu() {
                 </div>
               </div>
             )}
-            {selectedTool == "arrow" && (
+            {torenderArrowType && (
               <div>
                 <div>Arrow Type</div>
                 <div className="flex gap-2 mt-2">
@@ -916,9 +988,7 @@ export default function ToolStyleMenu() {
                 </div>
               </div>
             )}
-            {(selectedTool == "rect" ||
-              selectedTool == "rotrect" ||
-              selectedTool == "line") && (
+            {torenderEdgeRadius && (
               <div>
                 <div>Edges</div>
                 <div className="flex gap-2 mt-2">

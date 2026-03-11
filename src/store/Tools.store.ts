@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 
-//
+import type { ShapeType } from "../classes/Shapes/Shape";
 
 type Tool =
   | "cursor"
@@ -20,11 +20,6 @@ interface toolState {
   selectedTool: Tool;
   setSelectedTool: (tool: Tool) => void;
 }
-interface lockedState {
-  lockTool: boolean;
-  setLockTool: (locktool: boolean) => void;
-}
-
 const useTool = create<toolState>()(
   subscribeWithSelector((set) => ({
     selectedTool: "cursor",
@@ -33,6 +28,10 @@ const useTool = create<toolState>()(
     },
   })),
 );
+interface lockedState {
+  lockTool: boolean;
+  setLockTool: (locktool: boolean) => void;
+}
 
 const useLock = create<lockedState>()(
   subscribeWithSelector((set) => ({
@@ -42,6 +41,21 @@ const useLock = create<lockedState>()(
     },
   })),
 );
+
+interface selectedShapesState {
+  selectedShapes: Set<ShapeType>;
+  setSelectedShapes: (shapes: Set<ShapeType>) => void;
+}
+
+const useSelectedShapes = create<selectedShapesState>()(
+  subscribeWithSelector((set) => ({
+    selectedShapes: new Set(),
+    setSelectedShapes: (shapes) => {
+      set(() => ({ selectedShapes: shapes }));
+    },
+  })),
+);
+
 // for tool styling
 
 type fillStyle = "line" | "crosslines" | "fill";
@@ -112,7 +126,7 @@ const useToolStyle = create<toolStyleState & toolStyleActions>()(
   })),
 );
 
-export { useTool, useLock, useToolStyle };
+export { useTool, useLock, useToolStyle, useSelectedShapes };
 export type {
   Tool,
   fillStyle,

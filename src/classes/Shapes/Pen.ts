@@ -188,6 +188,7 @@ export class Pen implements Shape {
   }
   containsPoint(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+
     return x >= sx && x <= ex && y >= sy && y <= ey;
   }
   liesInside(point1: Point, point2: Point) {

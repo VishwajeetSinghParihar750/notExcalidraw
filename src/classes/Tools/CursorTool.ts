@@ -10,6 +10,7 @@ import {
 import { Point } from "../Shapes/Point";
 import type { Shape } from "../Shapes/Shape";
 import { Selection } from "../Shapes/Selection";
+import { Text } from "../Shapes/Text";
 
 type state =
   | "idle"
@@ -24,13 +25,19 @@ type state =
   | "movingTopRightCorner"
   | "movingBottomLeftCorner"
   | "movingBottomRightCorner"
-  | "movingControlPoint";
+  | "movingControlPoint"
+  | "editingText";
 
 type selectionMovementInfo = {
   lastPoint: Point;
   reset: () => void;
 };
-
+type textEditingInitializeInfo = {
+  lastMouseup: Point;
+  lastTime: Date;
+  lastWasEmtpyArea: boolean;
+  reset: () => void;
+};
 export default class CursorTool implements Tool {
   toolType: ToolType = "arrow";
 
@@ -53,6 +60,17 @@ export default class CursorTool implements Tool {
 
   curPoint: Point = new Point(-1e18, -1e18);
 
+  curtextEditingInitiliazeInfo: textEditingInitializeInfo = {
+    lastMouseup: new Point(-1e18, -1e18),
+    lastTime: new Date(),
+    lastWasEmtpyArea: false,
+    reset() {
+      this.lastWasEmtpyArea = false;
+      this.lastMouseup.x = -1e18;
+      this.lastMouseup.y = -1e18;
+    },
+  };
+
   curSelectionMovementInfo: selectionMovementInfo = {
     lastPoint: new Point(0, 0),
     reset: () => {
@@ -60,6 +78,21 @@ export default class CursorTool implements Tool {
       this.curSelectionMovementInfo.lastPoint.y = 0;
     },
   };
+
+  // for text editing
+  curText: Text | null = null;
+  editableTextContainer: React.RefObject<HTMLDivElement | null>;
+  currentInputElement: HTMLTextAreaElement;
+
+  updateCurrentTextEnclosingRectangle() {
+    let rect = this.currentInputElement.getBoundingClientRect();
+    this.curText!.setEnclosingRectangleCoordinates(
+      rect.x,
+      rect.y,
+      rect.x + rect.width,
+      rect.y + rect.height,
+    );
+  }
 
   emit: (tool: ToolType, event: EventType) => void;
 
@@ -145,6 +178,100 @@ export default class CursorTool implements Tool {
         });
       },
     );
+
+    // for text editign
+
+    let sub11 = useToolStyle.subscribe(
+      (state) => state.fontFamily,
+      (state) => {
+        if (this.curText) {
+          this.curText.setFontFamily(state);
+          switch (this.curText.fontFamily) {
+            case "code":
+              this.currentInputElement.style.fontFamily = "Code";
+              break;
+            case "normal":
+              this.currentInputElement.style.fontFamily = "sans-serif";
+              break;
+            case "hand":
+              this.currentInputElement.style.fontFamily = "Handwriting";
+              break;
+
+            default:
+              break;
+          }
+
+          requestAnimationFrame(() => {
+            this.currentInputElement.style.height = "auto";
+            this.currentInputElement.style.height =
+              this.currentInputElement.scrollHeight + "px";
+
+            this.currentInputElement.style.width = "auto";
+            this.currentInputElement.style.width =
+              this.currentInputElement.scrollWidth + "px";
+          });
+        }
+      },
+    );
+
+    let sub12 = useToolStyle.subscribe(
+      (state) => state.fontSize,
+      (state) => {
+        if (this.curText) {
+          this.curText.setFontSize(state);
+
+          switch (this.curText.fontSize) {
+            case "small":
+              this.currentInputElement.style.fontSize = "16px";
+              this.currentInputElement.style.lineHeight = "20px";
+              break;
+            case "medium":
+              this.currentInputElement.style.fontSize = "24px";
+              this.currentInputElement.style.lineHeight = "30px";
+              break;
+            case "large":
+              this.currentInputElement.style.fontSize = "32px";
+              this.currentInputElement.style.lineHeight = "38px";
+              break;
+            case "extra-large":
+              this.currentInputElement.style.fontSize = "40px";
+              this.currentInputElement.style.lineHeight = "48px";
+              break;
+
+            default:
+              break;
+          }
+
+          requestAnimationFrame(() => {
+            this.currentInputElement.style.height = "auto";
+            this.currentInputElement.style.height =
+              this.currentInputElement.scrollHeight + "px";
+
+            this.currentInputElement.style.width = "auto";
+            this.currentInputElement.style.width =
+              this.currentInputElement.scrollWidth + "px";
+          });
+        }
+      },
+    );
+    let sub13 = useToolStyle.subscribe(
+      (state) => state.opacity,
+      (state) => {
+        if (this.curText) {
+          this.currentInputElement.style.opacity = (state / 100).toString();
+          this.curText.setOpacity(state);
+        }
+      },
+    );
+    let sub14 = useToolStyle.subscribe(
+      (state) => state.strokeColor,
+      (state) => {
+        if (this.curText) {
+          this.currentInputElement.style.color = state;
+          this.curText.setStrokeColor(state);
+        }
+      },
+    );
     this.zustandSubscriptions.push(
       sub1,
       sub2,
@@ -156,15 +283,52 @@ export default class CursorTool implements Tool {
       sub8,
       sub9,
       sub10,
+      sub11,
+      sub12,
+      sub13,
+      sub14,
     );
   }
+
   constructor(
     shapeManager: ShapeManager,
+    editableTextContainer: React.RefObject<HTMLDivElement | null>,
     eventCallback: (tool: ToolType, event: EventType) => void,
   ) {
     this.zustandSubscribe();
     this.shapeManager = shapeManager;
     this.emit = eventCallback;
+    this.editableTextContainer = editableTextContainer;
+
+    this.currentInputElement = document.createElement("textarea");
+    this.currentInputElement.onmousedown = (e) => e.stopPropagation();
+    this.currentInputElement.onmouseup = (e) => e.stopPropagation();
+    this.currentInputElement.onmousemove = (e) => {
+      e.stopPropagation();
+    };
+
+    this.currentInputElement.id = "textool input element";
+
+    this.currentInputElement.style.height = "0px";
+    this.currentInputElement.style.width = "0px";
+    this.currentInputElement.style.boxSizing = "content-box";
+    this.currentInputElement.rows = 1;
+    this.currentInputElement.cols = 1;
+
+    this.currentInputElement.style.whiteSpace = "pre";
+
+    this.currentInputElement.style.resize = "none";
+    this.currentInputElement.style.overflow = "hidden";
+    this.currentInputElement.style.outline = "none";
+
+    this.currentInputElement.addEventListener("input", () => {
+      this.currentInputElement.style.height = "auto";
+      this.currentInputElement.style.height =
+        this.currentInputElement.scrollHeight + "px";
+      this.currentInputElement.style.width = "auto";
+      this.currentInputElement.style.width =
+        this.currentInputElement.scrollWidth + "px";
+    });
   }
   destructor(): void {
     this.zustandSubscriptions.forEach((unsub) => unsub());
@@ -173,15 +337,29 @@ export default class CursorTool implements Tool {
   onSwitchTool(oldTool: ToolType, newTool: ToolType): void {
     {
       if (oldTool == "cursor") {
-        if (this.curState == "selecting" || this.curState == "selected") {
-          this.curState = "idle";
-          this.shapeManager.removeShape(this.curSelection);
-        }
-
         this.updateSelectedShapes([]);
         useSelectedShapes.setState({
           selectedShapes: new Set(),
         });
+
+        if (this.curState == "selecting" || this.curState == "selected") {
+          this.shapeManager.removeShape(this.curSelection);
+        } else if (this.curState == "editingText") {
+          this.updateCurrentTextEnclosingRectangle();
+
+          this.curText!.text = this.currentInputElement.value;
+          this.curText!.curState = "render";
+          this.currentInputElement.value = "";
+          if (this.curText!.text.length == 0)
+            this.shapeManager.removeShape(this.curText!);
+          this.editableTextContainer.current?.removeChild(
+            this.currentInputElement,
+          );
+          this.curText = null;
+          this.curText = null;
+        }
+
+        this.curState = "idle";
       }
     }
   }
@@ -496,21 +674,148 @@ export default class CursorTool implements Tool {
     this.curPoint.y = Math.floor(e.y);
 
     switch (this.curState) {
+      case "editingText":
+        {
+          this.curState = "idle";
+          useSelectedShapes.setState({ selectedShapes: new Set() });
+
+          this.updateCurrentTextEnclosingRectangle();
+
+          this.curText!.text = this.currentInputElement.value;
+          this.curText!.curState = "render";
+          this.currentInputElement.value = "";
+          if (this.curText!.text.length == 0)
+            this.shapeManager.removeShape(this.curText!);
+          this.editableTextContainer.current?.removeChild(
+            this.currentInputElement,
+          );
+          this.curText = null;
+        }
+        break;
       case "selecting":
         {
           if (this.selectedShapes.length > 0) {
             this.curState = "selected";
             this.curSelection.setDrawSelectionArea(false);
           } else {
-            this.curState = "idle";
+            //ch3ecking double click
+            if (
+              this.curtextEditingInitiliazeInfo.lastWasEmtpyArea &&
+              new Date().getMilliseconds() -
+                this.curtextEditingInitiliazeInfo.lastTime.getMilliseconds() <
+                300 &&
+              Point.isSamePoint(
+                this.curPoint,
+                this.curtextEditingInitiliazeInfo.lastMouseup,
+              )
+            ) {
+              //
+              this.curState = "editingText";
+              useSelectedShapes.setState({ selectedShapes: new Set(["text"]) });
+
+              //
+              const containerRect =
+                this.editableTextContainer.current!.getBoundingClientRect();
+
+              let curPoint = new Point(
+                Math.floor(e.clientX - containerRect.left),
+                Math.floor(e.clientY - containerRect.top),
+              );
+              // let curPoint = new Point(Math.floor(e.clientX), Math.floor(e.clientY));
+
+              let shapes = this.shapeManager
+                .getShapesAt(curPoint.x, curPoint.y)
+                .reverse();
+
+              let lastText = shapes.find((shape) => shape.shapeType == "text");
+
+              if (lastText) {
+                this.curText = lastText as Text;
+              } else {
+                this.curText = new Text("edit", "", [
+                  new Point(curPoint.x, curPoint.y),
+                  new Point(curPoint.x, curPoint.y),
+                ]);
+                this.shapeManager.addShape(this.curText);
+              }
+
+              this.currentInputElement.value = this.curText.text;
+
+              this.currentInputElement.style.position = "absolute";
+              this.currentInputElement.style.top = `${this.curText.startPoint.y}px`;
+              this.currentInputElement.style.left = `${this.curText.startPoint.x}px`;
+
+              this.currentInputElement.style.color = this.curText.strokeColor;
+              this.currentInputElement.style.opacity = (
+                this.curText.opacity / 100
+              ).toString();
+
+              let fontsizevalue = this.curText.fontSize;
+
+              switch (this.curText.fontSize) {
+                case "small":
+                  fontsizevalue = 16;
+                  break;
+                case "medium":
+                  fontsizevalue = 24;
+                  break;
+                case "large":
+                  fontsizevalue = 32;
+                  break;
+                case "extra-large":
+                  fontsizevalue = 40;
+                  break;
+
+                default:
+                  fontsizevalue = this.curText.fontSize;
+                  useToolStyle.setState({ fontSize: fontsizevalue });
+                  break;
+              }
+
+              this.currentInputElement.style.lineHeight =
+                fontsizevalue * 1.2 + "px";
+              this.currentInputElement.style.fontSize = fontsizevalue + "px";
+
+              switch (this.curText.fontFamily) {
+                case "code":
+                  this.currentInputElement.style.fontFamily = "Code";
+                  break;
+                case "normal":
+                  this.currentInputElement.style.fontFamily = "sans-serif";
+                  break;
+                case "hand":
+                  this.currentInputElement.style.fontFamily = "Handwriting";
+                  break;
+
+                default:
+                  break;
+              }
+
+              this.editableTextContainer.current?.appendChild(
+                this.currentInputElement,
+              );
+
+              this.currentInputElement.style.height = "auto";
+              this.currentInputElement.style.height =
+                this.currentInputElement.scrollHeight + "px";
+              this.currentInputElement.style.width = "auto";
+              this.currentInputElement.style.width =
+                this.currentInputElement.scrollWidth + "px";
+
+              this.curText.setCurState("edit");
+
+              this.currentInputElement.select();
+              this.curtextEditingInitiliazeInfo.reset();
+            } else {
+              this.curState = "idle";
+              this.curtextEditingInitiliazeInfo.lastMouseup.x = this.curPoint.x;
+              this.curtextEditingInitiliazeInfo.lastMouseup.y = this.curPoint.y;
+              this.curtextEditingInitiliazeInfo.lastTime = new Date();
+              this.curtextEditingInitiliazeInfo.lastWasEmtpyArea = true;
+            }
+
             this.shapeManager.removeShape(this.curSelection);
           }
-
-          useSelectedShapes.setState({
-            selectedShapes: new Set(
-              this.selectedShapes.map((shape) => shape.shapeType),
-            ),
-          });
         }
         break;
 
@@ -575,9 +880,9 @@ export default class CursorTool implements Tool {
 
   onOtherMouseDown(e: MouseEvent): void {}
   onOtherMouseMove(e: MouseEvent): void {
-    this.onCanvasMouseMove(e);
+    if (this.curState != "editingText") this.onCanvasMouseMove(e);
   }
   onOtherMouseUp(e: MouseEvent): void {
-    this.onCanvasMouseUp(e);
+    if (this.curState != "editingText") this.onCanvasMouseUp(e);
   }
 }

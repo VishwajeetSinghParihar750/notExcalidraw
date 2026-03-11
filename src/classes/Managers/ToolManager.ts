@@ -30,8 +30,8 @@ export default class ToolManager {
   zustandSubsribe() {
     let sub1 = useTool.subscribe(
       (tool) => tool.selectedTool,
-      (newTool) => {
-        this.tools[this.activeTool].onSwitchTool(this.activeTool, newTool);
+      (newTool, oldTool) => {
+        this.tools[this.activeTool].onSwitchTool(oldTool, newTool);
         this.activeTool = newTool;
       },
     );
@@ -76,7 +76,11 @@ export default class ToolManager {
         editableTextContainer,
         this.toolEventsCallback,
       ),
-      cursor: new CursorTool(shapeManager, this.toolEventsCallback),
+      cursor: new CursorTool(
+        shapeManager,
+        editableTextContainer,
+        this.toolEventsCallback,
+      ),
       grab: new GrabTool(shapeManager, this.toolEventsCallback),
     };
   }

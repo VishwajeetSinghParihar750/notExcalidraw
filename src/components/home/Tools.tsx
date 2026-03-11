@@ -48,7 +48,7 @@ export default function Tools() {
           role="img"
           viewBox="0 0 22 22"
           stroke-width="1.25"
-          className={selectedTool == "cursor" ? "fill-fg" : "none"}
+          className={selectedTool == "cursor" ? "fill-fg" : "fill-bg"}
         >
           <g
             stroke="currentColor"

@@ -138,6 +138,7 @@ export default class TextTool implements Tool {
     this.subscribeToState();
 
     this.shapeManager = shapeManager;
+
     this.editableTextContainer = editableTextContainer;
 
     this.currentInputElement = document.createElement("textarea");

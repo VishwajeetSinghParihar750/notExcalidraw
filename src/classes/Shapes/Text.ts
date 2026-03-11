@@ -27,6 +27,8 @@ export class Text implements Shape {
   maxWidth: TextMaxWidth = "any";
   startPoint: Point;
 
+  shouldUpdateRectangleBasedOnText = false;
+
   //
   enclosingRectangle: [Point, Point];
 
@@ -62,13 +64,63 @@ export class Text implements Shape {
   }
   setFontFamily(fontFamily: fontFamily) {
     this.fontFamily = fontFamily;
+    this.shouldUpdateRectangleBasedOnText = true;
   }
   setFontSize(fontSize: fontSize) {
     this.fontSize = fontSize;
+    this.shouldUpdateRectangleBasedOnText = true;
   }
 
   setCurState(curState: TextShapeState) {
     this.curState = curState;
+  }
+  updateRectangleFromText(ctx: CanvasRenderingContext2D) {
+    ctx.save();
+    let pixelFontSize =
+      typeof this.fontSize === "number"
+        ? this.fontSize
+        : this.fontSize === "small"
+          ? 16
+          : this.fontSize === "medium"
+            ? 24
+            : this.fontSize === "large"
+              ? 32
+              : 40;
+
+    let lineHeight = pixelFontSize * 1.2;
+
+    switch (this.fontFamily) {
+      case "hand":
+        ctx.font = `${pixelFontSize}px Handwriting`;
+        break;
+      case "code":
+        ctx.font = `${pixelFontSize}px Code`;
+        break;
+      case "normal":
+        ctx.font = `${pixelFontSize}px sans-serif`;
+        break;
+    }
+
+    const lines = this.text.split("\n");
+
+    let maxWidth = 0;
+
+    for (let line of lines) {
+      let w = ctx.measureText(line).width;
+      if (w > maxWidth) maxWidth = w;
+    }
+
+    let height = lines.length * lineHeight;
+
+    this.setEnclosingRectangleCoordinates(
+      this.startPoint.x,
+      this.startPoint.y,
+      this.startPoint.x + maxWidth,
+      this.startPoint.y + height,
+    );
+
+    ctx.restore();
+    this.shouldUpdateRectangleBasedOnText = false;
   }
   setEnclosingRectangleCoordinates(
     x1: number,
@@ -86,7 +138,10 @@ export class Text implements Shape {
     if (this.curState != "render") return;
 
     ctx.save();
-    //
+
+    if (this.shouldUpdateRectangleBasedOnText)
+      this.updateRectangleFromText(ctx);
+
     {
       ctx.globalAlpha = this.opacity / 100;
 

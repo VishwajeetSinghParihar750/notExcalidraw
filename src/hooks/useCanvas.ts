@@ -32,6 +32,7 @@ export default function useCanvas(props: useCanvasProps) {
     ctx.scale(dpr, dpr);
 
     const handleMouseDown = (e: MouseEvent) => {
+      console.log("gotit");
       toolManager.onMouseDown(e);
     };
     const handleMouseup = (e: MouseEvent) => {
@@ -44,10 +45,18 @@ export default function useCanvas(props: useCanvasProps) {
       toolManager.onKeyPress(e);
     };
 
+    const handleDocumentResize = () => {
+      const dpr = window.devicePixelRatio;
+      canvasEl.width = canvasEl.clientWidth * dpr;
+      canvasEl.height = canvasEl.clientHeight * dpr;
+      ctx.scale(dpr, dpr);
+    };
+
     document.addEventListener("pointerdown", handleMouseDown);
     document.addEventListener("pointerup", handleMouseup);
     document.addEventListener("pointermove", handleMouseMove);
-    document.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("resize", handleDocumentResize);
 
     let animationid: number;
 
@@ -72,7 +81,8 @@ export default function useCanvas(props: useCanvasProps) {
       document.removeEventListener("pointerdown", handleMouseDown);
       document.removeEventListener("pointerup", handleMouseup);
       document.removeEventListener("pointermove", handleMouseMove);
-      document.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("resize", handleDocumentResize);
     };
   }, []);
 }

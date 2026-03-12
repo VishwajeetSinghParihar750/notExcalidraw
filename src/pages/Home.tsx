@@ -69,7 +69,7 @@ export default function Home() {
         </button>
       </div>
 
-      <div className="absolute left-5 top-24 overflow-hidden z-0">
+      <div className="absolute left-5 top-24 max-sm:top-5 overflow-hidden z-0">
         <ToolStyleMenu />
       </div>
       <div className="fixed inset-0 -z-2" ref={editableTextContainer}>

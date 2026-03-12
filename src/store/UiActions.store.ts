@@ -7,6 +7,9 @@ interface cursorToolActionsState {
 
   duplicateCurrentSelection: boolean;
   emitDuplicateCurrentSelection: () => void;
+
+  resetCanvas: boolean;
+  emitResetCanvas: () => void;
 }
 
 const useCursorToolActions = create<cursorToolActionsState>()(
@@ -21,6 +24,10 @@ const useCursorToolActions = create<cursorToolActionsState>()(
       set((state) => ({
         duplicateCurrentSelection: !state.duplicateCurrentSelection,
       })),
+
+    resetCanvas: false,
+    emitResetCanvas: () =>
+      set((state) => ({ resetCanvas: !state.resetCanvas })),
   })),
 );
 

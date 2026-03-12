@@ -2,13 +2,78 @@ import Menu from "../components/home/Menu";
 import Tools from "../components/home/Tools";
 import Canvas from "../components/home/Canvas";
 import ToolStyleMenu from "../components/home/ToolStyleMenu";
-import { useRef } from "react";
+import { useRef, type ReactElement } from "react";
+import { useTheme, type theme } from "../store/Theme.store";
+
+type themeInfo = { name: theme; element: ReactElement };
+let themeInfoList: themeInfo[] = [
+  {
+    name: "light",
+    element: (
+      <svg
+        aria-hidden="true"
+        focusable="false"
+        role="img"
+        viewBox="0 0 20 20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.5"
+      >
+        <g stroke="currentColor" stroke-linejoin="round">
+          <path d="M10 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM10 4.167V2.5M14.167 5.833l1.166-1.166M15.833 10H17.5M14.167 14.167l1.166 1.166M10 15.833V17.5M5.833 14.167l-1.166 1.166M5 10H3.333M5.833 5.833 4.667 4.667"></path>
+        </g>
+      </svg>
+    ),
+  },
+  {
+    name: "dark",
+    element: (
+      <svg
+        aria-hidden="true"
+        focusable="false"
+        role="img"
+        viewBox="0 0 20 20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          clip-rule="evenodd"
+          d="M10 2.5h.328a6.25 6.25 0 0 0 6.6 10.372A7.5 7.5 0 1 1 10 2.493V2.5Z"
+          stroke="currentColor"
+        ></path>
+      </svg>
+    ),
+  },
+];
 
 export default function Home() {
   let editableTextContainer = useRef<HTMLDivElement>(null);
 
   const handleCanvasReset = () => {};
   const handleshare = () => {};
+
+  //
+  const currentTheme = useTheme((state) => state.currentTheme);
+  const setCurrentTheme = useTheme((state) => state.setCurrentTheme);
+
+  let themeElementToRender = themeInfoList.findIndex(
+    (ele) => ele.name == currentTheme,
+  );
+
+  const handleThemeClick = () => {
+    let nexttheme =
+      themeInfoList[(themeElementToRender + 1) % themeInfoList.length].name;
+
+    if (nexttheme == "dark") document.documentElement.classList.add("dark");
+    else if (nexttheme == "light")
+      document.documentElement.classList.remove("dark");
+
+    setCurrentTheme(nexttheme);
+  };
 
   return (
     <div className="fixed inset-0 bg-bg text-fg ">
@@ -19,21 +84,27 @@ export default function Home() {
         <Tools />
       </div>
 
-      <div className="absolute right-5 flex top-5  gap-2">
+      <div className="absolute right-5 flex top-5  gap-2 bg-bg rounded-lg">
         <button
-          className="py-2 px-4 rounded-lg bg-bg-muted hover:bg-brand text-fg text-sm font-semibold cursor-pointer max-lg:hidden"
+          className="p-2.5 rounded-lg w-10 h-10 bg-bg-muted hover:bg-brand text-fg text-sm font-semibold cursor-pointer  shadow-lg"
+          onClick={handleThemeClick}
+        >
+          {themeInfoList[themeElementToRender].element}
+        </button>
+        <button
+          className="py-2 px-4 rounded-lg bg-bg-muted hover:bg-brand text-fg text-sm font-semibold cursor-pointer max-lg:hidden shadow-lg"
           onClick={() => handleshare}
         >
           Share
         </button>
         <button
-          className="py-2 px-4 rounded-lg bg-bg-muted hover:bg-brand text-fg text-sm font-semibold cursor-pointer max-lg:hidden"
+          className="py-2 px-4 rounded-lg bg-bg-muted hover:bg-brand text-fg text-sm font-semibold cursor-pointer max-lg:hidden shadow-lg"
           onClick={() => handleCanvasReset}
         >
-          Reset Canvas
+          Reset
         </button>
         <button
-          className="p-2 rounded-lg w-10 h-10 bg-bg-muted hover:bg-brand text-fg text-sm font-semibold cursor-pointer hidden max-lg:block"
+          className="p-3 rounded-lg w-10 h-10 bg-bg-muted hover:bg-brand text-fg text-sm font-semibold cursor-pointer hidden max-lg:block shadow-lg"
           onClick={() => handleshare}
         >
           <svg
@@ -53,7 +124,7 @@ export default function Home() {
           </svg>
         </button>
         <button
-          className="p-2.5 w-10 h-10 rounded-lg bg-bg-muted hover:bg-brand text-fg  text-sm font-semibold cursor-pointer hidden max-lg:block "
+          className="p-3 w-10 h-10 rounded-lg bg-bg-muted hover:bg-brand text-fg  text-sm font-semibold cursor-pointer hidden max-lg:block  shadow-lg"
           onClick={() => handleCanvasReset}
         >
           <svg

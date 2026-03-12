@@ -32,7 +32,6 @@ export default function useCanvas(props: useCanvasProps) {
     ctx.scale(dpr, dpr);
 
     const handleMouseDown = (e: MouseEvent) => {
-      console.log("gotit");
       toolManager.onMouseDown(e);
     };
     const handleMouseup = (e: MouseEvent) => {

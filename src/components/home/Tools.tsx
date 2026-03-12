@@ -241,7 +241,7 @@ export default function Tools() {
   ];
   return (
     <div className=" rounded-lg shadow-lg bg-bg w-fit overflow-hidden ">
-      <div className="bg-bg-muted flex items-center gap-1 p-1">
+      <div className="bg-bg-muted flex  items-center gap-1 p-1 max-sm:gap-0">
         <div
           className={
             locked

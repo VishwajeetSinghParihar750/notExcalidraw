@@ -10,6 +10,10 @@ import {
   type strokeWidth,
 } from "../../store/Tools.store";
 import type { Point } from "./Point";
+import {
+  getBackgroundColorString,
+  getStrokeColorString,
+} from "../../utils/Theme";
 
 export class Circle implements Shape {
   shapeType: ShapeType = "circle";
@@ -100,7 +104,7 @@ export class Circle implements Shape {
       ctx.save();
 
       ctx.lineWidth = this.strokeWidth;
-      ctx.strokeStyle = this.strokeColor;
+      ctx.strokeStyle = getStrokeColorString(this.strokeColor);
 
       ctx.beginPath();
       ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
@@ -114,16 +118,18 @@ export class Circle implements Shape {
       ctx.restore();
     }
 
-    if (this.backgroundColor != "none") {
+    let bgColor = getBackgroundColorString(this.backgroundColor);
+
+    if (bgColor != "none") {
       ctx.save();
 
       if (this.fillStyle == "fill") {
-        ctx.fillStyle = this.backgroundColor;
+        ctx.fillStyle = bgColor;
         ctx.fill();
       } else if (this.fillStyle == "line") {
         ctx.clip();
         ctx.lineWidth = 1;
-        ctx.strokeStyle = this.backgroundColor;
+        ctx.strokeStyle = bgColor;
 
         let d = Math.ceil(
           Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1)),
@@ -140,7 +146,7 @@ export class Circle implements Shape {
       } else if (this.fillStyle == "crosslines") {
         ctx.clip();
         ctx.lineWidth = 1;
-        ctx.strokeStyle = this.backgroundColor;
+        ctx.strokeStyle = bgColor;
 
         let d = Math.ceil(
           Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1)),

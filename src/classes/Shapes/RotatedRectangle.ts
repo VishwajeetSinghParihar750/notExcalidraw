@@ -11,6 +11,10 @@ import {
   type strokeWidth,
 } from "../../store/Tools.store";
 import type { Point } from "./Point";
+import {
+  getBackgroundColorString,
+  getStrokeColorString,
+} from "../../utils/Theme";
 
 export class RotatedRecangle implements Shape {
   shapeType: ShapeType = "rotrect";
@@ -105,7 +109,7 @@ export class RotatedRecangle implements Shape {
       ctx.moveTo(x1, y1);
 
       ctx.lineWidth = this.strokeWidth;
-      ctx.strokeStyle = this.strokeColor;
+      ctx.strokeStyle = getStrokeColorString(this.strokeColor);
 
       {
         let [x1, y1, x2, y2, x3, y3, x4, y4] = this.getShape();
@@ -147,16 +151,17 @@ export class RotatedRecangle implements Shape {
       ctx.restore();
     }
 
-    if (this.backgroundColor != "none") {
+    let bgColor = getBackgroundColorString(this.backgroundColor);
+    if (bgColor != "none") {
       ctx.save();
 
       if (this.fillStyle == "fill") {
-        ctx.fillStyle = this.backgroundColor;
+        ctx.fillStyle = bgColor;
         ctx.fill();
       } else if (this.fillStyle == "line") {
         ctx.clip();
         ctx.lineWidth = 1;
-        ctx.strokeStyle = this.backgroundColor;
+        ctx.strokeStyle = bgColor;
 
         let d = Math.ceil(
           Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1)),
@@ -173,7 +178,7 @@ export class RotatedRecangle implements Shape {
       } else if (this.fillStyle == "crosslines") {
         ctx.clip();
         ctx.lineWidth = 1;
-        ctx.strokeStyle = this.backgroundColor;
+        ctx.strokeStyle = bgColor;
 
         let d = Math.ceil(
           Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1)),

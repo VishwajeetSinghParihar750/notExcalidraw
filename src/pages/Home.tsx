@@ -3,7 +3,8 @@ import Tools from "../components/home/Tools";
 import Canvas from "../components/home/Canvas";
 import ToolStyleMenu from "../components/home/ToolStyleMenu";
 import { useRef, type ReactElement } from "react";
-import { useTheme, type theme } from "../store/Theme.store";
+import { useTheme } from "../store/UiActions.store";
+import type { theme } from "../store/UiActions.store";
 
 type themeInfo = { name: theme; element: ReactElement };
 let themeInfoList: themeInfo[] = [
@@ -86,12 +87,12 @@ export default function Home() {
 
       <div className="absolute right-5 flex top-5  gap-2 bg-bg rounded-lg">
         <button
-          className="p-2.5 rounded-lg w-10 h-10 bg-bg-muted hover:bg-brand text-fg text-sm font-semibold cursor-pointer  shadow-lg"
+          className="p-2.5 rounded-lg w-10 h-10 bg-surface hover:bg-brand text-fg text-sm font-semibold cursor-pointer  shadow-lg"
           onClick={handleThemeClick}
         >
           {themeInfoList[themeElementToRender].element}
         </button>
-        <button
+        {/* <button
           className="py-2 px-4 rounded-lg bg-bg-muted hover:bg-brand text-fg text-sm font-semibold cursor-pointer max-lg:hidden shadow-lg"
           onClick={() => handleshare}
         >
@@ -102,9 +103,9 @@ export default function Home() {
           onClick={() => handleCanvasReset}
         >
           Reset
-        </button>
+        </button> */}
         <button
-          className="p-3 rounded-lg w-10 h-10 bg-bg-muted hover:bg-brand text-fg text-sm font-semibold cursor-pointer hidden max-lg:block shadow-lg"
+          className="p-3 rounded-lg w-10 h-10 bg-surface hover:bg-brand text-fg text-sm font-semibold cursor-pointer  shadow-lg"
           onClick={() => handleshare}
         >
           <svg
@@ -124,7 +125,7 @@ export default function Home() {
           </svg>
         </button>
         <button
-          className="p-3 w-10 h-10 rounded-lg bg-bg-muted hover:bg-brand text-fg  text-sm font-semibold cursor-pointer hidden max-lg:block  shadow-lg"
+          className="p-3 w-10 h-10 rounded-lg bg-surface hover:bg-brand text-fg  text-sm font-semibold cursor-pointer  shadow-lg"
           onClick={() => handleCanvasReset}
         >
           <svg
@@ -140,7 +141,7 @@ export default function Home() {
         </button>
       </div>
 
-      <div className="absolute left-5 top-24 max-sm:top-5 overflow-hidden z-0">
+      <div className="absolute left-5 top-24 max-sm:top-5  z-0">
         <ToolStyleMenu />
       </div>
       <div className="fixed inset-0 -z-2" ref={editableTextContainer}>

@@ -10,6 +10,7 @@ import {
   type strokeWidth,
 } from "../../store/Tools.store";
 import { catmullRomToBezier } from "../../utils/Line";
+import { getStrokeColorString } from "../../utils/Theme";
 
 export class Arrow implements Shape {
   shapeType: ShapeType = "arrow";
@@ -80,7 +81,7 @@ export class Arrow implements Shape {
 
       ctx.save();
       {
-        ctx.strokeStyle = this.strokeColor;
+        ctx.strokeStyle = getStrokeColorString(this.strokeColor);
         ctx.lineWidth = this.strokeWidth;
 
         {

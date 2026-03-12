@@ -8,6 +8,7 @@ import {
   type fontSize,
 } from "../../store/Tools.store";
 import { Point } from "./Point";
+import { getStrokeColorString } from "../../utils/Theme";
 
 type TextShapeState = "render" | "edit";
 
@@ -191,7 +192,7 @@ export class Text implements Shape {
       ctx.textAlign = "left";
 
       const lines = this.text.split("\n");
-      ctx.fillStyle = this.strokeColor;
+      ctx.fillStyle = getStrokeColorString(this.strokeColor);
 
       lines.forEach((line, ind) => {
         ctx.fillText(

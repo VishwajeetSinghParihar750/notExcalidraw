@@ -9,6 +9,10 @@ import {
   type strokeWidth,
 } from "../../store/Tools.store";
 import { Point } from "./Point";
+import {
+  getBackgroundColorString,
+  getStrokeColorString,
+} from "../../utils/Theme";
 
 export class Pen implements Shape {
   shapeType: ShapeType = "pen";
@@ -64,7 +68,7 @@ export class Pen implements Shape {
 
     {
       ctx.globalAlpha = this.opacity / 100;
-      ctx.strokeStyle = this.strokeColor;
+      ctx.strokeStyle = getStrokeColorString(this.strokeColor);
 
       let len = this.points.length - 1;
 
@@ -83,21 +87,21 @@ export class Pen implements Shape {
 
           ctx.stroke();
         }
-
+        let bgColor = getBackgroundColorString(this.backgroundColor);
         if (
-          this.backgroundColor != "none" &&
+          bgColor != "none" &&
           Point.isSamePoint(this.points[0], this.points[len - 1])
         ) {
           ctx.save();
           let [x1, y1, x2, y2] = this.getEnclosingRectangle();
 
           if (this.fillStyle == "fill") {
-            ctx.fillStyle = this.backgroundColor;
+            ctx.fillStyle = bgColor;
             ctx.fill();
           } else if (this.fillStyle == "line") {
             ctx.clip();
             ctx.lineWidth = 1;
-            ctx.strokeStyle = this.backgroundColor;
+            ctx.strokeStyle = bgColor;
 
             let d = Math.ceil(
               Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1)),
@@ -114,7 +118,7 @@ export class Pen implements Shape {
           } else if (this.fillStyle == "crosslines") {
             ctx.clip();
             ctx.lineWidth = 1;
-            ctx.strokeStyle = this.backgroundColor;
+            ctx.strokeStyle = bgColor;
 
             let d = Math.ceil(
               Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1)),
@@ -146,7 +150,7 @@ export class Pen implements Shape {
           0,
           Math.PI * 2,
         );
-        ctx.fillStyle = this.strokeColor;
+        ctx.fillStyle = getStrokeColorString(this.strokeColor);
         ctx.fill();
       }
     }

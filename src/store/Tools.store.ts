@@ -56,22 +56,36 @@ const useSelectedShapes = create<selectedShapesState>()(
   })),
 );
 
-type selectionAction = "delete" | "duplicate" | "none";
-interface selectionActionState {
-  currentActionTriggered: selectionAction;
-  setCurrentActionTriggered: (curAction: selectionAction) => void;
-}
-
-const useSelectionActions = create<selectionActionState>()(
-  subscribeWithSelector((set) => ({
-    currentActionTriggered: "none",
-    setCurrentActionTriggered: (currentAction) => {
-      set(() => ({ currentActionTriggered: currentAction }));
-      set(() => ({ currentActionTriggered: "none" }));
-    },
-  })),
-);
 // for tool styling
+let darkThemeStrokeColors: string[] = [
+  "#d3d3d3",
+  "#ff8383",
+  "#3a994c",
+  "#56a2e8",
+  "#b76100",
+];
+let lightThemeStrokeColors: string[] = [
+  "#1e1e1e",
+  "#e03131",
+  "#2f9e44",
+  "#1971c2",
+  "#f08c00",
+];
+
+let darkThemeBackgroundColors: string[] = [
+  "none",
+  "#5b2c2c",
+  "#043b0c",
+  "#154163",
+  "#362500",
+];
+let lightThemeBackgroundColors: string[] = [
+  "none",
+  "#ffc9c9",
+  "#b2f2bb",
+  "#a5d8ff",
+  "#ffec99",
+];
 
 type fillStyle = "line" | "crosslines" | "fill";
 type strokeStyle = "line" | "dotted" | "smalldotted";
@@ -79,8 +93,9 @@ type arrowType = "straight" | "curve" | "snake";
 type strokeWidth = 2 | 4 | 6;
 type edgeRadius = 0 | 10;
 type opacity = 0 | 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 | 90 | 100;
-type backgroundColor = string | "none";
-type strokeColor = string;
+type backgroundColor = 0 | 1 | 2 | 3 | 4; // index
+type strokeColor = 0 | 1 | 2 | 3 | 4; // index
+
 type fontFamily = "hand" | "code" | "normal";
 type fontSize = "small" | "medium" | "large" | "extra-large" | number;
 type textAlign = "left" | "center" | "right";
@@ -115,8 +130,8 @@ interface toolStyleActions {
 
 const useToolStyle = create<toolStyleState & toolStyleActions>()(
   subscribeWithSelector((set) => ({
-    strokeColor: "black",
-    backgroundColor: "none",
+    strokeColor: 0,
+    backgroundColor: 0,
     fillStyle: "fill",
     strokeWidth: 4,
     strokeStyle: "line",
@@ -141,13 +156,7 @@ const useToolStyle = create<toolStyleState & toolStyleActions>()(
   })),
 );
 
-export {
-  useTool,
-  useLock,
-  useToolStyle,
-  useSelectedShapes,
-  useSelectionActions,
-};
+export { useTool, useLock, useToolStyle, useSelectedShapes };
 export type {
   Tool,
   fillStyle,
@@ -160,6 +169,11 @@ export type {
   strokeColor,
   fontFamily,
   fontSize,
-  selectionAction,
   textAlign,
+};
+export {
+  darkThemeBackgroundColors,
+  lightThemeBackgroundColors,
+  darkThemeStrokeColors,
+  lightThemeStrokeColors,
 };

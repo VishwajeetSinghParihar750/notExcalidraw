@@ -4,10 +4,10 @@ import type { EventType } from "../Managers/ToolManager";
 
 import {
   useSelectedShapes,
-  useSelectionActions,
   useToolStyle,
   type Tool as ToolType,
 } from "../../store/Tools.store";
+import { useCursorToolActions } from "../../store/UiActions.store";
 import { Point } from "../Shapes/Point";
 import type { Shape } from "../Shapes/Shape";
 import { Selection } from "../Shapes/Selection";
@@ -275,16 +275,20 @@ export default class CursorTool implements Tool {
     );
 
     // for selection actions
-    let sub15 = useSelectionActions.subscribe(
-      (state) => state.currentActionTriggered,
-      (newval, oldval) => {
-        if (newval == "delete") {
-          this.handleDeleteAction();
-        } else if (newval == "duplicate") {
-          this.handleDuplicateAction();
-        }
+
+    let sub15 = useCursorToolActions.subscribe(
+      (state) => state.duplicateCurrentSelection,
+      () => {
+        this.handleDuplicateAction();
       },
     );
+    let sub16 = useCursorToolActions.subscribe(
+      (state) => state.deleteCurrentSelection,
+      () => {
+        this.handleDeleteAction();
+      },
+    );
+
     this.zustandSubscriptions.push(
       sub1,
       sub2,
@@ -301,6 +305,7 @@ export default class CursorTool implements Tool {
       sub13,
       sub14,
       sub15,
+      sub16,
     );
   }
 

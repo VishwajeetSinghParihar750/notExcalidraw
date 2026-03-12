@@ -11,6 +11,10 @@ import {
   type strokeWidth,
 } from "../../store/Tools.store";
 import type { Point } from "./Point";
+import {
+  getBackgroundColorString,
+  getStrokeColorString,
+} from "../../utils/Theme";
 
 export class Rectangle implements Shape {
   shapeType: ShapeType = "rect";
@@ -106,7 +110,7 @@ export class Rectangle implements Shape {
         ctx.moveTo(x1, y1);
 
         ctx.lineWidth = this.strokeWidth;
-        ctx.strokeStyle = this.strokeColor;
+        ctx.strokeStyle = getStrokeColorString(this.strokeColor);
 
         ctx.moveTo(x1, y1 + this.edgeRadius);
         ctx.arcTo(x1, y2, x1 + this.edgeRadius, y2, this.edgeRadius);
@@ -122,17 +126,17 @@ export class Rectangle implements Shape {
 
         ctx.restore();
       }
-
-      if (this.backgroundColor != "none") {
+      let bgColor = getBackgroundColorString(this.backgroundColor);
+      if (bgColor != "none") {
         ctx.save();
 
         if (this.fillStyle == "fill") {
-          ctx.fillStyle = this.backgroundColor;
+          ctx.fillStyle = bgColor;
           ctx.fill();
         } else if (this.fillStyle == "line") {
           ctx.clip();
           ctx.lineWidth = 1;
-          ctx.strokeStyle = this.backgroundColor;
+          ctx.strokeStyle = bgColor;
 
           let d = Math.ceil(
             Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1)),
@@ -149,7 +153,7 @@ export class Rectangle implements Shape {
         } else if (this.fillStyle == "crosslines") {
           ctx.clip();
           ctx.lineWidth = 1;
-          ctx.strokeStyle = this.backgroundColor;
+          ctx.strokeStyle = bgColor;
 
           let d = Math.ceil(
             Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1)),

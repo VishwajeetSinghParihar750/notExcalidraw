@@ -12,6 +12,10 @@ import {
   type strokeWidth,
 } from "../../store/Tools.store";
 import { catmullRomToBezier } from "../../utils/Line";
+import {
+  getBackgroundColorString,
+  getStrokeColorString,
+} from "../../utils/Theme";
 
 export class Line implements Shape {
   shapeType: ShapeType = "line";
@@ -101,7 +105,7 @@ export class Line implements Shape {
       {
         ctx.save();
 
-        ctx.strokeStyle = this.strokeColor;
+        ctx.strokeStyle = getStrokeColorString(this.strokeColor);
         ctx.lineWidth = this.strokeWidth;
 
         if (this.strokeStyle == "smalldotted") ctx.setLineDash([4, 8]);
@@ -142,8 +146,9 @@ export class Line implements Shape {
         ctx.restore();
       }
 
+      let bgColor = getBackgroundColorString(this.backgroundColor);
       if (
-        this.backgroundColor != "none" &&
+        bgColor != "none" &&
         this.points.length > 2 &&
         Point.isSamePoint(this.points[0], this.points[this.points.length - 1])
       ) {
@@ -151,7 +156,7 @@ export class Line implements Shape {
         ctx.save();
 
         if (this.fillStyle == "fill") {
-          ctx.fillStyle = this.backgroundColor;
+          ctx.fillStyle = bgColor;
           ctx.fill();
         } else if (this.fillStyle == "line") {
           let [x1, y1, x2, y2] = this.getEnclosingRectangle();
@@ -162,7 +167,7 @@ export class Line implements Shape {
 
           ctx.clip();
           ctx.lineWidth = 1;
-          ctx.strokeStyle = this.backgroundColor;
+          ctx.strokeStyle = bgColor;
 
           let d = Math.ceil(
             Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1)),
@@ -179,7 +184,7 @@ export class Line implements Shape {
         } else if (this.fillStyle == "crosslines") {
           ctx.clip();
           ctx.lineWidth = 1;
-          ctx.strokeStyle = this.backgroundColor;
+          ctx.strokeStyle = bgColor;
 
           let [x1, y1, x2, y2] = this.getEnclosingRectangle();
           x1 /= 2;

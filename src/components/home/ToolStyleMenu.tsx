@@ -1,7 +1,6 @@
-import { useEffect, type ReactElement } from "react";
+import { useActionState, useEffect, type ReactElement } from "react";
 import {
   useSelectedShapes,
-  useSelectionActions,
   useTool,
   useToolStyle,
 } from "../../store/Tools.store";
@@ -19,16 +18,14 @@ import type {
   Tool,
 } from "../../store/Tools.store";
 import type { ShapeType } from "../../classes/Shapes/Shape";
-import type { selectionAction } from "../../store/Tools.store";
-
-let strokeColors: strokeColor[] = [
-  "#d3d3d3",
-  "#ff8383",
-  "#3a994c",
-  "#56a2e8",
-  "#b76100",
-];
-let bgColors: backgroundColor[] = ["#5b2c2c", "#043b0c", "#154163", "#362500"];
+import { useCursorToolActions, useTheme } from "../../store/UiActions.store";
+import {
+  darkThemeBackgroundColors,
+  lightThemeBackgroundColors,
+  darkThemeStrokeColors,
+  lightThemeStrokeColors,
+} from "../../store/Tools.store";
+import { getBackgroundColorString } from "../../utils/Theme";
 
 type fontSizeInfo = { fontSize: fontSize; element: ReactElement };
 let fontSizeStyles: fontSizeInfo[] = [
@@ -640,7 +637,7 @@ let fontFamilyStyles: fontFamilyInfo[] = [
   },
 ];
 
-type actionInfoType = { name: selectionAction; element: ReactElement };
+type actionInfoType = { name: string; element: ReactElement };
 let actions: actionInfoType[] = [
   {
     name: "duplicate",
@@ -703,10 +700,12 @@ function shouldRender(
 export default function ToolStyleMenu() {
   let selectedTool = useTool((s) => s.selectedTool);
   let stylesState = useToolStyle((s) => s);
+  let currentTheme = useTheme((state) => state.currentTheme);
 
   useEffect(() => {
-    stylesState.setStrokeColor(strokeColors[0]);
-    stylesState.setBackgroundColor("none");
+    stylesState.setBackgroundColor(0);
+    stylesState.setStrokeColor(0);
+
     stylesState.setFillStyle("fill");
     stylesState.setStrokeStyle("line");
     stylesState.setArrowType("straight");
@@ -734,7 +733,7 @@ export default function ToolStyleMenu() {
   );
 
   let torenderFill =
-    stylesState.backgroundColor != "none" &&
+    getBackgroundColorString(stylesState.backgroundColor) != "none" &&
     shouldRender(
       selectedTool,
       selectedShapes,
@@ -785,28 +784,34 @@ export default function ToolStyleMenu() {
   );
   let torenderActions = selectedTool == "cursor";
   //
-  let setSelectionAction = useSelectionActions(
-    (state) => state.setCurrentActionTriggered,
+  let emitDeleteCurrentSelection = useCursorToolActions(
+    (state) => state.emitDeleteCurrentSelection,
+  );
+  let emitDuplicateCurrentSelection = useCursorToolActions(
+    (state) => state.emitDuplicateCurrentSelection,
   );
 
   return (
     <>
       {torender && (
-        <div className="bg-bg overflow-hidden rounded-lg">
-          <div className="max-h-[80dvh] overflow-y-auto flex flex-col gap-4 text-xs  p-5 bg-bg-muted ">
+        <div className="bg-bg overflow-hidden rounded-lg shadow-lg">
+          <div className="max-h-[80dvh] overflow-y-auto flex flex-col gap-4 text-xs  p-5  bg-surface">
             <div className="">
               <div>Stroke</div>
               <div className="flex gap-1 mt-2">
-                {strokeColors.map((color) => {
+                {(currentTheme == "dark"
+                  ? darkThemeStrokeColors
+                  : lightThemeStrokeColors
+                ).map((color, ind) => {
                   return (
                     <div
                       className={
-                        stylesState.strokeColor == color
+                        stylesState.strokeColor == ind
                           ? " rounded-sm border-fg border p-px cursor-pointer"
                           : " rounded-sm p-px cursor-pointer"
                       }
                       onClick={() => {
-                        stylesState.setStrokeColor(color);
+                        stylesState.setStrokeColor(ind as strokeColor);
                       }}
                     >
                       <div
@@ -824,14 +829,14 @@ export default function ToolStyleMenu() {
                 <div className="flex gap-1 mt-2">
                   <div
                     className={
-                      stylesState.backgroundColor == "none"
+                      stylesState.backgroundColor == 0
                         ? " rounded-sm border-fg border p-px cursor-pointer"
                         : " rounded-sm p-px cursor-pointer"
                     }
                   >
                     <div
                       className={"w-6 h-6 rounded-sm "}
-                      onClick={() => stylesState.setBackgroundColor("none")}
+                      onClick={() => stylesState.setBackgroundColor(0)}
                     >
                       <svg
                         viewBox="0 0 24 24"
@@ -866,11 +871,15 @@ export default function ToolStyleMenu() {
                       </svg>
                     </div>
                   </div>
-                  {bgColors.map((color) => {
+                  {(currentTheme == "dark"
+                    ? darkThemeBackgroundColors.slice(1)
+                    : lightThemeBackgroundColors.slice(1)
+                  ).map((color, ind) => {
+                    ind = ind + 1;
                     return (
                       <div
                         className={
-                          color == stylesState.backgroundColor
+                          ind == stylesState.backgroundColor
                             ? " rounded border-fg border p-px"
                             : "rounded-sm p-px"
                         }
@@ -879,7 +888,11 @@ export default function ToolStyleMenu() {
                           key={color}
                           className={"w-6 h-6 rounded-sm cursor-pointer"}
                           style={{ backgroundColor: color }}
-                          onClick={() => stylesState.setBackgroundColor(color)}
+                          onClick={() =>
+                            stylesState.setBackgroundColor(
+                              ind as backgroundColor,
+                            )
+                          }
                         ></div>
                       </div>
                     );
@@ -1102,7 +1115,10 @@ export default function ToolStyleMenu() {
                     return (
                       <div
                         onClick={() => {
-                          setSelectionAction(cur.name);
+                          if (cur.name == "delete")
+                            emitDeleteCurrentSelection();
+                          else if (cur.name == "duplicate")
+                            emitDuplicateCurrentSelection();
                         }}
                         className={
                           "w-8 h-8 p-1 bg-bg-muted2 hover:bg-brand-muted rounded-sm flex items-center justify-center cursor-pointer"

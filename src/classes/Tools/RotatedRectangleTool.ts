@@ -21,9 +21,15 @@ export default class RotatedRectangleTool implements Tool {
   }
 
   reset(): void {
-    
+    this.curState = "idle";
+    this.currentRectangle = null;
+    document.body.style.cursor = "default";
   }
-  destructor(): void {}
+  destructor(): void {
+
+    document.body.style.cursor = "default";
+  }
+
   onCanvasMouseDown(e: MouseEvent) {
     this.curState = "drawing";
     this.currentRectangle = new RotatedRecangle(

@@ -13,9 +13,13 @@ export default class CircleTool implements Tool {
   currentCircle: Circle | null = null;
 
   emit: (tool: ToolType, event: EventType) => void;
-reset(): void {
-  
-}
+  reset(): void {
+    this.curState = "idle";
+    this.currentCircle = null;
+
+    document.body.style.cursor = "default";
+  }
+
   onSwitchTool(oldTool: ToolType, newTool: ToolType): void {}
   constructor(
     shapeManager: ShapeManager,
@@ -24,7 +28,9 @@ reset(): void {
     this.shapeManager = shapeManager;
     this.emit = emit;
   }
-  destructor(): void {}
+  destructor(): void {
+    document.body.style.cursor = "default";
+  }
 
   onCanvasMouseDown(e: MouseEvent) {
     this.curState = "drawing";

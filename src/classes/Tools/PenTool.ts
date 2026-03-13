@@ -22,8 +22,16 @@ export default class PenTool implements Tool {
     this.emit = emit;
   }
 
-  reset(): void {}
-  destructor(): void {}
+  reset(): void {
+    this.curState = "idle";
+    this.currentPen = null;
+    document.body.style.cursor = "default";
+  }
+  destructor(): void {
+
+    document.body.style.cursor = "default";
+  }
+
   onCanvasMouseDown(e: MouseEvent) {
     this.curState = "drawing";
     this.currentPen = new Pen([new Point(e.clientX, e.clientY)]);

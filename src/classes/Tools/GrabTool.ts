@@ -14,7 +14,7 @@ export default class GrabTool implements Tool {
   totalMovementX = 0;
   totalMovementY = 0;
 
-  lastMouseMove = new Point(0, 0);
+  lastMouseMove = new Point(-1e18, -1e18);
   isScreenEmpty = false;
 
   emit: (tool: ToolType, event: EventType) => void;
@@ -26,9 +26,19 @@ export default class GrabTool implements Tool {
     this.emit = emit;
   }
   reset(): void {
-    
+    this.isScreenEmpty = false;
+    this.lastMouseMove.x = -1e18;
+    this.lastMouseMove.y = -1e18;
+    this.totalMovementX = 0;
+    this.totalMovementY = 0;
+    this.curState = "idle";
+
+    document.body.style.cursor = "default";
   }
-  destructor(): void {}
+  destructor(): void {
+
+    document.body.style.cursor = "default";
+  }
 
   updateScreenEmpty() {
     if (

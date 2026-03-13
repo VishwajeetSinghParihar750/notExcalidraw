@@ -129,7 +129,15 @@ export default class TextTool implements Tool {
     this.zustandSubscriptions.push(sub1, sub2, sub3, sub4);
   }
 
-  reset(): void {}
+  reset(): void {
+    this.curState = "idle";
+    if (this.curText)
+      this.editableTextContainer.current?.removeChild(this.currentInputElement);
+    this.curText = null;
+    this.lastMouseDown.x = -1e18;
+    this.lastMouseDown.y = -1e18;
+    document.body.style.cursor = "default";
+  }
   emit: (tool: ToolType, event: EventType) => void;
   constructor(
     shapeManager: ShapeManager,
@@ -174,9 +182,10 @@ export default class TextTool implements Tool {
 
   destructor() {
     this.zustandSubscriptions.forEach((unsub) => unsub());
-    this.editableTextContainer.current?.removeChild(this.currentInputElement);
-    this.curText = null;
-    this.curState = "idle";
+    if (this.curText)
+      this.editableTextContainer.current?.removeChild?.(
+        this.currentInputElement,
+      );
     document.body.style.cursor = "default";
   }
 
@@ -194,7 +203,9 @@ export default class TextTool implements Tool {
       if (this.curText!.text.length == 0)
         this.shapeManager.removeShape(this.curText!);
 
-      this.editableTextContainer.current?.removeChild(this.currentInputElement);
+      this.editableTextContainer.current?.removeChild?.(
+        this.currentInputElement,
+      );
       this.curText = null;
 
       this.emit(this.toolType, "taskComplete");

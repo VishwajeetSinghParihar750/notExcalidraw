@@ -25,9 +25,17 @@ export default class LineTool implements Tool {
     this.emit = emit;
   }
   reset(): void {
-    
+    this.lastPointInLine.x = -1e18;
+    this.lastPointInLine.y = -1e18;
+    this.currentLine = null;
+    this.curState = "idle";
+
+    document.body.style.cursor = "default";
   }
-  destructor(): void {}
+  destructor(): void {
+
+    document.body.style.cursor = "default";
+  }
 
   onCanvasMouseDown(e: MouseEvent) {
     let curPoint: Point = new Point(

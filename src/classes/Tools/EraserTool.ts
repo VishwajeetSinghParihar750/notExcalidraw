@@ -22,8 +22,15 @@ export default class EraserTool implements Tool {
     this.emit = emit;
   }
 
-  destructor(): void {}
-  reset(): void {}
+  destructor(): void {
+
+    document.body.style.cursor = "default";
+  }
+  reset(): void {
+    this.curState = "idle";
+    this.currentToEraseShapes = new Set();
+    document.body.style.cursor = "default";
+  }
 
   onCanvasMouseDown(e: MouseEvent) {
     this.curState = "erasing";

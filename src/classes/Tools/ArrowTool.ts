@@ -19,7 +19,17 @@ export default class ArrowTool implements Tool {
 
   emit: (tool: ToolType, event: EventType) => void;
 
-  reset(): void {}
+  reset(): void {
+    this.curState = "idle";
+    this.currentLine = null;
+    this.lastPointInLine.x = -1e18;
+    this.lastPointInLine.y = -1e18;
+    document.body.style.cursor = "default";
+  }
+  destructor(): void {
+    document.body.style.cursor = "default";
+  }
+
   constructor(
     shapeManager: ShapeManager,
     eventCallback: (tool: ToolType, event: EventType) => void,
@@ -49,7 +59,6 @@ export default class ArrowTool implements Tool {
         break;
     }
   }
-  destructor(): void {}
 
   onCanvasMouseMove(e: MouseEvent) {
     document.body.style.cursor = "crosshair";

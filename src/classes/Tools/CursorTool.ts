@@ -97,7 +97,22 @@ export default class CursorTool implements Tool {
   }
 
   reset(): void {
-    
+    if (this.curText)
+      this.editableTextContainer.current?.removeChild?.(
+        this.currentInputElement,
+      );
+    this.curText = null;
+
+    this.curState = "idle";
+    this.curPoint.x = -1e18;
+    this.curPoint.y = -1e18;
+    this.selectionStart.x = -1e18;
+    this.selectionStart.y = -1e18;
+    this.selectionEnd.x = -1e18;
+    this.selectionEnd.y = -1e18;
+    this.updateSelectedShapes([]);
+    this.curState = "idle";
+    document.body.style.cursor = "default";
   }
   emit: (tool: ToolType, event: EventType) => void;
 
@@ -355,6 +370,11 @@ export default class CursorTool implements Tool {
   }
   destructor(): void {
     this.zustandSubscriptions.forEach((unsub) => unsub());
+    if (this.curText)
+      this.editableTextContainer.current?.removeChild?.(
+        this.currentInputElement,
+      );
+    document.body.style.cursor = "default";
   }
 
   handleDeleteAction() {

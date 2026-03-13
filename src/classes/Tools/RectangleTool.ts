@@ -21,9 +21,14 @@ export default class RectangleTool implements Tool {
     this.emit = emit;
   }
   reset(): void {
-    
+    this.curState = "idle";
+    this.currentRectangle = null;
+    document.body.style.cursor = "default";
   }
-  destructor(): void {}
+  destructor(): void {
+
+    document.body.style.cursor = "default";
+  }
 
   onCanvasMouseDown(e: MouseEvent) {
     this.curState = "drawing";

@@ -7,7 +7,7 @@ import {
   type fontFamily,
   type fontSize,
 } from "../../store/Tools.store";
-import { Point } from "./Point";
+import type { Point } from "./Point";
 import { getStrokeColorString } from "../../utils/Theme";
 
 type TextShapeState = "render" | "edit";
@@ -24,7 +24,6 @@ export class Text implements Shape {
   // shape definition
   curState: TextShapeState;
   text: string;
-  startPoint: Point;
 
   shouldUpdateRectangleBasedOnText = false;
 
@@ -55,7 +54,6 @@ export class Text implements Shape {
 
     this.curState = curState;
     this.text = text;
-    this.startPoint = enclosingRectangle[0];
 
     this.strokeColor = strokeColor;
     this.opacity = opacity;
@@ -120,11 +118,15 @@ export class Text implements Shape {
 
     let height = lines.length * lineHeight;
 
+    let startPoint = {
+      x: this.enclosingRectangle[0].x,
+      y: this.enclosingRectangle[0].y,
+    };
     this.setEnclosingRectangleCoordinates(
-      this.startPoint.x,
-      this.startPoint.y,
-      this.startPoint.x + maxWidth,
-      this.startPoint.y + height,
+      startPoint.x,
+      startPoint.y,
+      startPoint.x + maxWidth,
+      startPoint.y + height,
     );
 
     ctx.restore();
@@ -199,12 +201,12 @@ export class Text implements Shape {
       const lines = this.text.split("\n");
       ctx.fillStyle = getStrokeColorString(this.strokeColor);
 
+      let startPoint = {
+        x: this.enclosingRectangle[0].x,
+        y: this.enclosingRectangle[0].y,
+      };
       lines.forEach((line, ind) => {
-        ctx.fillText(
-          line,
-          this.startPoint.x,
-          this.startPoint.y + ind * lineHeight,
-        );
+        ctx.fillText(line, startPoint.x, startPoint.y + ind * lineHeight);
       });
     }
 

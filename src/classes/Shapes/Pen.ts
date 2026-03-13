@@ -8,7 +8,8 @@ import {
   type strokeColor,
   type strokeWidth,
 } from "../../store/Tools.store";
-import { Point } from "./Point";
+import { isSamePoint } from "./Point";
+import type { Point } from "./Point";
 import {
   getBackgroundColorString,
   getStrokeColorString,
@@ -96,7 +97,7 @@ export class Pen implements Shape {
         let bgColor = getBackgroundColorString(this.backgroundColor);
         if (
           bgColor != "none" &&
-          Point.isSamePoint(this.points[0], this.points[len - 1])
+          isSamePoint(this.points[0], this.points[len - 1])
         ) {
           ctx.save();
           let [x1, y1, x2, y2] = this.getEnclosingRectangle();

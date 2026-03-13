@@ -2,7 +2,7 @@ import type ShapeManager from "../Managers/ShapeManager";
 import type { EventType } from "../Managers/ToolManager";
 import type Tool from "./Tool";
 import type { Tool as ToolType } from "../../store/Tools.store";
-import { Point } from "../Shapes/Point";
+import type { Point } from "../Shapes/Point";
 
 type state = "idle" | "moving";
 export default class GrabTool implements Tool {
@@ -14,7 +14,7 @@ export default class GrabTool implements Tool {
   totalMovementX = 0;
   totalMovementY = 0;
 
-  lastMouseMove = new Point(-1e18, -1e18);
+  lastMouseMove: Point = { x: -1e18, y: -1e18 };
   isScreenEmpty = false;
 
   emit: (tool: ToolType, event: EventType) => void;
@@ -36,7 +36,6 @@ export default class GrabTool implements Tool {
     document.body.style.cursor = "default";
   }
   destructor(): void {
-
     document.body.style.cursor = "default";
   }
 
@@ -44,11 +43,11 @@ export default class GrabTool implements Tool {
     if (
       this.shapeManager.shapes.some((shape) =>
         shape.liesInside(
-          new Point(-this.totalMovementX, -this.totalMovementY),
-          new Point(
-            -this.totalMovementX + document.body.clientWidth,
-            -this.totalMovementY + document.body.clientHeight,
-          ),
+          { x: -this.totalMovementX, y: -this.totalMovementY },
+          {
+            x: -this.totalMovementX + document.body.clientWidth,
+            y: -this.totalMovementY + document.body.clientHeight,
+          },
         ),
       )
     ) {

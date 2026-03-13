@@ -8,7 +8,7 @@ import {
   type Tool as ToolType,
 } from "../../store/Tools.store";
 import { useCursorToolActions } from "../../store/UiActions.store";
-import { Point } from "../Shapes/Point";
+import { isSamePoint, type Point } from "../Shapes/Point";
 import type { Shape } from "../Shapes/Shape";
 import { Selection } from "../Shapes/Selection";
 import { Text } from "../Shapes/Text";
@@ -46,8 +46,8 @@ export default class CursorTool implements Tool {
   shapeManager: ShapeManager;
   curState: state = "idle";
 
-  selectionStart: Point = new Point(-1e18, -1e18);
-  selectionEnd: Point = new Point(-1e18, -1e18);
+  selectionStart: Point = { x: -1e18, y: -1e18 };
+  selectionEnd: Point = { x: -1e18, y: -1e18 };
 
   selectedShapes: Shape[] = [];
   updateSelectedShapes(shapes: Shape[]) {
@@ -60,10 +60,10 @@ export default class CursorTool implements Tool {
     this.selectedShapes,
   );
 
-  curPoint: Point = new Point(-1e18, -1e18);
+  curPoint: Point = { x: -1e18, y: -1e18 };
 
   curtextEditingInitiliazeInfo: textEditingInitializeInfo = {
-    lastMouseup: new Point(-1e18, -1e18),
+    lastMouseup: { x: -1e18, y: -1e18 },
     lastTime: new Date(),
     lastWasEmtpyArea: false,
     reset() {
@@ -74,7 +74,7 @@ export default class CursorTool implements Tool {
   };
 
   curSelectionMovementInfo: selectionMovementInfo = {
-    lastPoint: new Point(0, 0),
+    lastPoint: { x: 0, y: 0 },
     reset: () => {
       this.curSelectionMovementInfo.lastPoint.x = 0;
       this.curSelectionMovementInfo.lastPoint.y = 0;
@@ -511,7 +511,7 @@ export default class CursorTool implements Tool {
           this.selectionEnd.x = this.curPoint.x;
           this.selectionEnd.y = this.curPoint.y;
 
-          if (!Point.isSamePoint(this.curPoint, this.selectionStart)) {
+          if (!isSamePoint(this.curPoint, this.selectionStart)) {
             this.updateSelectedShapes(
               this.shapeManager
                 .getShapesInside(this.selectionStart, this.selectionEnd)
@@ -775,7 +775,7 @@ export default class CursorTool implements Tool {
               new Date().getMilliseconds() -
                 this.curtextEditingInitiliazeInfo.lastTime.getMilliseconds() <
                 300 &&
-              Point.isSamePoint(
+              isSamePoint(
                 this.curPoint,
                 this.curtextEditingInitiliazeInfo.lastMouseup,
               )
@@ -788,22 +788,21 @@ export default class CursorTool implements Tool {
               const containerRect =
                 this.editableTextContainer.current!.getBoundingClientRect();
 
-              let curPoint = new Point(
-                Math.floor(e.clientX - containerRect.left),
-                Math.floor(e.clientY - containerRect.top),
-              );
-
+              let curPoint: Point = {
+                x: Math.floor(e.clientX - containerRect.left),
+                y: Math.floor(e.clientY - containerRect.top),
+              };
               this.curText = new Text("edit", "", [
-                new Point(curPoint.x, curPoint.y),
-                new Point(curPoint.x, curPoint.y),
+                { x: curPoint.x, y: curPoint.y },
+                { x: curPoint.x, y: curPoint.y },
               ]);
               this.shapeManager.addShape(this.curText);
 
               this.currentInputElement.value = this.curText.text;
 
               this.currentInputElement.style.position = "absolute";
-              this.currentInputElement.style.top = `${this.curText.startPoint.y}px`;
-              this.currentInputElement.style.left = `${this.curText.startPoint.x}px`;
+              this.currentInputElement.style.top = `${this.curText.getEnclosingRectangle()[1]}px`;
+              this.currentInputElement.style.left = `${this.curText.getEnclosingRectangle()[0]}px`;
 
               this.currentInputElement.style.color = getStrokeColorString(
                 this.curText.strokeColor,
@@ -893,7 +892,7 @@ export default class CursorTool implements Tool {
               new Date().getMilliseconds() -
                 this.curtextEditingInitiliazeInfo.lastTime.getMilliseconds() <
                 300 &&
-              Point.isSamePoint(
+              isSamePoint(
                 this.curPoint,
                 this.curtextEditingInitiliazeInfo.lastMouseup,
               )
@@ -909,8 +908,8 @@ export default class CursorTool implements Tool {
               this.currentInputElement.value = this.curText.text;
 
               this.currentInputElement.style.position = "absolute";
-              this.currentInputElement.style.top = `${this.curText.startPoint.y}px`;
-              this.currentInputElement.style.left = `${this.curText.startPoint.x}px`;
+              this.currentInputElement.style.top = `${this.curText.getEnclosingRectangle()[1]}px`;
+              this.currentInputElement.style.left = `${this.curText.getEnclosingRectangle()[0]}px`;
 
               this.currentInputElement.style.color = getStrokeColorString(
                 this.curText.strokeColor,

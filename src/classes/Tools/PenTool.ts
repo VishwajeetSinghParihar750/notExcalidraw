@@ -1,7 +1,7 @@
 import type ShapeManager from "../Managers/ShapeManager";
 import type { EventType } from "../Managers/ToolManager";
 import { Pen } from "../Shapes/Pen";
-import { Point } from "../Shapes/Point";
+import { isSamePoint, type Point } from "../Shapes/Point";
 import type Tool from "./Tool";
 import type { Tool as ToolType } from "../../store/Tools.store";
 
@@ -28,24 +28,23 @@ export default class PenTool implements Tool {
     document.body.style.cursor = "default";
   }
   destructor(): void {
-
     document.body.style.cursor = "default";
   }
 
   onCanvasMouseDown(e: MouseEvent) {
     this.curState = "drawing";
-    this.currentPen = new Pen([new Point(e.clientX, e.clientY)]);
+    this.currentPen = new Pen([{ x: e.clientX, y: e.clientY }]);
     this.shapeManager.addShape(this.currentPen);
   }
 
   onCanvasMouseMove(e: MouseEvent) {
     document.body.style.cursor = "crosshair";
     if (this.curState == "drawing") {
-      let newPoint = new Point(e.clientX, e.clientY);
+      let newPoint: Point = { x: e.clientX, y: e.clientY };
 
       let firstPoint = this.currentPen!.points[0];
 
-      if (Point.isSamePoint(firstPoint, newPoint)) {
+      if (isSamePoint(firstPoint, newPoint)) {
         newPoint.x = firstPoint.x;
         newPoint.y = firstPoint.y;
 

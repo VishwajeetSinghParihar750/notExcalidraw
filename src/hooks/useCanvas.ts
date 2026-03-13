@@ -54,7 +54,13 @@ export default function useCanvas(props: useCanvasProps) {
 
     const persistShapeManagerShapes = () => {
       let curShapes = JSON.stringify(
-        shapeManager.shapes.filter((shape) => shape.shapeType != "selection"),
+        shapeManager.shapes.filter(
+          (shape) =>
+            !(
+              shape.shapeType == "selection" ||
+              (shape.shapeType == "text" && (shape as Text).curState == "edit")
+            ),
+        ),
       );
 
       if (oldShapes != curShapes) {

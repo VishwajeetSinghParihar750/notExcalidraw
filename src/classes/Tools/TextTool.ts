@@ -1,6 +1,6 @@
 import type React from "react";
 import type ShapeManager from "../Managers/ShapeManager";
-import { Point } from "../Shapes/Point";
+import type { Point } from "../Shapes/Point";
 import { Text } from "../Shapes/Text";
 import { useToolStyle } from "../../store/Tools.store";
 import type Tool from "./Tool";
@@ -30,7 +30,7 @@ export default class TextTool implements Tool {
     );
   }
 
-  lastMouseDown: Point = new Point(-1e18, -1e18);
+  lastMouseDown: Point = { x: -1e18, y: -1e18 };
 
   zustandSubscriptions: any[] = [];
   subscribeToState() {
@@ -218,10 +218,10 @@ export default class TextTool implements Tool {
   onCanvasMouseMove(e: MouseEvent) {
     const containerRect =
       this.editableTextContainer.current!.getBoundingClientRect();
-    let curPoint = new Point(
-      Math.floor(e.clientX - containerRect.left),
-      Math.floor(e.clientY - containerRect.top),
-    );
+    let curPoint: Point = {
+      x: Math.floor(e.clientX - containerRect.left),
+      y: Math.floor(e.clientY - containerRect.top),
+    };
     let shapes = this.shapeManager
       .getShapesAt(curPoint.x, curPoint.y)
       .reverse();
@@ -239,10 +239,10 @@ export default class TextTool implements Tool {
       const containerRect =
         this.editableTextContainer.current!.getBoundingClientRect();
 
-      let curPoint = new Point(
-        Math.floor(e.clientX - containerRect.left),
-        Math.floor(e.clientY - containerRect.top),
-      );
+      let curPoint: Point = {
+        x: Math.floor(e.clientX - containerRect.left),
+        y: Math.floor(e.clientY - containerRect.top),
+      };
       // let curPoint = new Point(Math.floor(e.clientX), Math.floor(e.clientY));
 
       let shapes = this.shapeManager
@@ -255,8 +255,8 @@ export default class TextTool implements Tool {
         this.curText = lastText as Text;
       } else {
         this.curText = new Text("edit", "", [
-          new Point(curPoint.x, curPoint.y),
-          new Point(curPoint.x, curPoint.y),
+          { x: curPoint.x, y: curPoint.y },
+          { x: curPoint.x, y: curPoint.y },
         ]);
         this.shapeManager.addShape(this.curText);
       }
@@ -264,8 +264,8 @@ export default class TextTool implements Tool {
       this.currentInputElement.value = this.curText.text;
 
       this.currentInputElement.style.position = "absolute";
-      this.currentInputElement.style.top = `${this.curText.startPoint.y}px`;
-      this.currentInputElement.style.left = `${this.curText.startPoint.x}px`;
+      this.currentInputElement.style.top = `${this.curText.getEnclosingRectangle()[1]}px`;
+      this.currentInputElement.style.left = `${this.curText.getEnclosingRectangle()[0]}px`;
 
       this.currentInputElement.style.color = getStrokeColorString(
         this.curText.strokeColor,

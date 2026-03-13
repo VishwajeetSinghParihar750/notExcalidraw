@@ -1,4 +1,4 @@
-import { Point } from "../classes/Shapes/Point";
+import type { Point } from "../classes/Shapes/Point";
 
 export function catmullRomToBezier(
   P0: Point,

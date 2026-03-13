@@ -1,7 +1,7 @@
 import type ShapeManager from "../Managers/ShapeManager";
 import type { EventType } from "../Managers/ToolManager";
 import { Line } from "../Shapes/Line";
-import { Point } from "../Shapes/Point";
+import { isSamePoint, type Point } from "../Shapes/Point";
 import type Tool from "./Tool";
 import type { Tool as ToolType } from "../../store/Tools.store";
 
@@ -14,7 +14,7 @@ export default class LineTool implements Tool {
   curState: state = "idle";
 
   currentLine: Line | null = null;
-  lastPointInLine: Point = new Point(-1e18, -1e18);
+  lastPointInLine: Point = { x: -1e18, y: -1e18 };
 
   emit: (tool: ToolType, event: EventType) => void;
   constructor(
@@ -33,16 +33,14 @@ export default class LineTool implements Tool {
     document.body.style.cursor = "default";
   }
   destructor(): void {
-
     document.body.style.cursor = "default";
   }
 
   onCanvasMouseDown(e: MouseEvent) {
-    let curPoint: Point = new Point(
-      Math.floor(e.clientX),
-      Math.floor(e.clientY),
-    );
-
+    let curPoint: Point = {
+      x: Math.floor(e.clientX),
+      y: Math.floor(e.clientY),
+    };
     switch (this.curState) {
       case "idle":
         {
@@ -61,11 +59,10 @@ export default class LineTool implements Tool {
 
   onCanvasMouseMove(e: MouseEvent) {
     document.body.style.cursor = "crosshair";
-
-    let curPoint: Point = new Point(
-      Math.floor(e.clientX),
-      Math.floor(e.clientY),
-    );
+    let curPoint: Point = {
+      x: Math.floor(e.clientX),
+      y: Math.floor(e.clientY),
+    };
 
     if (this.curState == "drawingLine" || this.curState == "drawingPath") {
       this.currentLine?.points.pop();
@@ -76,35 +73,35 @@ export default class LineTool implements Tool {
     if (
       this.curState == "drawingPath" &&
       this.currentLine!.points.length > 3 &&
-      Point.isSamePoint(curPoint, firstPointInLine!)
+      isSamePoint(curPoint, firstPointInLine!)
     ) {
       document.body.style.cursor = "pointer";
     }
   }
 
   onCanvasMouseUp(e: MouseEvent) {
-    let curPoint: Point = new Point(
-      Math.floor(e.clientX),
-      Math.floor(e.clientY),
-    );
     //
+    let curPoint: Point = {
+      x: Math.floor(e.clientX),
+      y: Math.floor(e.clientY),
+    };
 
     switch (this.curState) {
       case "drawingLine":
         {
           let firstPointInLine = this.currentLine?.points[0];
 
-          if (Point.isSamePoint(curPoint, firstPointInLine!)) {
+          if (isSamePoint(curPoint, firstPointInLine!)) {
             this.curState = "drawingPath";
           } else {
             let sp = this.currentLine!.points[0];
             let ep = this.currentLine!.points[1];
             this.currentLine!.points = [
               sp,
-              new Point(
-                Math.floor((sp.x + ep.x) / 2),
-                Math.floor((sp.y + ep.y) / 2),
-              ),
+              {
+                x: Math.floor((sp.x + ep.x) / 2),
+                y: Math.floor((sp.y + ep.y) / 2),
+              },
               ep,
             ];
 
@@ -115,17 +112,19 @@ export default class LineTool implements Tool {
         break;
       case "drawingPath":
         {
-          if (Point.isSamePoint(curPoint, this.lastPointInLine)) {
+          if (isSamePoint(curPoint, this.lastPointInLine)) {
             this.currentLine?.points.pop();
 
             let firstPointInLine = this.currentLine?.points[0];
             if (
               this.currentLine!.points.length > 3 &&
-              Point.isSamePoint(this.lastPointInLine, firstPointInLine!)
+              isSamePoint(this.lastPointInLine, firstPointInLine!)
             ) {
               //
-              this.currentLine!.points[this.currentLine!.points.length - 1] =
-                new Point(firstPointInLine!.x, firstPointInLine!.y);
+              this.currentLine!.points[this.currentLine!.points.length - 1] = {
+                x: firstPointInLine!.x,
+                y: firstPointInLine!.y,
+              };
             }
 
             this.curState = "idle";

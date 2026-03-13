@@ -1,6 +1,7 @@
 import type { Shape, ShapeType } from "./Shape";
 
-import { Point } from "./Point";
+import { isSamePoint } from "./Point";
+import type { Point } from "./Point";
 
 export class Selection implements Shape {
   shapeType: ShapeType = "selection";
@@ -173,40 +174,40 @@ export class Selection implements Shape {
     sx -= this.enclosingRectanglePadding;
     sy -= this.enclosingRectanglePadding;
 
-    let curPoint = new Point(sx, sy);
-    let tocheck = new Point(x, y);
+    let curPoint: Point = { x: sx, y: sy };
+    let tocheck: Point = { x, y };
 
-    return Point.isSamePoint(curPoint, tocheck);
+    return isSamePoint(curPoint, tocheck);
   }
   isTopRightCorner(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
     ex += this.enclosingRectanglePadding;
     sy -= this.enclosingRectanglePadding;
 
-    let curPoint = new Point(ex, sy);
-    let tocheck = new Point(x, y);
+    let curPoint: Point = { x: ex, y: sy };
+    let tocheck: Point = { x, y };
 
-    return Point.isSamePoint(curPoint, tocheck);
+    return isSamePoint(curPoint, tocheck);
   }
   isBottomLeftCorner(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
     sx -= this.enclosingRectanglePadding;
     ey += this.enclosingRectanglePadding;
 
-    let curPoint = new Point(sx, ey);
-    let tocheck = new Point(x, y);
+    let curPoint: Point = { x: sx, y: ey };
+    let tocheck: Point = { x, y };
 
-    return Point.isSamePoint(curPoint, tocheck);
+    return isSamePoint(curPoint, tocheck);
   }
   isBottomRightCorner(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
     ex += this.enclosingRectanglePadding;
     ey += this.enclosingRectanglePadding;
 
-    let curPoint = new Point(ex, ey);
-    let tocheck = new Point(x, y);
+    let curPoint: Point = { x: ex, y: ey };
+    let tocheck: Point = { x, y };
 
-    return Point.isSamePoint(curPoint, tocheck);
+    return isSamePoint(curPoint, tocheck);
   }
 
   isTopBoundary(x: number, y: number) {

@@ -1,5 +1,6 @@
 import type { Shape, ShapeType } from "./Shape";
-import { Point } from "./Point";
+import { isSamePoint } from "./Point";
+import type { Point } from "./Point";
 
 import {
   useToolStyle,
@@ -74,8 +75,7 @@ export class Arrow implements Shape {
   draw(ctx: CanvasRenderingContext2D) {
     if (
       this.points.length < 2 ||
-      (this.points.length == 2 &&
-        Point.isSamePoint(this.points[0], this.points[1]))
+      (this.points.length == 2 && isSamePoint(this.points[0], this.points[1]))
     )
       return;
 

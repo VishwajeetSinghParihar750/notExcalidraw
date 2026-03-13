@@ -27,7 +27,13 @@ export class Pen implements Shape {
   points: Point[] = [];
 
   clone() {
-    return new Pen(structuredClone(this.points));
+    let pen = new Pen(structuredClone(this.points));
+    pen.setFillStyle(this.fillStyle);
+    pen.setOpacity(this.opacity);
+    pen.setStrokeColor(this.strokeColor);
+    pen.setStrokeWidth(this.strokeWidth);
+    pen.setBackgroundColor(this.backgroundColor);
+    return pen;
   }
 
   constructor(points: Point[]) {

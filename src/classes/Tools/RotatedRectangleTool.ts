@@ -20,6 +20,9 @@ export default class RotatedRectangleTool implements Tool {
     this.emit = emit;
   }
 
+  reset(): void {
+    
+  }
   destructor(): void {}
   onCanvasMouseDown(e: MouseEvent) {
     this.curState = "drawing";

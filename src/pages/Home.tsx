@@ -3,7 +3,7 @@ import Tools from "../components/home/Tools";
 import Canvas from "../components/home/Canvas";
 import ToolStyleMenu from "../components/home/ToolStyleMenu";
 import { useRef, type ReactElement } from "react";
-import { useTheme } from "../store/UiActions.store";
+import { useResetCanvas, useTheme } from "../store/UiActions.store";
 import type { theme } from "../store/UiActions.store";
 
 type themeInfo = { name: theme; element: ReactElement };
@@ -54,7 +54,9 @@ let themeInfoList: themeInfo[] = [
 export default function Home() {
   let editableTextContainer = useRef<HTMLDivElement>(null);
 
-  const handleCanvasReset = () => {};
+  const handleCanvasReset = () => {
+    useResetCanvas.getState().emitResetCanvas();
+  };
   const handleshare = () => {};
 
   //
@@ -126,7 +128,7 @@ export default function Home() {
         </button>
         <button
           className="p-3 w-10 h-10 rounded-lg bg-surface hover:bg-brand text-fg  text-sm font-semibold cursor-pointer  shadow-lg"
-          onClick={() => handleCanvasReset}
+          onClick={handleCanvasReset}
         >
           <svg
             fill="currentColor"

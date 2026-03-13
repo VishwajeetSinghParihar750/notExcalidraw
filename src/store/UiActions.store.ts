@@ -7,9 +7,6 @@ interface cursorToolActionsState {
 
   duplicateCurrentSelection: boolean;
   emitDuplicateCurrentSelection: () => void;
-
-  resetCanvas: boolean;
-  emitResetCanvas: () => void;
 }
 
 const useCursorToolActions = create<cursorToolActionsState>()(
@@ -24,7 +21,15 @@ const useCursorToolActions = create<cursorToolActionsState>()(
       set((state) => ({
         duplicateCurrentSelection: !state.duplicateCurrentSelection,
       })),
+  })),
+);
 
+interface resetCanvasState {
+  resetCanvas: boolean;
+  emitResetCanvas: () => void;
+}
+const useResetCanvas = create<resetCanvasState>()(
+  subscribeWithSelector((set) => ({
     resetCanvas: false,
     emitResetCanvas: () =>
       set((state) => ({ resetCanvas: !state.resetCanvas })),
@@ -40,12 +45,12 @@ interface themeState {
 
 const useTheme = create<themeState>()(
   subscribeWithSelector((set) => ({
-    currentTheme: "dark",
+    currentTheme: "light",
     setCurrentTheme: (newTheme) => {
       set(() => ({ currentTheme: newTheme }));
     },
   })),
 );
 
-export { useCursorToolActions, useTheme };
+export { useCursorToolActions, useTheme, useResetCanvas };
 export type { theme };

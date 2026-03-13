@@ -19,6 +19,7 @@ export default class ArrowTool implements Tool {
 
   emit: (tool: ToolType, event: EventType) => void;
 
+  reset(): void {}
   constructor(
     shapeManager: ShapeManager,
     eventCallback: (tool: ToolType, event: EventType) => void,

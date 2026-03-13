@@ -26,7 +26,13 @@ export class Arrow implements Shape {
   points: Point[];
 
   clone() {
-    return new Arrow(structuredClone(this.points));
+    let line = new Arrow(structuredClone(this.points));
+    line.setArrowType(this.arrowType);
+    line.setOpacity(this.opacity);
+    line.setStrokeColor(this.strokeColor);
+    line.setStrokeWidth(this.strokeWidth);
+    line.setStrokeStyle(this.strokeStyle);
+    return line;
   }
 
   constructor(points: Point[]) {

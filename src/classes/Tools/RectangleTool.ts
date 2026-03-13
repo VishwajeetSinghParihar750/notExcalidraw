@@ -20,6 +20,9 @@ export default class RectangleTool implements Tool {
     this.shapeManager = shapeManager;
     this.emit = emit;
   }
+  reset(): void {
+    
+  }
   destructor(): void {}
 
   onCanvasMouseDown(e: MouseEvent) {

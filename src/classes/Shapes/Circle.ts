@@ -32,7 +32,14 @@ export class Circle implements Shape {
   endY: number;
 
   clone() {
-    return new Circle(this.startX, this.startY, this.endX, this.endY);
+    let circle = new Circle(this.startX, this.startY, this.endX, this.endY);
+    circle.setBackgroundColor(this.backgroundColor);
+    circle.setFillStyle(this.fillStyle);
+    circle.setOpacity(this.opacity);
+    circle.setStrokeColor(this.strokeColor);
+    circle.setStrokeWidth(this.strokeWidth);
+    circle.setStrokeStyle(this.strokeStyle);
+    return circle;
   }
 
   constructor(startX: number, startY: number, endX: number, endY: number) {

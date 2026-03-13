@@ -23,6 +23,7 @@ export default class EraserTool implements Tool {
   }
 
   destructor(): void {}
+  reset(): void {}
 
   onCanvasMouseDown(e: MouseEvent) {
     this.curState = "erasing";
@@ -52,7 +53,7 @@ export default class EraserTool implements Tool {
 
       this.currentToEraseShapes.clear();
 
-      this.emit(this.toolType, "taskComplete");
+      // this.emit(this.toolType, "taskComplete");
     }
   }
   onOtherMouseDown(e: MouseEvent): void {}

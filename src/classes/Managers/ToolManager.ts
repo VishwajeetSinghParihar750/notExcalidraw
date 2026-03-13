@@ -1,4 +1,9 @@
-import { useLock, useTool, type Tool } from "../../store/Tools.store.ts";
+import {
+  useLock,
+  useTool,
+  useToolStyle,
+  type Tool,
+} from "../../store/Tools.store.ts";
 import RectangleTool from "../Tools/RectangleTool";
 import type BaseTool from "../Tools/Tool.ts";
 import RotatedRectangleTool from "../Tools/RotatedRectangleTool";
@@ -10,10 +15,11 @@ import EraserTool from "../Tools/EraserTool";
 import TextTool from "../Tools/TextTool";
 import GrabTool from "../Tools/GrabTool.ts";
 import CursorTool from "../Tools/CursorTool.ts";
-import type ShapeManager from "./ShapeManager";
+import ShapeManager from "./ShapeManager";
 import type React from "react";
 import type { RefObject } from "react";
 import type { Tool as ToolType } from "../../store/Tools.store";
+import { useResetCanvas } from "../../store/UiActions.store.ts";
 
 type Tools = Record<Tool, BaseTool>;
 
@@ -24,6 +30,7 @@ export default class ToolManager {
   lockTool: Boolean;
   tools: Tools;
   canvas: RefObject<HTMLCanvasElement | null>;
+  shapeManager: ShapeManager;
 
   zustandSubscriptions: any[] = [];
 
@@ -41,7 +48,14 @@ export default class ToolManager {
         this.lockTool = newLockState;
       },
     );
-    this.zustandSubscriptions.push(sub1, sub2);
+
+    let sub3 = useResetCanvas.subscribe(
+      (state) => state.resetCanvas,
+      () => {
+        this.resetCanvas();
+      },
+    );
+    this.zustandSubscriptions.push(sub1, sub2, sub3);
   }
 
   toolEventsCallback = (toolType: ToolType, eventType: EventType) => {
@@ -52,6 +66,12 @@ export default class ToolManager {
     }
   };
 
+  resetCanvas() {
+    useToolStyle.getState().reset();
+    Object.values(this.tools).forEach((tool) => tool.reset());
+    this.shapeManager.updateShapes([]);
+  }
+
   constructor(
     shapeManager: ShapeManager,
     canvas: React.RefObject<HTMLCanvasElement | null>,
@@ -61,6 +81,8 @@ export default class ToolManager {
     this.lockTool = useLock.getState().lockTool;
 
     this.zustandSubsribe();
+
+    this.shapeManager = shapeManager;
 
     this.canvas = canvas;
     this.tools = {

@@ -32,7 +32,16 @@ export class Line implements Shape {
 
   points: Point[];
   clone() {
-    return new Line(structuredClone(this.points));
+    let line = new Line(structuredClone(this.points));
+
+    line.setBackgroundColor(this.backgroundColor);
+    line.setEdgeRadius(this.edgeRadius);
+    line.setFillStyle(this.fillStyle);
+    line.setOpacity(this.opacity);
+    line.setStrokeColor(this.strokeColor);
+    line.setStrokeWidth(this.strokeWidth);
+    line.setStrokeStyle(this.strokeStyle);
+    return line;
   }
 
   constructor(points: Point[]) {

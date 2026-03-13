@@ -13,7 +13,9 @@ export default class CircleTool implements Tool {
   currentCircle: Circle | null = null;
 
   emit: (tool: ToolType, event: EventType) => void;
-
+reset(): void {
+  
+}
   onSwitchTool(oldTool: ToolType, newTool: ToolType): void {}
   constructor(
     shapeManager: ShapeManager,

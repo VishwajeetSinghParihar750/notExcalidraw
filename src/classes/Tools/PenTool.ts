@@ -21,6 +21,8 @@ export default class PenTool implements Tool {
     this.shapeManager = shapeManager;
     this.emit = emit;
   }
+
+  reset(): void {}
   destructor(): void {}
   onCanvasMouseDown(e: MouseEvent) {
     this.curState = "drawing";

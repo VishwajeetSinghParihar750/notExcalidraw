@@ -24,6 +24,9 @@ export default class LineTool implements Tool {
     this.shapeManager = shapeManager;
     this.emit = emit;
   }
+  reset(): void {
+    
+  }
   destructor(): void {}
 
   onCanvasMouseDown(e: MouseEvent) {

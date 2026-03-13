@@ -32,11 +32,16 @@ export class Text implements Shape {
   enclosingRectangle: [Point, Point];
 
   clone() {
-    return new Text(
+    let text = new Text(
       structuredClone(this.curState),
       structuredClone(this.text),
       structuredClone(this.enclosingRectangle),
     );
+    text.setStrokeColor(this.strokeColor);
+    text.setOpacity(this.opacity);
+    text.setFontFamily(this.fontFamily);
+    text.setFontSize(this.fontSize);
+    return text;
   }
   constructor(
     curState: TextShapeState,

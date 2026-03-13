@@ -129,6 +129,7 @@ export default class TextTool implements Tool {
     this.zustandSubscriptions.push(sub1, sub2, sub3, sub4);
   }
 
+  reset(): void {}
   emit: (tool: ToolType, event: EventType) => void;
   constructor(
     shapeManager: ShapeManager,
@@ -173,6 +174,10 @@ export default class TextTool implements Tool {
 
   destructor() {
     this.zustandSubscriptions.forEach((unsub) => unsub());
+    this.editableTextContainer.current?.removeChild(this.currentInputElement);
+    this.curText = null;
+    this.curState = "idle";
+    document.body.style.cursor = "default";
   }
 
   onCanvasMouseDown(e: MouseEvent) {
@@ -254,7 +259,6 @@ export default class TextTool implements Tool {
       this.currentInputElement.style.color = getStrokeColorString(
         this.curText.strokeColor,
       );
-      console.log(this.currentInputElement.style.color);
       this.currentInputElement.style.opacity = (
         this.curText.opacity / 100
       ).toString();

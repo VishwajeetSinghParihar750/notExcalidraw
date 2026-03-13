@@ -19,6 +19,8 @@ type Tool =
 interface toolState {
   selectedTool: Tool;
   setSelectedTool: (tool: Tool) => void;
+
+  reset: () => void;
 }
 const useTool = create<toolState>()(
   subscribeWithSelector((set) => ({
@@ -26,11 +28,13 @@ const useTool = create<toolState>()(
     setSelectedTool: (tool) => {
       set(() => ({ selectedTool: tool }));
     },
+    reset: () => set(() => ({ selectedTool: "cursor" })),
   })),
 );
 interface lockedState {
   lockTool: boolean;
   setLockTool: (locktool: boolean) => void;
+  reset: () => void;
 }
 
 const useLock = create<lockedState>()(
@@ -39,12 +43,14 @@ const useLock = create<lockedState>()(
     setLockTool: (lock) => {
       set(() => ({ lockTool: lock }));
     },
+    reset: () => set({ lockTool: false }),
   })),
 );
 
 interface selectedShapesState {
   selectedShapes: Set<ShapeType>;
   setSelectedShapes: (shapes: Set<ShapeType>) => void;
+  reset: () => void;
 }
 
 const useSelectedShapes = create<selectedShapesState>()(
@@ -53,6 +59,8 @@ const useSelectedShapes = create<selectedShapesState>()(
     setSelectedShapes: (shapes) => {
       set(() => ({ selectedShapes: shapes }));
     },
+    reset: () => set({ selectedShapes: new Set() }),
+    
   })),
 );
 
@@ -126,21 +134,25 @@ interface toolStyleActions {
   setFontFamily: (fontFamily: fontFamily) => void;
   setFontSize: (fontSize: fontSize) => void;
   setTextAlign: (textAlign: textAlign) => void;
+  reset: () => void;
 }
 
+let toolStyleInitalState: toolStyleState = {
+  strokeColor: 0,
+  backgroundColor: 0,
+  fillStyle: "fill",
+  strokeWidth: 4,
+  strokeStyle: "line",
+  edgeRadius: 0,
+  opacity: 100,
+  arrowType: "curve",
+  fontFamily: "hand",
+  fontSize: "medium",
+  textAlign: "left",
+};
 const useToolStyle = create<toolStyleState & toolStyleActions>()(
   subscribeWithSelector((set) => ({
-    strokeColor: 0,
-    backgroundColor: 0,
-    fillStyle: "fill",
-    strokeWidth: 4,
-    strokeStyle: "line",
-    edgeRadius: 0,
-    opacity: 100,
-    arrowType: "curve",
-    fontFamily: "hand",
-    fontSize: "medium",
-    textAlign: "left",
+    ...toolStyleInitalState,
 
     setStrokeColor: (color) => set({ strokeColor: color }),
     setBackgroundColor: (color) => set({ backgroundColor: color }),
@@ -153,6 +165,8 @@ const useToolStyle = create<toolStyleState & toolStyleActions>()(
     setFontFamily: (fontFamily) => set({ fontFamily: fontFamily }),
     setFontSize: (fontSize) => set({ fontSize: fontSize }),
     setTextAlign: (textAlign) => set({ textAlign: textAlign }),
+
+    reset: () => set(toolStyleInitalState),
   })),
 );
 

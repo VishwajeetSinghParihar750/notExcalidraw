@@ -96,6 +96,9 @@ export default class CursorTool implements Tool {
     );
   }
 
+  reset(): void {
+    
+  }
   emit: (tool: ToolType, event: EventType) => void;
 
   zustandSubscriptions: any[] = [];

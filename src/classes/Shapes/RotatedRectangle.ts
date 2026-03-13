@@ -34,7 +34,19 @@ export class RotatedRecangle implements Shape {
   endY: number;
 
   clone() {
-    return new RotatedRecangle(this.startX, this.startY, this.endX, this.endY);
+    let rect = new RotatedRecangle(
+      this.startX,
+      this.startY,
+      this.endX,
+      this.endY,
+    );
+    rect.setBackgroundColor(this.backgroundColor);
+    rect.setFillStyle(this.fillStyle);
+    rect.setOpacity(this.opacity);
+    rect.setStrokeColor(this.strokeColor);
+    rect.setStrokeWidth(this.strokeWidth);
+    rect.setStrokeStyle(this.strokeStyle);
+    return rect;
   }
   constructor(startX: number, startY: number, endX: number, endY: number) {
     this.startX = startX;

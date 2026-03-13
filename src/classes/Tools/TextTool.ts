@@ -6,6 +6,7 @@ import { useToolStyle } from "../../store/Tools.store";
 import type Tool from "./Tool";
 import type { EventType } from "../Managers/ToolManager";
 import type { Tool as ToolType } from "../../store/Tools.store";
+import { getStrokeColorString } from "../../utils/Theme";
 
 type state = "idle" | "editing";
 
@@ -119,7 +120,7 @@ export default class TextTool implements Tool {
       (state) => state.strokeColor,
       (state) => {
         if (this.curText) {
-          this.currentInputElement.style.color = state;
+          this.currentInputElement.style.color = getStrokeColorString(state);
           this.curText.setStrokeColor(state);
         }
       },
@@ -250,7 +251,10 @@ export default class TextTool implements Tool {
       this.currentInputElement.style.top = `${this.curText.startPoint.y}px`;
       this.currentInputElement.style.left = `${this.curText.startPoint.x}px`;
 
-      this.currentInputElement.style.color = this.curText.strokeColor;
+      this.currentInputElement.style.color = getStrokeColorString(
+        this.curText.strokeColor,
+      );
+      console.log(this.currentInputElement.style.color);
       this.currentInputElement.style.opacity = (
         this.curText.opacity / 100
       ).toString();

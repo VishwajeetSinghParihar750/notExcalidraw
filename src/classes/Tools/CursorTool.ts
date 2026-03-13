@@ -12,6 +12,7 @@ import { Point } from "../Shapes/Point";
 import type { Shape } from "../Shapes/Shape";
 import { Selection } from "../Shapes/Selection";
 import { Text } from "../Shapes/Text";
+import { getStrokeColorString } from "../../utils/Theme";
 
 type state =
   | "idle"
@@ -268,7 +269,7 @@ export default class CursorTool implements Tool {
       (state) => state.strokeColor,
       (state) => {
         if (this.curText) {
-          this.currentInputElement.style.color = state;
+          this.currentInputElement.style.color = getStrokeColorString(state);
           this.curText.setStrokeColor(state);
         }
       },
@@ -781,7 +782,9 @@ export default class CursorTool implements Tool {
               this.currentInputElement.style.top = `${this.curText.startPoint.y}px`;
               this.currentInputElement.style.left = `${this.curText.startPoint.x}px`;
 
-              this.currentInputElement.style.color = this.curText.strokeColor;
+              this.currentInputElement.style.color = getStrokeColorString(
+                this.curText.strokeColor,
+              );
               this.currentInputElement.style.opacity = (
                 this.curText.opacity / 100
               ).toString();
@@ -886,7 +889,9 @@ export default class CursorTool implements Tool {
               this.currentInputElement.style.top = `${this.curText.startPoint.y}px`;
               this.currentInputElement.style.left = `${this.curText.startPoint.x}px`;
 
-              this.currentInputElement.style.color = this.curText.strokeColor;
+              this.currentInputElement.style.color = getStrokeColorString(
+                this.curText.strokeColor,
+              );
               this.currentInputElement.style.opacity = (
                 this.curText.opacity / 100
               ).toString();

@@ -1,4 +1,5 @@
 import type { Point } from "../Shapes/Point";
+import { Rectangle } from "../Shapes/Rectangle";
 import type { Shape } from "../Shapes/Shape";
 
 export default class ShapeManager {

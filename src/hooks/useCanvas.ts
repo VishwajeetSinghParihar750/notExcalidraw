@@ -2,16 +2,70 @@ import type React from "react";
 import ShapeManager from "../classes/Managers/ShapeManager";
 import ToolMangager from "../classes/Managers/ToolManager";
 import { useEffect } from "react";
+import { Rectangle } from "../classes/Shapes/Rectangle";
+import { RotatedRecangle } from "../classes/Shapes/RotatedRectangle";
+import { Circle } from "../classes/Shapes/Circle";
+import type { Shape, ShapeType } from "../classes/Shapes/Shape";
+import { Arrow } from "../classes/Shapes/Arrow";
+import { Line } from "../classes/Shapes/Line";
+import { Pen } from "../classes/Shapes/Pen";
+import { Selection } from "../classes/Shapes/Selection";
+import { Text } from "../classes/Shapes/Text";
 
 type useCanvasProps = {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   editableTextContainerRef: React.RefObject<HTMLDivElement | null>;
 };
+
+let shapeTypeToPrototype = {
+  rect: Rectangle,
+  circle: Circle,
+  rotrect: RotatedRecangle,
+  arrow: Arrow,
+  line: Line,
+  pen: Pen,
+  selection: Selection,
+  text: Text,
+};
+
 export default function useCanvas(props: useCanvasProps) {
   useEffect(() => {
     if (!props.canvasRef.current) return;
 
     let shapeManager = new ShapeManager();
+
+    let shapeManagerShapes = window.localStorage.getItem("shapeManagerShapes");
+
+    if (shapeManagerShapes) {
+      let parsedShapes: any[] = JSON.parse(shapeManagerShapes);
+      shapeManager.updateShapes(
+        parsedShapes
+          .map((shape) =>
+            Object.setPrototypeOf(
+              shape,
+              shapeTypeToPrototype[shape.shapeType as ShapeType].prototype,
+            ),
+          )
+          .filter((shape) => shape),
+      );
+    }
+
+    let oldShapes = shapeManagerShapes || JSON.stringify([]);
+
+    const persistShapeManagerShapes = () => {
+      let curShapes = JSON.stringify(
+        shapeManager.shapes.filter((shape) => shape.shapeType != "selection"),
+      );
+
+      if (oldShapes != curShapes) {
+        window.localStorage.setItem("shapeManagerShapes", curShapes);
+        oldShapes = curShapes;
+      }
+    };
+
+    let shapeManagerShapesPersistenceInterval = setInterval(() => {
+      persistShapeManagerShapes();
+    }, 5000);
 
     let toolManager = new ToolMangager(
       shapeManager,
@@ -56,6 +110,8 @@ export default function useCanvas(props: useCanvasProps) {
     document.addEventListener("pointermove", handleMouseMove);
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("resize", handleDocumentResize);
+    window.addEventListener("beforeunload", persistShapeManagerShapes);
+    window.addEventListener("pagehide", persistShapeManagerShapes);
 
     let animationid: number;
 
@@ -82,6 +138,10 @@ export default function useCanvas(props: useCanvasProps) {
       document.removeEventListener("pointermove", handleMouseMove);
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("resize", handleDocumentResize);
+      window.removeEventListener("beforeunload", persistShapeManagerShapes);
+      window.removeEventListener("pagehide", persistShapeManagerShapes);
+
+      clearInterval(shapeManagerShapesPersistenceInterval);
     };
   }, []);
 }

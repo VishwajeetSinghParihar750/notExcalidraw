@@ -702,18 +702,6 @@ export default function ToolStyleMenu() {
   let stylesState = useToolStyle((s) => s);
   let currentTheme = useTheme((state) => state.currentTheme);
 
-  useEffect(() => {
-    stylesState.setBackgroundColor(0);
-    stylesState.setStrokeColor(0);
-
-    stylesState.setFillStyle("fill");
-    stylesState.setStrokeStyle("line");
-    stylesState.setArrowType("straight");
-    stylesState.setEdgeRadius(10);
-    stylesState.setStrokeWidth(4);
-    stylesState.setOpacity(100);
-  }, []);
-
   let opacityThumbTranslate = stylesState.opacity + "%";
 
   let selectedShapes = useSelectedShapes((state) => state.selectedShapes);

@@ -234,11 +234,7 @@ export class Selection implements Shape {
     let [sx, sy, ex, ey] = oldRect;
     let [nsx, nsy, nex, ney] = newRect;
 
-    if (
-      Math.min(Math.abs(ney - nsy), Math.abs(nex - nsx)) <
-      this.shapeResizeThreshold
-    )
-      return;
+    if (Math.min(ney - nsy, nex - nsx) < this.shapeResizeThreshold) return;
 
     this.selectedShapes.forEach((shape) => {
       let [x1, y1, x2, y2] = shape.getEnclosingRectangle();

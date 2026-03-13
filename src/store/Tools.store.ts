@@ -60,7 +60,6 @@ const useSelectedShapes = create<selectedShapesState>()(
       set(() => ({ selectedShapes: shapes }));
     },
     reset: () => set({ selectedShapes: new Set() }),
-    
   })),
 );
 
@@ -141,9 +140,9 @@ let toolStyleInitalState: toolStyleState = {
   strokeColor: 0,
   backgroundColor: 0,
   fillStyle: "fill",
-  strokeWidth: 4,
+  strokeWidth: 2,
   strokeStyle: "line",
-  edgeRadius: 0,
+  edgeRadius: 10,
   opacity: 100,
   arrowType: "curve",
   fontFamily: "hand",

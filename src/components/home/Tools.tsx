@@ -317,7 +317,7 @@ export default function Tools() {
             )}
           </div>
         </div>
-        <div className="w-[.1px] bg-bg-muted h-6"></div>
+        <div className="w-[.1px] bg-bg-muted h-6 max-sm:mx-1"></div>
         {tools.map((curtool) => {
           return (
             <div

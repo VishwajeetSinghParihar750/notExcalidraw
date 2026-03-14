@@ -26,7 +26,6 @@ export default class RotatedRectangleTool implements Tool {
     document.body.style.cursor = "default";
   }
   destructor(): void {
-
     document.body.style.cursor = "default";
   }
 
@@ -48,7 +47,7 @@ export default class RotatedRectangleTool implements Tool {
       this.currentRectangle!.endY = e.clientY;
     }
   }
-  onCanvasMouseUp(e: MouseEvent) {
+  onCanvasMouseUp() {
     if (this.curState == "drawing") {
       this.curState = "idle";
       if (
@@ -64,14 +63,14 @@ export default class RotatedRectangleTool implements Tool {
     }
   }
 
-  onOtherMouseDown(e: MouseEvent): void {}
+  onOtherMouseDown(): void {}
   onOtherMouseMove(e: MouseEvent): void {
     this.onCanvasMouseMove(e);
     document.body.style.cursor = "default";
   }
-  onOtherMouseUp(e: MouseEvent): void {
-    this.onCanvasMouseUp(e);
+  onOtherMouseUp(): void {
+    this.onCanvasMouseUp();
   }
 
-  onSwitchTool(oldTool: ToolType, newTool: ToolType): void {}
+  onSwitchTool(): void {}
 }

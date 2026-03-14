@@ -1,4 +1,4 @@
-import { useActionState, useEffect, type ReactElement } from "react";
+import { type ReactElement } from "react";
 import {
   useSelectedShapes,
   useTool,

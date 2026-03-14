@@ -85,21 +85,21 @@ export default class GrabTool implements Tool {
       this.updateScreenEmpty();
     } else document.body.style.cursor = "grab";
   }
-  onCanvasMouseUp(e: MouseEvent) {
+  onCanvasMouseUp() {
     if (this.curState == "moving") {
       this.curState = "idle";
     }
   }
 
-  onOtherMouseDown(e: MouseEvent): void {
+  onOtherMouseDown(): void {
     document.body.style.cursor = "default";
   }
-  onOtherMouseMove(e: MouseEvent): void {
+  onOtherMouseMove(): void {
     document.body.style.cursor = "default";
   }
-  onOtherMouseUp(e: MouseEvent): void {
+  onOtherMouseUp(): void {
     document.body.style.cursor = "default";
   }
 
-  onSwitchTool(oldTool: ToolType, newTool: ToolType): void {}
+  onSwitchTool(): void {}
 }

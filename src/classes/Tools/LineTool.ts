@@ -144,7 +144,7 @@ export default class LineTool implements Tool {
         break;
     }
   }
-  onOtherMouseDown(e: MouseEvent): void {}
+  onOtherMouseDown(): void {}
   onOtherMouseMove(e: MouseEvent): void {
     this.onCanvasMouseMove(e);
 
@@ -154,5 +154,5 @@ export default class LineTool implements Tool {
     this.onCanvasMouseUp(e);
   }
 
-  onSwitchTool(oldTool: ToolType, newTool: ToolType): void {}
+  onSwitchTool(): void {}
 }

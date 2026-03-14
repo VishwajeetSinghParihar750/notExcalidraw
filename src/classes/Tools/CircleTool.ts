@@ -20,7 +20,7 @@ export default class CircleTool implements Tool {
     document.body.style.cursor = "default";
   }
 
-  onSwitchTool(oldTool: ToolType, newTool: ToolType): void {}
+  onSwitchTool(): void {}
   constructor(
     shapeManager: ShapeManager,
     emit: (tool: ToolType, event: EventType) => void,
@@ -45,7 +45,7 @@ export default class CircleTool implements Tool {
       this.currentCircle!.endY = e.clientY;
     }
   }
-  onCanvasMouseUp(e: MouseEvent) {
+  onCanvasMouseUp() {
     if (this.curState == "drawing") {
       this.curState = "idle";
       if (
@@ -60,12 +60,12 @@ export default class CircleTool implements Tool {
       this.currentCircle = null;
     }
   }
-  onOtherMouseDown(e: MouseEvent): void {}
+  onOtherMouseDown(): void {}
   onOtherMouseMove(e: MouseEvent): void {
     this.onCanvasMouseMove(e);
     document.body.style.cursor = "default";
   }
-  onOtherMouseUp(e: MouseEvent): void {
-    this.onCanvasMouseUp(e);
+  onOtherMouseUp(): void {
+    this.onCanvasMouseUp();
   }
 }

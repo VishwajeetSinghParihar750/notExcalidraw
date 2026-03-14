@@ -122,7 +122,7 @@ export class Arrow implements Shape {
               let p2 = points[i + 1];
               let p3 = points[i + 2];
 
-              let [b0, b1, b2, b3] = catmullRomToBezier(p0, p1, p2, p3);
+              let [_, b1, b2, b3] = catmullRomToBezier(p0, p1, p2, p3);
               ctx.bezierCurveTo(b1.x, b1.y, b2.x, b2.y, b3.x, b3.y);
             }
           } else if (this.arrowType == "snake") {

@@ -16,7 +16,7 @@ export default function Canvas(props: propsType) {
     <canvas
       ref={canvas}
       id="canvas"
-      className=" w-screen h-dvh absolute [image-rendering:pixelated] "
+      className=" w-screen h-dvh absolute [image-rendering:pixelated] touch-none"
     ></canvas>
   );
 }

@@ -23,7 +23,6 @@ export default class EraserTool implements Tool {
   }
 
   destructor(): void {
-
     document.body.style.cursor = "default";
   }
   reset(): void {
@@ -37,8 +36,9 @@ export default class EraserTool implements Tool {
   }
 
   onCanvasMouseMove(e: MouseEvent) {
-    document.body.style.cursor = "crosshair";
     if (this.curState == "erasing") {
+      document.body.style.cursor = "grab";
+
       let shapes = this.shapeManager.getShapesAt(e.clientX, e.clientY);
       for (let shape of shapes) {
         if (!this.currentToEraseShapes.has(shape)) {
@@ -46,7 +46,7 @@ export default class EraserTool implements Tool {
           shape.setOpacity?.(Math.max(0, shape.opacity! - 50) as opacity);
         }
       }
-    }
+    } else document.body.style.cursor = "default";
   }
   onCanvasMouseUp(e: MouseEvent) {
     if (this.curState == "erasing") {

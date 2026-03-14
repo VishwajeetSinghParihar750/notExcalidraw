@@ -59,7 +59,7 @@ export default class PenTool implements Tool {
       this.curState = "idle";
       this.currentPen = null;
 
-      this.emit(this.toolType, "taskComplete");
+      // this.emit(this.toolType, "taskComplete");
     }
   }
 

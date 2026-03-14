@@ -157,7 +157,7 @@ export class Selection implements Shape {
       shape.moveEnclosingRectangle(delX, delY),
     );
   }
-  updateEnclosingRectangle(x1: number, y1: number, x2: number, y2: number) {}
+  updateEnclosingRectangle() {}
 
   containsPoint(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
@@ -165,12 +165,12 @@ export class Selection implements Shape {
     return x >= sx && x <= ex && y >= sy && y <= ey;
   }
 
-  isControlPoint(x: number, y: number): boolean {
+  isControlPoint(): boolean {
     return false;
   }
 
   isTopLeftCorner(x: number, y: number) {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+    let [sx, sy, _, __] = this.getEnclosingRectangle();
     sx -= this.enclosingRectanglePadding;
     sy -= this.enclosingRectanglePadding;
 
@@ -180,7 +180,7 @@ export class Selection implements Shape {
     return isSamePoint(curPoint, tocheck);
   }
   isTopRightCorner(x: number, y: number) {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+    let [_, sy, ex, __] = this.getEnclosingRectangle();
     ex += this.enclosingRectanglePadding;
     sy -= this.enclosingRectanglePadding;
 
@@ -190,7 +190,7 @@ export class Selection implements Shape {
     return isSamePoint(curPoint, tocheck);
   }
   isBottomLeftCorner(x: number, y: number) {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+    let [sx, _, __, ey] = this.getEnclosingRectangle();
     sx -= this.enclosingRectanglePadding;
     ey += this.enclosingRectanglePadding;
 
@@ -200,7 +200,7 @@ export class Selection implements Shape {
     return isSamePoint(curPoint, tocheck);
   }
   isBottomRightCorner(x: number, y: number) {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+    let [_, __, ex, ey] = this.getEnclosingRectangle();
     ex += this.enclosingRectanglePadding;
     ey += this.enclosingRectanglePadding;
 
@@ -211,20 +211,20 @@ export class Selection implements Shape {
   }
 
   isTopBoundary(x: number, y: number) {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+    let [sx, sy, ex, _] = this.getEnclosingRectangle();
     return x >= sx && x <= ex && Math.abs(y - sy) <= 4;
   }
 
   isBottomBoundary(x: number, y: number) {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+    let [sx, _, ex, ey] = this.getEnclosingRectangle();
     return x >= sx && x <= ex && Math.abs(y - ey) <= 4;
   }
   isLeftBoundary(x: number, y: number) {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+    let [sx, sy, _, ey] = this.getEnclosingRectangle();
     return y >= sy && y <= ey && Math.abs(x - sx) <= 4;
   }
   isRightBoundary(x: number, y: number) {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+    let [_, sy, ex, ey] = this.getEnclosingRectangle();
     return y >= sy && y <= ey && Math.abs(x - ex) <= 4;
   }
 

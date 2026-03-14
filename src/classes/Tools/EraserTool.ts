@@ -31,7 +31,7 @@ export default class EraserTool implements Tool {
     document.body.style.cursor = "default";
   }
 
-  onCanvasMouseDown(e: MouseEvent) {
+  onCanvasMouseDown() {
     this.curState = "erasing";
   }
 
@@ -48,7 +48,7 @@ export default class EraserTool implements Tool {
       }
     } else document.body.style.cursor = "default";
   }
-  onCanvasMouseUp(e: MouseEvent) {
+  onCanvasMouseUp() {
     if (this.curState == "erasing") {
       this.curState = "idle";
 
@@ -63,11 +63,11 @@ export default class EraserTool implements Tool {
       // this.emit(this.toolType, "taskComplete");
     }
   }
-  onOtherMouseDown(e: MouseEvent): void {}
-  onOtherMouseMove(e: MouseEvent): void {
+  onOtherMouseDown(): void {}
+  onOtherMouseMove(): void {
     document.body.style.cursor = "default";
   }
-  onOtherMouseUp(e: MouseEvent): void {}
+  onOtherMouseUp(): void {}
 
-  onSwitchTool(oldTool: ToolType, newTool: ToolType): void {}
+  onSwitchTool(): void {}
 }

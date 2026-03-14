@@ -405,7 +405,7 @@ export default class CursorTool implements Tool {
     }
   }
 
-  onSwitchTool(oldTool: ToolType, newTool: ToolType): void {
+  onSwitchTool(oldTool: ToolType): void {
     {
       if (oldTool == "cursor") {
         this.updateSelectedShapes([]);
@@ -456,10 +456,6 @@ export default class CursorTool implements Tool {
         {
           //
           if (
-            this.curSelection.isControlPoint(this.curPoint.x, this.curPoint.y)
-          ) {
-            document.body.style.cursor = "pointer";
-          } else if (
             this.curSelection.isTopLeftCorner(this.curPoint.x, this.curPoint.y)
           ) {
             document.body.style.cursor = "nwse-resize";
@@ -667,11 +663,6 @@ export default class CursorTool implements Tool {
       case "selected":
         {
           if (
-            this.curSelection.isControlPoint(this.curPoint.x, this.curPoint.y)
-          ) {
-            this.curState = "movingControlPoint";
-            this.curSelectionMovementInfo.lastPoint = { ...this.curPoint };
-          } else if (
             this.curSelection.isTopLeftCorner(this.curPoint.x, this.curPoint.y)
           ) {
             this.curState = "movingTopLeftCorner";
@@ -1045,7 +1036,7 @@ export default class CursorTool implements Tool {
     }
   }
 
-  onOtherMouseDown(e: MouseEvent): void {}
+  onOtherMouseDown(): void {}
   onOtherMouseMove(e: MouseEvent): void {
     if (this.curState != "editingText") this.onCanvasMouseMove(e);
   }

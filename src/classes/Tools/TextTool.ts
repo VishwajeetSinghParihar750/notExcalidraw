@@ -329,13 +329,13 @@ export default class TextTool implements Tool {
     }
   }
 
-  onOtherMouseDown(e: MouseEvent): void {}
-  onOtherMouseMove(e: MouseEvent): void {
+  onOtherMouseDown(): void {}
+  onOtherMouseMove(): void {
     document.body.style.cursor = "default";
   }
-  onOtherMouseUp(e: MouseEvent): void {}
+  onOtherMouseUp(): void {}
 
-  onSwitchTool(oldTool: ToolType, newTool: ToolType): void {
+  onSwitchTool(oldTool: ToolType): void {
     if (oldTool == this.toolType && this.curState == "editing") {
       this.curState = "idle";
 

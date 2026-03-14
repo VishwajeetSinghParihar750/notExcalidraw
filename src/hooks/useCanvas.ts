@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { Rectangle } from "../classes/Shapes/Rectangle";
 import { RotatedRecangle } from "../classes/Shapes/RotatedRectangle";
 import { Circle } from "../classes/Shapes/Circle";
-import type { Shape, ShapeType } from "../classes/Shapes/Shape";
+import type { ShapeType } from "../classes/Shapes/Shape";
 import { Arrow } from "../classes/Shapes/Arrow";
 import { Line } from "../classes/Shapes/Line";
 import { Pen } from "../classes/Shapes/Pen";

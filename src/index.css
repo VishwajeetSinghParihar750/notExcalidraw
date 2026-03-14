@@ -35,10 +35,10 @@
 
 @font-face {
   font-family: "Handwriting";
-  src: url("fonts/Almond\ Milky.otf");
+  src: url("/fonts/Almond\ Milky.otf");
 }
 
 @font-face {
   font-family: "Code";
-  src: url("fonts/UbuntuMono-R.ttf");
+  src: url("/fonts/UbuntuMono-R.ttf");
 }

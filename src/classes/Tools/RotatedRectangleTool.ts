@@ -5,13 +5,16 @@ import type { EventType } from "../Managers/ToolManager";
 import type { Tool as ToolType } from "../../store/Tools.store";
 
 type state = "idle" | "drawing";
+
 export default class RotatedRectangleTool implements Tool {
   toolType: ToolType = "rotrect";
 
   shapeManager: ShapeManager;
   curState: state = "idle";
   currentRectangle: RotatedRecangle | null = null;
+
   emit: (tool: ToolType, event: EventType) => void;
+
   constructor(
     shapeManager: ShapeManager,
     emit: (tool: ToolType, event: EventType) => void,
@@ -25,6 +28,7 @@ export default class RotatedRectangleTool implements Tool {
     this.currentRectangle = null;
     document.body.style.cursor = "default";
   }
+
   destructor(): void {
     document.body.style.cursor = "default";
   }
@@ -36,6 +40,7 @@ export default class RotatedRectangleTool implements Tool {
       e.clientY,
       e.clientX,
       e.clientY,
+      this.shapeManager,
     );
     this.shapeManager.addShape(this.currentRectangle);
   }
@@ -43,20 +48,22 @@ export default class RotatedRectangleTool implements Tool {
   onCanvasMouseMove(e: MouseEvent) {
     document.body.style.cursor = "crosshair";
     if (this.curState == "drawing") {
-      this.currentRectangle!.endX = e.clientX;
-      this.currentRectangle!.endY = e.clientY;
+      this.currentRectangle!.setEndX(e.clientX);
+      this.currentRectangle!.setEndY(e.clientY);
     }
   }
+
   onCanvasMouseUp() {
     if (this.curState == "drawing") {
       this.curState = "idle";
+
       if (
         Math.floor(this.currentRectangle!.startX) ==
           Math.floor(this.currentRectangle!.endX) ||
         Math.floor(this.currentRectangle!.startY) ==
           Math.floor(this.currentRectangle!.endY)
       )
-        this.shapeManager.removeShape(this.currentRectangle!);
+        this.shapeManager.removeShape(this.currentRectangle!.shapeId);
       else this.emit(this.toolType, "taskComplete");
 
       this.currentRectangle = null;
@@ -64,10 +71,12 @@ export default class RotatedRectangleTool implements Tool {
   }
 
   onOtherMouseDown(): void {}
+
   onOtherMouseMove(e: MouseEvent): void {
     this.onCanvasMouseMove(e);
     document.body.style.cursor = "default";
   }
+
   onOtherMouseUp(): void {
     this.onCanvasMouseUp();
   }

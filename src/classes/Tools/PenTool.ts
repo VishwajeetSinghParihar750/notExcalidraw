@@ -6,6 +6,7 @@ import type Tool from "./Tool";
 import type { Tool as ToolType } from "../../store/Tools.store";
 
 type state = "idle" | "drawing";
+
 export default class PenTool implements Tool {
   toolType: ToolType = "pen";
 
@@ -14,6 +15,7 @@ export default class PenTool implements Tool {
   currentPen: Pen | null = null;
 
   emit: (tool: ToolType, event: EventType) => void;
+
   constructor(
     shapeManager: ShapeManager,
     emit: (tool: ToolType, event: EventType) => void,
@@ -27,22 +29,28 @@ export default class PenTool implements Tool {
     this.currentPen = null;
     document.body.style.cursor = "default";
   }
+
   destructor(): void {
     document.body.style.cursor = "default";
   }
 
   onCanvasMouseDown(e: MouseEvent) {
     this.curState = "drawing";
-    this.currentPen = new Pen([{ x: e.clientX, y: e.clientY }]);
+    this.currentPen = new Pen(
+      [{ x: e.clientX, y: e.clientY }],
+      this.shapeManager,
+    );
     this.shapeManager.addShape(this.currentPen);
   }
 
   onCanvasMouseMove(e: MouseEvent) {
     document.body.style.cursor = "crosshair";
+
     if (this.curState == "drawing") {
       let newPoint: Point = { x: e.clientX, y: e.clientY };
 
-      let firstPoint = this.currentPen!.points[0];
+      let pts = this.currentPen!.points;
+      let firstPoint = pts[0];
 
       if (isSamePoint(firstPoint, newPoint)) {
         newPoint.x = firstPoint.x;
@@ -51,23 +59,25 @@ export default class PenTool implements Tool {
         document.body.style.cursor = "pointer";
       }
 
-      this.currentPen?.points.push(newPoint);
+      pts.push(newPoint);
+      this.currentPen!.setPoints(pts);
     }
   }
+
   onCanvasMouseUp() {
     if (this.curState == "drawing") {
       this.curState = "idle";
       this.currentPen = null;
-
-      // this.emit(this.toolType, "taskComplete");
     }
   }
 
   onOtherMouseDown(): void {}
+
   onOtherMouseMove(e: MouseEvent): void {
     this.onCanvasMouseMove(e);
     document.body.style.cursor = "default";
   }
+
   onOtherMouseUp(): void {
     this.onCanvasMouseUp();
   }

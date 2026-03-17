@@ -1,5 +1,6 @@
 import type { Point } from "../Shapes/Point";
-import type { Shape } from "../Shapes/Shape";
+import type { Shape, shapeId } from "../Shapes/Shape";
+import type { shapeUpdateEvent } from "../../types/shapeUpdateEvents";
 
 export default class ShapeManager {
   shapes: Shape[] = [];
@@ -7,13 +8,25 @@ export default class ShapeManager {
   addShape(shape: Shape) {
     this.shapes.push(shape);
   }
-
-  removeShape(shape: Shape) {
-    this.shapes = this.shapes.filter((v) => v != shape);
+  removeShape(id: shapeId) {
+    this.shapes = this.shapes.filter((v) => v.shapeId != id);
   }
 
-  updateShapes(shapes: Shape[]) {
-    this.shapes = shapes;
+  handleShapeUpdateEvent(op: shapeUpdateEvent) {
+    switch (op.eventType) {
+      case "updateEnclosingRectangle":
+        {
+        }
+        break;
+
+      case "updateProperty":
+        {
+        }
+        break;
+
+      default:
+        break;
+    }
   }
 
   getShapesAt(x: number, y: number): Shape[] {

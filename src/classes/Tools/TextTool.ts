@@ -33,12 +33,14 @@ export default class TextTool implements Tool {
   lastMouseDown: Point = { x: -1e18, y: -1e18 };
 
   zustandSubscriptions: any[] = [];
+
   subscribeToState() {
     let sub1 = useToolStyle.subscribe(
       (state) => state.fontFamily,
       (state) => {
         if (this.curText) {
           this.curText.setFontFamily(state);
+
           switch (this.curText.fontFamily) {
             case "code":
               this.currentInputElement.style.fontFamily = "Code";
@@ -48,9 +50,6 @@ export default class TextTool implements Tool {
               break;
             case "hand":
               this.currentInputElement.style.fontFamily = "Handwriting";
-              break;
-
-            default:
               break;
           }
 
@@ -90,9 +89,6 @@ export default class TextTool implements Tool {
               this.currentInputElement.style.fontSize = "40px";
               this.currentInputElement.style.lineHeight = "48px";
               break;
-
-            default:
-              break;
           }
 
           requestAnimationFrame(() => {
@@ -107,6 +103,7 @@ export default class TextTool implements Tool {
         }
       },
     );
+
     let sub3 = useToolStyle.subscribe(
       (state) => state.opacity,
       (state) => {
@@ -116,6 +113,7 @@ export default class TextTool implements Tool {
         }
       },
     );
+
     let sub4 = useToolStyle.subscribe(
       (state) => state.strokeColor,
       (state) => {
@@ -131,14 +129,20 @@ export default class TextTool implements Tool {
 
   reset(): void {
     this.curState = "idle";
+
     if (this.curText)
       this.editableTextContainer.current?.removeChild(this.currentInputElement);
+
     this.curText = null;
+
     this.lastMouseDown.x = -1e18;
     this.lastMouseDown.y = -1e18;
+
     document.body.style.cursor = "default";
   }
+
   emit: (tool: ToolType, event: EventType) => void;
+
   constructor(
     shapeManager: ShapeManager,
     editableTextContainer: React.RefObject<HTMLDivElement | null>,
@@ -148,10 +152,10 @@ export default class TextTool implements Tool {
     this.subscribeToState();
 
     this.shapeManager = shapeManager;
-
     this.editableTextContainer = editableTextContainer;
 
     this.currentInputElement = document.createElement("textarea");
+
     this.currentInputElement.onmousedown = (e) => e.stopPropagation();
     this.currentInputElement.onmouseup = (e) => e.stopPropagation();
     this.currentInputElement.onmousemove = (e) => e.stopPropagation();
@@ -161,6 +165,7 @@ export default class TextTool implements Tool {
     this.currentInputElement.style.height = "0px";
     this.currentInputElement.style.width = "0px";
     this.currentInputElement.style.boxSizing = "content-box";
+
     this.currentInputElement.rows = 1;
     this.currentInputElement.cols = 1;
 
@@ -174,6 +179,7 @@ export default class TextTool implements Tool {
       this.currentInputElement.style.height = "auto";
       this.currentInputElement.style.height =
         this.currentInputElement.scrollHeight + "px";
+
       this.currentInputElement.style.width = "auto";
       this.currentInputElement.style.width =
         this.currentInputElement.scrollWidth + "px";
@@ -182,10 +188,12 @@ export default class TextTool implements Tool {
 
   destructor() {
     this.zustandSubscriptions.forEach((unsub) => unsub());
+
     if (this.curText)
       this.editableTextContainer.current?.removeChild?.(
         this.currentInputElement,
       );
+
     document.body.style.cursor = "default";
   }
 
@@ -196,16 +204,18 @@ export default class TextTool implements Tool {
 
       this.updateCurrentEnclosingRectangle();
 
-      this.curText!.text = this.currentInputElement.value;
-      this.curText!.curState = "render";
+      this.curText!.setText(this.currentInputElement.value);
+      this.curText!.setCurState("render");
+
       this.currentInputElement.value = "";
 
       if (this.curText!.text.length == 0)
-        this.shapeManager.removeShape(this.curText!);
+        this.shapeManager.removeShape(this.curText!.shapeId);
 
       this.editableTextContainer.current?.removeChild?.(
         this.currentInputElement,
       );
+
       this.curText = null;
 
       this.emit(this.toolType, "taskComplete");
@@ -218,10 +228,12 @@ export default class TextTool implements Tool {
   onCanvasMouseMove(e: MouseEvent) {
     const containerRect =
       this.editableTextContainer.current!.getBoundingClientRect();
+
     let curPoint: Point = {
       x: Math.floor(e.clientX - containerRect.left),
       y: Math.floor(e.clientY - containerRect.top),
     };
+
     let shapes = this.shapeManager
       .getShapesAt(curPoint.x, curPoint.y)
       .reverse();
@@ -243,7 +255,6 @@ export default class TextTool implements Tool {
         x: Math.floor(e.clientX - containerRect.left),
         y: Math.floor(e.clientY - containerRect.top),
       };
-      // let curPoint = new Point(Math.floor(e.clientX), Math.floor(e.clientY));
 
       let shapes = this.shapeManager
         .getShapesAt(curPoint.x, curPoint.y)
@@ -254,10 +265,16 @@ export default class TextTool implements Tool {
       if (lastText) {
         this.curText = lastText as Text;
       } else {
-        this.curText = new Text("edit", "", [
-          { x: curPoint.x, y: curPoint.y },
-          { x: curPoint.x, y: curPoint.y },
-        ]);
+        this.curText = new Text(
+          "edit",
+          "",
+          [
+            { x: curPoint.x, y: curPoint.y },
+            { x: curPoint.x, y: curPoint.y },
+          ],
+          this.shapeManager,
+        );
+
         this.shapeManager.addShape(this.curText);
       }
 
@@ -270,6 +287,7 @@ export default class TextTool implements Tool {
       this.currentInputElement.style.color = getStrokeColorString(
         this.curText.strokeColor,
       );
+
       this.currentInputElement.style.opacity = (
         this.curText.opacity / 100
       ).toString();
@@ -309,9 +327,6 @@ export default class TextTool implements Tool {
         case "hand":
           this.currentInputElement.style.fontFamily = "Handwriting";
           break;
-
-        default:
-          break;
       }
 
       this.editableTextContainer.current?.appendChild(this.currentInputElement);
@@ -319,6 +334,7 @@ export default class TextTool implements Tool {
       this.currentInputElement.style.height = "auto";
       this.currentInputElement.style.height =
         this.currentInputElement.scrollHeight + "px";
+
       this.currentInputElement.style.width = "auto";
       this.currentInputElement.style.width =
         this.currentInputElement.scrollWidth + "px";
@@ -330,9 +346,11 @@ export default class TextTool implements Tool {
   }
 
   onOtherMouseDown(): void {}
+
   onOtherMouseMove(): void {
     document.body.style.cursor = "default";
   }
+
   onOtherMouseUp(): void {}
 
   onSwitchTool(oldTool: ToolType): void {
@@ -341,13 +359,18 @@ export default class TextTool implements Tool {
 
       this.updateCurrentEnclosingRectangle();
 
-      this.curText!.text = this.currentInputElement.value;
-      this.curText!.curState = "render";
+      this.curText!.setText(this.currentInputElement.value);
+      this.curText!.setCurState("render");
+
       this.currentInputElement.value = "";
+
       if (this.curText!.text.length == 0)
-        this.shapeManager.removeShape(this.curText!);
+        this.shapeManager.removeShape(this.curText!.shapeId);
+
       this.editableTextContainer.current?.removeChild(this.currentInputElement);
+
       this.curText = null;
+
       this.emit(this.toolType, "taskComplete");
     }
   }

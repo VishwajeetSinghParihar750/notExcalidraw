@@ -1,4 +1,4 @@
-import type { Shape, ShapeType } from "./Shape";
+import type { Shape, ShapeType, shapeId } from "./Shape";
 
 import {
   useToolStyle,
@@ -14,98 +14,157 @@ import {
   getBackgroundColorString,
   getStrokeColorString,
 } from "../../utils/Theme";
+import type ShapeManager from "../Managers/ShapeManager";
+import type { updatePropertySchema } from "../../types/shapeUpdateEvents";
 
 export class Pen implements Shape {
-  shapeType: ShapeType = "pen";
-  // style properties
-  backgroundColor: backgroundColor;
-  strokeColor: strokeColor;
-  strokeWidth: strokeWidth;
-  opacity: opacity;
-  fillStyle: fillStyle;
+  readonly shapeType: ShapeType = "pen";
+  readonly shapeId: shapeId = crypto.randomUUID();
+  _shapeManager: ShapeManager;
 
-  // shape definition
-  points: Point[] = [];
+  private _backgroundColor: backgroundColor;
+  private _strokeColor: strokeColor;
+  private _strokeWidth: strokeWidth;
+  private _opacity: opacity;
+  private _fillStyle: fillStyle;
+
+  private _points: Point[] = [];
+
+  private shapeManagerPropertyUpdate(payload: updatePropertySchema) {
+    this.shapeManager.handleShapeUpdateEvent({
+      eventType: "updateProperty",
+      shapeId: this.shapeId,
+      payload,
+    });
+  }
+
+  private shapeManagerEnclosingRectangleUpdate() {
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+    this.shapeManager.handleShapeUpdateEvent({
+      eventType: "updateEnclosingRectangle",
+      shapeId: this.shapeId,
+      payload: { x1: sx, y1: sy, x2: ex, y2: ey },
+    });
+  }
+
+  get shapeManager() {
+    return this._shapeManager;
+  }
+
+  get backgroundColor() {
+    return this._backgroundColor;
+  }
+
+  setBackgroundColor(color: backgroundColor) {
+    this._backgroundColor = color;
+    this.shapeManagerPropertyUpdate({ backgroundColor: color });
+  }
+
+  get strokeColor() {
+    return this._strokeColor;
+  }
+
+  setStrokeColor(color: strokeColor) {
+    this._strokeColor = color;
+    this.shapeManagerPropertyUpdate({ strokeColor: color });
+  }
+
+  get strokeWidth() {
+    return this._strokeWidth;
+  }
+
+  setStrokeWidth(width: strokeWidth) {
+    this._strokeWidth = width;
+    this.shapeManagerPropertyUpdate({ strokeWidth: width });
+  }
+
+  get opacity() {
+    return this._opacity;
+  }
+
+  setOpacity(opacity: opacity) {
+    this._opacity = opacity;
+    this.shapeManagerPropertyUpdate({ opacity: opacity });
+  }
+
+  get fillStyle() {
+    return this._fillStyle;
+  }
+
+  setFillStyle(style: fillStyle) {
+    this._fillStyle = style;
+    this.shapeManagerPropertyUpdate({ fillStyle: style });
+  }
+
+  get points() {
+    return structuredClone(this._points);
+  }
+
+  setPoints(points: Point[]) {
+    this._points = points;
+    this.shapeManagerPropertyUpdate({ points: points });
+  }
 
   clone() {
-    let pen = new Pen(structuredClone(this.points));
-    pen.setFillStyle(this.fillStyle);
-    pen.setOpacity(this.opacity);
-    pen.setStrokeColor(this.strokeColor);
-    pen.setStrokeWidth(this.strokeWidth);
-    pen.setBackgroundColor(this.backgroundColor);
+    let pen = new Pen(structuredClone(this._points), this.shapeManager);
+    pen.setFillStyle(this._fillStyle);
+    pen.setOpacity(this._opacity);
+    pen.setStrokeColor(this._strokeColor);
+    pen.setStrokeWidth(this._strokeWidth);
+    pen.setBackgroundColor(this._backgroundColor);
     return pen;
   }
 
-  constructor(points: Point[]) {
-    this.points = points;
+  constructor(points: Point[], shapeMan: ShapeManager) {
+    this._shapeManager = shapeMan;
+    this._points = points;
 
     let { backgroundColor, strokeColor, strokeWidth, opacity, fillStyle } =
       useToolStyle.getState();
 
-    this.backgroundColor = backgroundColor;
-    this.strokeColor = strokeColor;
-    this.strokeWidth = strokeWidth;
-    this.opacity = opacity;
-    this.fillStyle = fillStyle;
-  }
-
-  setBackgroundColor(color: backgroundColor) {
-    this.backgroundColor = color;
-  }
-
-  setStrokeColor(color: strokeColor) {
-    this.strokeColor = color;
-  }
-
-  setStrokeWidth(width: strokeWidth) {
-    this.strokeWidth = width;
-  }
-
-  setOpacity(opacity: opacity) {
-    this.opacity = opacity;
-  }
-
-  setFillStyle(style: fillStyle) {
-    this.fillStyle = style;
+    this._backgroundColor = backgroundColor;
+    this._strokeColor = strokeColor;
+    this._strokeWidth = strokeWidth;
+    this._opacity = opacity;
+    this._fillStyle = fillStyle;
   }
 
   draw(ctx: CanvasRenderingContext2D) {
     ctx.save();
 
     {
-      ctx.globalAlpha = this.opacity / 100;
-      ctx.strokeStyle = getStrokeColorString(this.strokeColor);
+      ctx.globalAlpha = this._opacity / 100;
+      ctx.strokeStyle = getStrokeColorString(this._strokeColor);
 
-      let len = this.points.length - 1;
+      let len = this._points.length - 1;
 
       if (len > 0) {
         {
           ctx.beginPath();
 
-          ctx.lineWidth = this.strokeWidth * 2;
+          ctx.lineWidth = this._strokeWidth * 2;
           ctx.lineCap = "round";
           ctx.lineJoin = "round";
-          ctx.moveTo(this.points[0].x, this.points[0].y);
+          ctx.moveTo(this._points[0].x, this._points[0].y);
 
           for (let i = 1; i < len; i++) {
-            ctx.lineTo(this.points[i].x, this.points[i].y);
+            ctx.lineTo(this._points[i].x, this._points[i].y);
           }
 
           ctx.stroke();
         }
-        let bgColor = getBackgroundColorString(this.backgroundColor);
+        let bgColor = getBackgroundColorString(this._backgroundColor);
         if (
           bgColor != "none" &&
-          isSamePoint(this.points[0], this.points[len - 1])
+          isSamePoint(this._points[0], this._points[len - 1])
         ) {
           ctx.save();
           let [x1, y1, x2, y2] = this.getEnclosingRectangle();
 
-          if (this.fillStyle == "fill") {
+          if (this._fillStyle == "fill") {
             ctx.fillStyle = bgColor;
             ctx.fill();
-          } else if (this.fillStyle == "line") {
+          } else if (this._fillStyle == "line") {
             ctx.clip();
             ctx.lineWidth = 1;
             ctx.strokeStyle = bgColor;
@@ -115,14 +174,13 @@ export class Pen implements Shape {
             );
             ctx.beginPath();
 
-            let gap = this.strokeWidth * 5;
+            let gap = this._strokeWidth * 5;
             for (let pos = gap; pos < d * 2; pos += gap) {
-              //
               ctx.moveTo(x1 + pos, y1);
               ctx.lineTo(x1, y1 + pos);
             }
             ctx.stroke();
-          } else if (this.fillStyle == "crosslines") {
+          } else if (this._fillStyle == "crosslines") {
             ctx.clip();
             ctx.lineWidth = 1;
             ctx.strokeStyle = bgColor;
@@ -132,14 +190,12 @@ export class Pen implements Shape {
             );
             ctx.beginPath();
 
-            let gap = this.strokeWidth * 5;
+            let gap = this._strokeWidth * 5;
             for (let pos = gap; pos < d * 2; pos += gap) {
-              //
               ctx.moveTo(x1 + pos, y1);
               ctx.lineTo(x1, y1 + pos);
             }
             for (let pos = gap; pos < d * 2; pos += gap) {
-              //
               ctx.moveTo(x2, y1 + pos);
               ctx.lineTo(x2 - pos, y1);
             }
@@ -151,13 +207,13 @@ export class Pen implements Shape {
       } else if (len == 0) {
         ctx.beginPath();
         ctx.arc(
-          this.points[0].x,
-          this.points[0].y,
-          this.strokeWidth,
+          this._points[0].x,
+          this._points[0].y,
+          this._strokeWidth,
           0,
           Math.PI * 2,
         );
-        ctx.fillStyle = getStrokeColorString(this.strokeColor);
+        ctx.fillStyle = getStrokeColorString(this._strokeColor);
         ctx.fill();
       }
     }
@@ -166,17 +222,18 @@ export class Pen implements Shape {
   }
 
   moveEnclosingRectangle(delX: number, delY: number) {
-    for (let point of this.points) {
-      //
+    for (let point of this._points) {
       point.x += delX;
       point.y += delY;
     }
+
+    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   updateEnclosingRectangle(nsx: number, nsy: number, nex: number, ney: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
 
-    this.points.forEach((point) => {
+    this._points.forEach((point) => {
       let x1 = point.x;
       let y1 = point.y;
 
@@ -186,6 +243,8 @@ export class Pen implements Shape {
       point.x = x1;
       point.y = y1;
     });
+
+    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   getEnclosingRectangle(): [number, number, number, number] {
@@ -193,7 +252,7 @@ export class Pen implements Shape {
     let x2 = -1e18;
     let y1 = 1e18;
     let y2 = -1e18;
-    for (let point of this.points) {
+    for (let point of this._points) {
       x1 = Math.min(x1, point.x);
       x2 = Math.max(x2, point.x);
       y1 = Math.min(y1, point.y);
@@ -201,11 +260,13 @@ export class Pen implements Shape {
     }
     return [x1, y1, x2, y2];
   }
+
   containsPoint(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
 
     return x >= sx && x <= ex && y >= sy && y <= ey;
   }
+
   liesInside(point1: Point, point2: Point) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
     let minx = Math.min(point1.x, point2.x);

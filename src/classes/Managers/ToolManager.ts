@@ -69,7 +69,9 @@ export default class ToolManager {
   resetCanvas() {
     useToolStyle.getState().reset();
     Object.values(this.tools).forEach((tool) => tool.reset());
-    this.shapeManager.updateShapes([]);
+    this.shapeManager.shapes.forEach((sh) =>
+      this.shapeManager.removeShape(sh.shapeId),
+    );
   }
 
   constructor(

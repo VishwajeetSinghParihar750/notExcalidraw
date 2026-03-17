@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { Rectangle } from "../classes/Shapes/Rectangle";
 import { RotatedRecangle } from "../classes/Shapes/RotatedRectangle";
 import { Circle } from "../classes/Shapes/Circle";
-import type { ShapeType } from "../classes/Shapes/Shape";
+import type { Shape, ShapeData, ShapeType } from "../classes/Shapes/Shape";
 import { Arrow } from "../classes/Shapes/Arrow";
 import { Line } from "../classes/Shapes/Line";
 import { Pen } from "../classes/Shapes/Pen";
@@ -38,30 +38,37 @@ export default function useCanvas(props: useCanvasProps) {
 
     if (shapeManagerShapes) {
       let parsedShapes: any[] = JSON.parse(shapeManagerShapes);
-      shapeManager.updateShapes(
-        parsedShapes
-          .map((shape) =>
-            Object.setPrototypeOf(
-              shape,
-              shapeTypeToPrototype[shape.shapeType as ShapeType].prototype,
-            ),
-          )
-          .filter((shape) => shape),
-      );
+      parsedShapes
+        .map((shape) => {
+          let shapeObj: Shape = Object.setPrototypeOf(
+            shape,
+            shapeTypeToPrototype[shape.shapeType as ShapeType].prototype,
+          );
+
+          shape._shapeManager = shapeManager;
+          return shapeObj;
+        })
+        .filter((shape) => shape)
+        .forEach((shape) => shapeManager.addShape(shape));
     }
 
     let oldShapes = shapeManagerShapes || JSON.stringify([]);
 
     const persistShapeManagerShapes = () => {
-      let curShapes = JSON.stringify(
-        shapeManager.shapes.filter(
+      let shapesToSave = shapeManager.shapes
+        .filter(
           (shape) =>
             !(
               shape.shapeType == "selection" ||
               (shape.shapeType == "text" && (shape as Text).curState == "edit")
             ),
-        ),
-      );
+        )
+        .map((shape) => {
+          let { _shapeManager, ...rest } = shape;
+          return rest;
+        });
+
+      let curShapes = JSON.stringify(shapesToSave);
 
       if (oldShapes != curShapes) {
         window.localStorage.setItem("shapeManagerShapes", curShapes);

@@ -105,7 +105,7 @@ type strokeColor = 0 | 1 | 2 | 3 | 4; // index
 
 type fontFamily = "hand" | "code" | "normal";
 type fontSize = "small" | "medium" | "large" | "extra-large" | number;
-type textAlign = "left" | "center" | "right";
+// type textAlign = "left" | "center" | "right";
 
 interface toolStyleState {
   strokeColor: strokeColor; // color
@@ -118,7 +118,7 @@ interface toolStyleState {
   arrowType: arrowType;
   fontFamily: fontFamily;
   fontSize: fontSize;
-  textAlign: textAlign;
+  // textAlign: textAlign;
 }
 
 interface toolStyleActions {
@@ -132,7 +132,7 @@ interface toolStyleActions {
   setArrowType: (type: arrowType) => void;
   setFontFamily: (fontFamily: fontFamily) => void;
   setFontSize: (fontSize: fontSize) => void;
-  setTextAlign: (textAlign: textAlign) => void;
+  // setTextAlign: (textAlign: textAlign) => void;
   reset: () => void;
 }
 
@@ -147,7 +147,7 @@ let toolStyleInitalState: toolStyleState = {
   arrowType: "curve",
   fontFamily: "hand",
   fontSize: "medium",
-  textAlign: "left",
+  // textAlign: "left",
 };
 const useToolStyle = create<toolStyleState & toolStyleActions>()(
   subscribeWithSelector((set) => ({
@@ -163,7 +163,7 @@ const useToolStyle = create<toolStyleState & toolStyleActions>()(
     setArrowType: (type) => set({ arrowType: type }),
     setFontFamily: (fontFamily) => set({ fontFamily: fontFamily }),
     setFontSize: (fontSize) => set({ fontSize: fontSize }),
-    setTextAlign: (textAlign) => set({ textAlign: textAlign }),
+    // setTextAlign: (textAlign) => set({ textAlign: textAlign }),
 
     reset: () => set(toolStyleInitalState),
   })),
@@ -182,7 +182,7 @@ export type {
   strokeColor,
   fontFamily,
   fontSize,
-  textAlign,
+  // textAlign,
 };
 export {
   darkThemeBackgroundColors,

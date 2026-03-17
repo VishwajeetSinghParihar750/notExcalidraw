@@ -55,10 +55,7 @@ export default class CursorTool implements Tool {
     this.selectedShapes.push(...shapes);
   }
 
-  curSelection: Selection = new Selection(
-    [this.selectionStart, this.selectionEnd],
-    this.selectedShapes,
-  );
+  curSelection: Selection;
 
   curPoint: Point = { x: -1e18, y: -1e18 };
 
@@ -333,6 +330,12 @@ export default class CursorTool implements Tool {
     editableTextContainer: React.RefObject<HTMLDivElement | null>,
     eventCallback: (tool: ToolType, event: EventType) => void,
   ) {
+    this.curSelection = new Selection(
+      [this.selectionStart, this.selectionEnd],
+      this.selectedShapes,
+      shapeManager,
+    );
+
     this.zustandSubscribe();
     this.shapeManager = shapeManager;
     this.emit = eventCallback;
@@ -380,28 +383,23 @@ export default class CursorTool implements Tool {
   handleDeleteAction() {
     if (this.curState == "selected") {
       this.selectedShapes.forEach((shape) =>
-        this.shapeManager.removeShape(shape),
+        this.shapeManager.removeShape(shape.shapeId),
       );
       this.updateSelectedShapes([]);
       useSelectedShapes.setState({ selectedShapes: new Set() });
 
-      this.shapeManager.removeShape(this.curSelection);
+      this.shapeManager.removeShape(this.curSelection.shapeId);
       this.curState = "idle";
     }
   }
   handleDuplicateAction() {
     if (this.curState == "selected") {
       let newSelection = this.curSelection.clone();
-      newSelection.moveEnclosingRectangle(10, 10);
+      this.curSelection.moveEnclosingRectangle(10, 10);
+
       newSelection.selectedShapes.forEach((shape) =>
         this.shapeManager.addShape(shape),
       );
-
-      this.shapeManager.removeShape(this.curSelection);
-      this.curSelection = newSelection;
-      this.shapeManager.addShape(this.curSelection);
-      this.selectedShapes = this.curSelection.selectedShapes;
-      this.curSelection.setDrawSelectionArea(false);
     }
   }
 
@@ -414,15 +412,15 @@ export default class CursorTool implements Tool {
         });
 
         if (this.curState == "selecting" || this.curState == "selected") {
-          this.shapeManager.removeShape(this.curSelection);
+          this.shapeManager.removeShape(this.curSelection.shapeId);
         } else if (this.curState == "editingText") {
           this.updateCurrentTextEnclosingRectangle();
 
-          this.curText!.text = this.currentInputElement.value;
-          this.curText!.curState = "render";
+          this.curText?.setText(this.currentInputElement.value);
+          this.curText?.setCurState("render");
           this.currentInputElement.value = "";
           if (this.curText!.text.length == 0)
-            this.shapeManager.removeShape(this.curText!);
+            this.shapeManager.removeShape(this.curText!.shapeId);
           this.editableTextContainer.current?.removeChild(
             this.currentInputElement,
           );
@@ -743,11 +741,11 @@ export default class CursorTool implements Tool {
 
           this.updateCurrentTextEnclosingRectangle();
 
-          this.curText!.text = this.currentInputElement.value;
-          this.curText!.curState = "render";
+          this.curText?.setText(this.currentInputElement.value);
+          this.curText?.setCurState("render");
           this.currentInputElement.value = "";
           if (this.curText!.text.length == 0)
-            this.shapeManager.removeShape(this.curText!);
+            this.shapeManager.removeShape(this.curText!.shapeId);
           this.editableTextContainer.current?.removeChild(
             this.currentInputElement,
           );
@@ -783,10 +781,15 @@ export default class CursorTool implements Tool {
                 x: Math.floor(e.clientX - containerRect.left),
                 y: Math.floor(e.clientY - containerRect.top),
               };
-              this.curText = new Text("edit", "", [
-                { x: curPoint.x, y: curPoint.y },
-                { x: curPoint.x, y: curPoint.y },
-              ]);
+              this.curText = new Text(
+                "edit",
+                "",
+                [
+                  { x: curPoint.x, y: curPoint.y },
+                  { x: curPoint.x, y: curPoint.y },
+                ],
+                this.shapeManager,
+              );
               this.shapeManager.addShape(this.curText);
 
               this.currentInputElement.value = this.curText.text;
@@ -866,7 +869,7 @@ export default class CursorTool implements Tool {
               this.curtextEditingInitiliazeInfo.lastWasEmtpyArea = true;
             }
 
-            this.shapeManager.removeShape(this.curSelection);
+            this.shapeManager.removeShape(this.curSelection.shapeId);
           }
         }
         break;
@@ -966,7 +969,7 @@ export default class CursorTool implements Tool {
               this.currentInputElement.select();
               this.curtextEditingInitiliazeInfo.reset();
 
-              this.shapeManager.removeShape(this.curSelection);
+              this.shapeManager.removeShape(this.curSelection.shapeId);
             } else {
               this.curState = "selected";
               this.curSelectionMovementInfo.reset();

@@ -1,4 +1,4 @@
-import type { Shape, ShapeType } from "./Shape";
+import type { Shape, shapeId, ShapeType } from "./Shape";
 
 import {
   useToolStyle,
@@ -9,93 +9,169 @@ import {
 } from "../../store/Tools.store";
 import type { Point } from "./Point";
 import { getStrokeColorString } from "../../utils/Theme";
+import type ShapeManager from "../Managers/ShapeManager";
+import type { updatePropertySchema } from "../../types/shapeUpdateEvents";
 
-type TextShapeState = "render" | "edit";
+export type TextShapeState = "render" | "edit";
 
 export class Text implements Shape {
-  shapeType: ShapeType = "text";
+  readonly shapeType: ShapeType = "text";
+  readonly shapeId: shapeId = crypto.randomUUID();
+  _shapeManager: ShapeManager;
 
-  // style properties
-  strokeColor: strokeColor;
-  opacity: opacity;
-  fontFamily: fontFamily;
-  fontSize: fontSize;
+  private _strokeColor: strokeColor;
+  private _opacity: opacity;
+  private _fontFamily: fontFamily;
+  private _fontSize: fontSize;
 
-  // shape definition
-  curState: TextShapeState;
-  text: string;
+  private _curState: TextShapeState;
+  private _text: string;
 
-  shouldUpdateRectangleBasedOnText = false;
+  private _shouldUpdateRectangleBasedOnText = false;
 
-  //
-  enclosingRectangle: [Point, Point];
+  private _enclosingRectangle: [Point, Point];
+
+  private shapeManagerPropertyUpdate(payload: updatePropertySchema) {
+    this.shapeManager.handleShapeUpdateEvent({
+      eventType: "updateProperty",
+      shapeId: this.shapeId,
+      payload,
+    });
+  }
+
+  private shapeManagerEnclosingRectangleUpdate() {
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+    this.shapeManager.handleShapeUpdateEvent({
+      eventType: "updateEnclosingRectangle",
+      shapeId: this.shapeId,
+      payload: { x1: sx, y1: sy, x2: ex, y2: ey },
+    });
+  }
+
+  get shapeManager() {
+    return this._shapeManager;
+  }
+  get strokeColor() {
+    return this._strokeColor;
+  }
+
+  setStrokeColor(color: strokeColor) {
+    this._strokeColor = color;
+  }
+
+  get opacity() {
+    return this._opacity;
+  }
+
+  setOpacity(opacity: opacity) {
+    this._opacity = opacity;
+    this.shapeManagerPropertyUpdate({ opacity });
+  }
+
+  get fontFamily() {
+    return this._fontFamily;
+  }
+
+  setFontFamily(fontFamily: fontFamily) {
+    this._fontFamily = fontFamily;
+    this._shouldUpdateRectangleBasedOnText = true;
+    this.shapeManagerPropertyUpdate({ fontFamily });
+  }
+
+  get fontSize() {
+    return this._fontSize;
+  }
+
+  setFontSize(fontSize: fontSize) {
+    this._fontSize = fontSize;
+    this._shouldUpdateRectangleBasedOnText = true;
+    this.shapeManagerPropertyUpdate({ fontSize });
+  }
+
+  get curState() {
+    return this._curState;
+  }
+
+  setCurState(curState: TextShapeState) {
+    this._curState = curState;
+
+    this.shapeManagerPropertyUpdate({ curState });
+  }
+
+  get text() {
+    return this._text;
+  }
+
+  setText(text: string) {
+    this._text = text;
+    this._shouldUpdateRectangleBasedOnText = true;
+    this.shapeManagerPropertyUpdate({ text });
+  }
+
+  get shouldUpdateRectangleBasedOnText() {
+    return this._shouldUpdateRectangleBasedOnText;
+  }
+
+  getEnclosingRectangle(): [number, number, number, number] {
+    return [
+      this._enclosingRectangle[0].x,
+      this._enclosingRectangle[0].y,
+      this._enclosingRectangle[1].x,
+      this._enclosingRectangle[1].y,
+    ];
+  }
 
   clone() {
     let text = new Text(
-      structuredClone(this.curState),
-      structuredClone(this.text),
-      structuredClone(this.enclosingRectangle),
+      structuredClone(this._curState),
+      structuredClone(this._text),
+      structuredClone(this._enclosingRectangle),
+      this.shapeManager,
     );
-    text.setStrokeColor(this.strokeColor);
-    text.setOpacity(this.opacity);
-    text.setFontFamily(this.fontFamily);
-    text.setFontSize(this.fontSize);
+    text.setStrokeColor(this._strokeColor);
+    text.setOpacity(this._opacity);
+    text.setFontFamily(this._fontFamily);
+    text.setFontSize(this._fontSize);
     return text;
   }
+
   constructor(
     curState: TextShapeState,
     text: string,
     enclosingRectangle: [Point, Point],
+    shapeMan: ShapeManager,
   ) {
+    this._shapeManager = shapeMan;
     let { strokeColor, opacity, fontFamily, fontSize } =
       useToolStyle.getState();
 
-    this.enclosingRectangle = enclosingRectangle;
+    this._enclosingRectangle = enclosingRectangle;
 
-    this.curState = curState;
-    this.text = text;
+    this._curState = curState;
+    this._text = text;
 
-    this.strokeColor = strokeColor;
-    this.opacity = opacity;
-    this.fontFamily = fontFamily;
-    this.fontSize = fontSize;
-  }
-
-  setStrokeColor(color: strokeColor) {
-    this.strokeColor = color;
+    this._strokeColor = strokeColor;
+    this._opacity = opacity;
+    this._fontFamily = fontFamily;
+    this._fontSize = fontSize;
   }
 
-  setOpacity(opacity: opacity) {
-    this.opacity = opacity;
-  }
-  setFontFamily(fontFamily: fontFamily) {
-    this.fontFamily = fontFamily;
-    this.shouldUpdateRectangleBasedOnText = true;
-  }
-  setFontSize(fontSize: fontSize) {
-    this.fontSize = fontSize;
-    this.shouldUpdateRectangleBasedOnText = true;
-  }
-
-  setCurState(curState: TextShapeState) {
-    this.curState = curState;
-  }
   updateRectangleFromText(ctx: CanvasRenderingContext2D) {
     ctx.save();
     let pixelFontSize =
-      typeof this.fontSize === "number"
-        ? this.fontSize
-        : this.fontSize === "small"
+      typeof this._fontSize === "number"
+        ? this._fontSize
+        : this._fontSize === "small"
           ? 16
-          : this.fontSize === "medium"
+          : this._fontSize === "medium"
             ? 24
-            : this.fontSize === "large"
+            : this._fontSize === "large"
               ? 32
               : 40;
 
     let lineHeight = pixelFontSize * 1.2;
 
-    switch (this.fontFamily) {
+    switch (this._fontFamily) {
       case "hand":
         ctx.font = `${pixelFontSize}px Handwriting`;
         break;
@@ -107,7 +183,7 @@ export class Text implements Shape {
         break;
     }
 
-    const lines = this.text.split("\n");
+    const lines = this._text.split("\n");
 
     let maxWidth = 0;
 
@@ -119,8 +195,8 @@ export class Text implements Shape {
     let height = lines.length * lineHeight;
 
     let startPoint = {
-      x: this.enclosingRectangle[0].x,
-      y: this.enclosingRectangle[0].y,
+      x: this._enclosingRectangle[0].x,
+      y: this._enclosingRectangle[0].y,
     };
     this.setEnclosingRectangleCoordinates(
       startPoint.x,
@@ -130,34 +206,35 @@ export class Text implements Shape {
     );
 
     ctx.restore();
-    this.shouldUpdateRectangleBasedOnText = false;
+    this._shouldUpdateRectangleBasedOnText = false;
   }
+
   setEnclosingRectangleCoordinates(
     x1: number,
     y1: number,
     x2: number,
     y2: number,
   ) {
-    this.enclosingRectangle[0].x = x1;
-    this.enclosingRectangle[1].x = x2;
-    this.enclosingRectangle[0].y = y1;
-    this.enclosingRectangle[1].y = y2;
+    this._enclosingRectangle[0].x = x1;
+    this._enclosingRectangle[1].x = x2;
+    this._enclosingRectangle[0].y = y1;
+    this._enclosingRectangle[1].y = y2;
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    if (this.curState != "render") return;
+    if (this._curState != "render") return;
 
     ctx.save();
 
-    if (this.shouldUpdateRectangleBasedOnText)
+    if (this._shouldUpdateRectangleBasedOnText)
       this.updateRectangleFromText(ctx);
 
     {
-      ctx.globalAlpha = this.opacity / 100;
+      ctx.globalAlpha = this._opacity / 100;
 
       let lineHeight = 0;
       let pixelFontSize = 10;
-      switch (this.fontSize) {
+      switch (this._fontSize) {
         case "small":
           pixelFontSize = 16;
           break;
@@ -172,12 +249,12 @@ export class Text implements Shape {
           break;
 
         default:
-          pixelFontSize = this.fontSize;
+          pixelFontSize = this._fontSize as number;
           break;
       }
       lineHeight = pixelFontSize * 1.2;
 
-      switch (this.fontFamily) {
+      switch (this._fontFamily) {
         case "hand":
           ctx.font = `${pixelFontSize}px Handwriting`;
           break;
@@ -193,17 +270,17 @@ export class Text implements Shape {
         default:
           break;
       }
-      //
+
       ctx.beginPath();
       ctx.textBaseline = "top";
       ctx.textAlign = "left";
 
-      const lines = this.text.split("\n");
-      ctx.fillStyle = getStrokeColorString(this.strokeColor);
+      const lines = this._text.split("\n");
+      ctx.fillStyle = getStrokeColorString(this._strokeColor);
 
       let startPoint = {
-        x: this.enclosingRectangle[0].x,
-        y: this.enclosingRectangle[0].y,
+        x: this._enclosingRectangle[0].x,
+        y: this._enclosingRectangle[0].y,
       };
       lines.forEach((line, ind) => {
         ctx.fillText(line, startPoint.x, startPoint.y + ind * lineHeight);
@@ -213,38 +290,31 @@ export class Text implements Shape {
     ctx.restore();
   }
 
-  getEnclosingRectangle(): [number, number, number, number] {
-    return [
-      this.enclosingRectangle[0].x,
-      this.enclosingRectangle[0].y,
-      this.enclosingRectangle[1].x,
-      this.enclosingRectangle[1].y,
-    ];
-  }
-
   moveEnclosingRectangle(delX: number, delY: number) {
-    //
-    this.enclosingRectangle[0].x += delX;
-    this.enclosingRectangle[1].x += delX;
-    this.enclosingRectangle[0].y += delY;
-    this.enclosingRectangle[1].y += delY;
+    this._enclosingRectangle[0].x += delX;
+    this._enclosingRectangle[1].x += delX;
+    this._enclosingRectangle[0].y += delY;
+    this._enclosingRectangle[1].y += delY;
+
+    this.shapeManagerEnclosingRectangleUpdate();
   }
 
-  // i will be scaling this only on all size chages from selection, no other updates
   updateEnclosingRectangle(nsx: number, nsy: number, nex: number, ney: number) {
-    const lines = this.text.split("\n").length;
+    const lines = this._text.split("\n").length;
     let lineHeight = (ney - nsy) / lines;
     let fontsizevalue = lineHeight / 1.2;
 
     this.setFontSize(fontsizevalue);
     this.setEnclosingRectangleCoordinates(nsx, nsy, nex, ney);
+
+    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   containsPoint(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
-
     return x >= sx && x <= ex && y >= sy && y <= ey;
   }
+
   liesInside(point1: Point, point2: Point) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
     let minx = Math.min(point1.x, point2.x);

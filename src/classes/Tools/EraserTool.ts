@@ -52,10 +52,8 @@ export default class EraserTool implements Tool {
     if (this.curState == "erasing") {
       this.curState = "idle";
 
-      this.shapeManager.updateShapes(
-        this.shapeManager.shapes.filter(
-          (shape) => !this.currentToEraseShapes.has(shape),
-        ),
+      this.currentToEraseShapes.forEach((shape) =>
+        this.shapeManager.removeShape(shape.shapeId),
       );
 
       this.currentToEraseShapes.clear();

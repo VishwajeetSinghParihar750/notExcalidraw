@@ -1,31 +1,94 @@
-import type { Shape, ShapeType } from "./Shape";
+import type { Shape, ShapeType, shapeId } from "./Shape";
 
 import { isSamePoint } from "./Point";
 import type { Point } from "./Point";
+import type ShapeManager from "../Managers/ShapeManager";
+import type { updatePropertySchema } from "../../types/shapeUpdateEvents";
 
 export class Selection implements Shape {
-  shapeType: ShapeType = "selection";
+  readonly shapeType: ShapeType = "selection";
+  readonly shapeId: shapeId = crypto.randomUUID();
+  _shapeManager: ShapeManager;
 
-  selectionArea: [Point, Point];
-  selectedShapes: Shape[] = [];
-  drawSelectionArea: boolean = true;
-  enclosingRectanglePadding = 5;
+  private _selectionArea: [Point, Point];
+  private _selectedShapes: Shape[] = [];
+  private _drawSelectionArea: boolean = true;
 
-  shapeResizeThreshold = 5;
+  private _enclosingRectanglePadding = 5;
+  private _shapeResizeThreshold = 5;
+
+  private shapeManagerPropertyUpdate(payload: updatePropertySchema) {
+    this.shapeManager.handleShapeUpdateEvent({
+      eventType: "updateProperty",
+      shapeId: this.shapeId,
+      payload,
+    });
+  }
+
+  private shapeManagerEnclosingRectangleUpdate() {
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
+    this.shapeManager.handleShapeUpdateEvent({
+      eventType: "updateEnclosingRectangle",
+      shapeId: this.shapeId,
+      payload: { x1: sx, y1: sy, x2: ex, y2: ey },
+    });
+  }
+
+  get shapeManager() {
+    return this._shapeManager;
+  }
+  get selectionArea(): [Point, Point] {
+    return [{ ...this._selectionArea[0] }, { ...this._selectionArea[1] }];
+  }
+
+  setSelectionArea(point1: Point, point2: Point) {
+    this._selectionArea = [{ ...point1 }, { ...point2 }];
+  }
+
+  get selectedShapes(): Shape[] {
+    return this._selectedShapes.map((s) => s.clone());
+  }
+
+  setSelectedShapes(shapes: Shape[]) {
+    this._selectedShapes = shapes;
+  }
+
+  get drawSelectionArea() {
+    return this._drawSelectionArea;
+  }
+
+  setDrawSelectionArea(bool: boolean) {
+    this._drawSelectionArea = bool;
+    this.shapeManagerPropertyUpdate({ drawSelectionArea: bool });
+  }
+
+  get enclosingRectanglePadding() {
+    return this._enclosingRectanglePadding;
+  }
+
+  get shapeResizeThreshold() {
+    return this._shapeResizeThreshold;
+  }
 
   clone() {
     return new Selection(
-      this.selectionArea,
-      this.selectedShapes.map((shape) => shape.clone()),
+      [
+        structuredClone(this._selectionArea[0]),
+        structuredClone(this._selectionArea[1]),
+      ],
+      this._selectedShapes.map((shape) => shape.clone()),
+      this.shapeManager,
     );
   }
 
-  constructor(selectionArea: [Point, Point], selectedShapes: Shape[]) {
-    this.selectedShapes = selectedShapes;
-    this.selectionArea = selectionArea;
-  }
-  setDrawSelectionArea(bool: boolean) {
-    this.drawSelectionArea = bool;
+  constructor(
+    selectionArea: [Point, Point],
+    selectedShapes: Shape[],
+    shapeMan: ShapeManager,
+  ) {
+    this._shapeManager = shapeMan;
+    this._selectedShapes = selectedShapes;
+    this._selectionArea = selectionArea;
   }
 
   #drawControlPoints(
@@ -35,9 +98,7 @@ export class Selection implements Shape {
     ex: number,
     ey: number,
   ) {
-    //
     let toinside = 4;
-
     let length = 8;
 
     let sq1x = sx - length + toinside;
@@ -67,7 +128,6 @@ export class Selection implements Shape {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
 
     {
-      //
       let brandColor = getComputedStyle(document.documentElement)
         .getPropertyValue("--color-brand")
         .trim();
@@ -76,17 +136,17 @@ export class Selection implements Shape {
 
       ctx.lineWidth = 1;
 
-      if (this.drawSelectionArea) {
+      if (this._drawSelectionArea) {
         ctx.save();
 
         {
           ctx.beginPath();
 
           ctx.rect(
-            this.selectionArea[0].x,
-            this.selectionArea[0].y,
-            this.selectionArea[1].x - this.selectionArea[0].x,
-            this.selectionArea[1].y - this.selectionArea[0].y,
+            this._selectionArea[0].x,
+            this._selectionArea[0].y,
+            this._selectionArea[1].x - this._selectionArea[0].x,
+            this._selectionArea[1].y - this._selectionArea[0].y,
           );
 
           ctx.stroke();
@@ -100,12 +160,12 @@ export class Selection implements Shape {
         {
           ctx.save();
 
-          if (this.selectedShapes.length > 1) ctx.setLineDash([2, 4]);
-          //
-          sx -= this.enclosingRectanglePadding;
-          sy -= this.enclosingRectanglePadding;
-          ex += this.enclosingRectanglePadding;
-          ey += this.enclosingRectanglePadding;
+          if (this._selectedShapes.length > 1) ctx.setLineDash([2, 4]);
+
+          sx -= this._enclosingRectanglePadding;
+          sy -= this._enclosingRectanglePadding;
+          ex += this._enclosingRectanglePadding;
+          ey += this._enclosingRectanglePadding;
 
           ctx.beginPath();
           ctx.rect(sx, sy, ex - sx, ey - sy);
@@ -115,21 +175,20 @@ export class Selection implements Shape {
 
           ctx.restore();
         }
-        this.selectedShapes.forEach((shape) => {
+
+        this._selectedShapes.forEach((shape) => {
           let [sx, sy, ex, ey] = shape.getEnclosingRectangle();
 
-          sx -= this.enclosingRectanglePadding;
-          sy -= this.enclosingRectanglePadding;
-          ex += this.enclosingRectanglePadding;
-          ey += this.enclosingRectanglePadding;
+          sx -= this._enclosingRectanglePadding;
+          sy -= this._enclosingRectanglePadding;
+          ex += this._enclosingRectanglePadding;
+          ey += this._enclosingRectanglePadding;
 
           ctx.beginPath();
           ctx.rect(sx, sy, ex - sx, ey - sy);
           ctx.stroke();
         });
       }
-
-      //
     }
 
     ctx.restore();
@@ -141,7 +200,7 @@ export class Selection implements Shape {
     let y1 = 1e18;
     let y2 = -1e18;
 
-    for (let shape of this.selectedShapes) {
+    for (let shape of this._selectedShapes) {
       let [sx, sy, ex, ey] = shape.getEnclosingRectangle();
       x1 = Math.min(x1, sx);
       x2 = Math.max(x2, ex);
@@ -153,15 +212,14 @@ export class Selection implements Shape {
   }
 
   moveEnclosingRectangle(delX: number, delY: number) {
-    this.selectedShapes.forEach((shape) =>
+    this._selectedShapes.forEach((shape) =>
       shape.moveEnclosingRectangle(delX, delY),
     );
+    this.shapeManagerEnclosingRectangleUpdate();
   }
-  updateEnclosingRectangle() {}
 
   containsPoint(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
-
     return x >= sx && x <= ex && y >= sy && y <= ey;
   }
 
@@ -170,39 +228,42 @@ export class Selection implements Shape {
   }
 
   isTopLeftCorner(x: number, y: number) {
-    let [sx, sy, _, __] = this.getEnclosingRectangle();
-    sx -= this.enclosingRectanglePadding;
-    sy -= this.enclosingRectanglePadding;
+    let [sx, sy] = this.getEnclosingRectangle();
+    sx -= this._enclosingRectanglePadding;
+    sy -= this._enclosingRectanglePadding;
 
     let curPoint: Point = { x: sx, y: sy };
     let tocheck: Point = { x, y };
 
     return isSamePoint(curPoint, tocheck);
   }
+
   isTopRightCorner(x: number, y: number) {
-    let [_, sy, ex, __] = this.getEnclosingRectangle();
-    ex += this.enclosingRectanglePadding;
-    sy -= this.enclosingRectanglePadding;
+    let [, sy, ex] = this.getEnclosingRectangle();
+    ex += this._enclosingRectanglePadding;
+    sy -= this._enclosingRectanglePadding;
 
     let curPoint: Point = { x: ex, y: sy };
     let tocheck: Point = { x, y };
 
     return isSamePoint(curPoint, tocheck);
   }
+
   isBottomLeftCorner(x: number, y: number) {
-    let [sx, _, __, ey] = this.getEnclosingRectangle();
-    sx -= this.enclosingRectanglePadding;
-    ey += this.enclosingRectanglePadding;
+    let [sx, , , ey] = this.getEnclosingRectangle();
+    sx -= this._enclosingRectanglePadding;
+    ey += this._enclosingRectanglePadding;
 
     let curPoint: Point = { x: sx, y: ey };
     let tocheck: Point = { x, y };
 
     return isSamePoint(curPoint, tocheck);
   }
+
   isBottomRightCorner(x: number, y: number) {
-    let [_, __, ex, ey] = this.getEnclosingRectangle();
-    ex += this.enclosingRectanglePadding;
-    ey += this.enclosingRectanglePadding;
+    let [, , ex, ey] = this.getEnclosingRectangle();
+    ex += this._enclosingRectanglePadding;
+    ey += this._enclosingRectanglePadding;
 
     let curPoint: Point = { x: ex, y: ey };
     let tocheck: Point = { x, y };
@@ -211,33 +272,31 @@ export class Selection implements Shape {
   }
 
   isTopBoundary(x: number, y: number) {
-    let [sx, sy, ex, _] = this.getEnclosingRectangle();
+    let [sx, sy, ex] = this.getEnclosingRectangle();
     return x >= sx && x <= ex && Math.abs(y - sy) <= 4;
   }
 
   isBottomBoundary(x: number, y: number) {
-    let [sx, _, ex, ey] = this.getEnclosingRectangle();
+    let [sx, , ex, ey] = this.getEnclosingRectangle();
     return x >= sx && x <= ex && Math.abs(y - ey) <= 4;
   }
+
   isLeftBoundary(x: number, y: number) {
-    let [sx, sy, _, ey] = this.getEnclosingRectangle();
+    let [sx, sy, , ey] = this.getEnclosingRectangle();
     return y >= sy && y <= ey && Math.abs(x - sx) <= 4;
   }
+
   isRightBoundary(x: number, y: number) {
-    let [_, sy, ex, ey] = this.getEnclosingRectangle();
+    let [, sy, ex, ey] = this.getEnclosingRectangle();
     return y >= sy && y <= ey && Math.abs(x - ex) <= 4;
   }
 
-  updateShapesEnclsosingRectangles(
-    oldRect: [number, number, number, number],
-    newRect: [number, number, number, number],
-  ) {
-    let [sx, sy, ex, ey] = oldRect;
-    let [nsx, nsy, nex, ney] = newRect;
+  updateEnclosingRectangle(nsx: number, nsy: number, nex: number, ney: number) {
+    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
 
-    if (Math.min(ney - nsy, nex - nsx) < this.shapeResizeThreshold) return;
+    if (Math.min(ney - nsy, nex - nsx) < this._shapeResizeThreshold) return;
 
-    this.selectedShapes.forEach((shape) => {
+    this._selectedShapes.forEach((shape) => {
       let [x1, y1, x2, y2] = shape.getEnclosingRectangle();
 
       x1 = nsx + ((x1 - sx) * (nex - nsx)) / (ex - sx);
@@ -248,6 +307,8 @@ export class Selection implements Shape {
 
       shape.updateEnclosingRectangle(x1, y1, x2, y2);
     });
+
+    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   scaleTopLeftCorner(
@@ -263,10 +324,7 @@ export class Selection implements Shape {
 
     let nsx = nex - ((ex - sx) * (ney - nsy)) / (ey - sy);
 
-    this.updateShapesEnclsosingRectangles(
-      [sx, sy, ex, ey],
-      [nsx, nsy, nex, ney],
-    );
+    this.updateEnclosingRectangle(nsx, nsy, nex, ney);
   }
   scaleTopLeftCornerX(
     sx: number,
@@ -281,10 +339,7 @@ export class Selection implements Shape {
 
     let nsy = ney - ((nex - nsx) * (ey - sy)) / (ex - sx);
 
-    this.updateShapesEnclsosingRectangles(
-      [sx, sy, ex, ey],
-      [nsx, nsy, nex, ney],
-    );
+    this.updateEnclosingRectangle(nsx, nsy, nex, ney);
   }
   scaleTopRightCorner(
     sx: number,
@@ -298,11 +353,7 @@ export class Selection implements Shape {
     let ney = ey;
 
     let nex = nsx + ((ex - sx) * (ney - nsy)) / (ey - sy);
-
-    this.updateShapesEnclsosingRectangles(
-      [sx, sy, ex, ey],
-      [nsx, nsy, nex, ney],
-    );
+    this.updateEnclosingRectangle(nsx, nsy, nex, ney);
   }
   scaleBottomRightCorner(
     sx: number,
@@ -316,10 +367,7 @@ export class Selection implements Shape {
     let ney = ey + delY;
     let nex = nsx + ((ex - sx) * (ney - nsy)) / (ey - sy);
 
-    this.updateShapesEnclsosingRectangles(
-      [sx, sy, ex, ey],
-      [nsx, nsy, nex, ney],
-    );
+    this.updateEnclosingRectangle(nsx, nsy, nex, ney);
   }
   scaleBottomRightCornerX(
     sx: number,
@@ -334,10 +382,7 @@ export class Selection implements Shape {
     let nex = ex + delX;
     let ney = nsy + ((nex - nsx) * (ey - sy)) / (ex - sx);
 
-    this.updateShapesEnclsosingRectangles(
-      [sx, sy, ex, ey],
-      [nsx, nsy, nex, ney],
-    );
+    this.updateEnclosingRectangle(nsx, nsy, nex, ney);
   }
   scaleBottomLeftCorner(
     sx: number,
@@ -352,10 +397,7 @@ export class Selection implements Shape {
     let ney = ey + delY;
     let nsx = nex - ((ex - sx) * (ney - nsy)) / (ey - sy);
 
-    this.updateShapesEnclsosingRectangles(
-      [sx, sy, ex, ey],
-      [nsx, nsy, nex, ney],
-    );
+    this.updateEnclosingRectangle(nsx, nsy, nex, ney);
   }
 
   moveTopLeftCorner(delX: number, delY: number) {
@@ -368,11 +410,7 @@ export class Selection implements Shape {
 
     if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
       this.scaleTopLeftCorner(sx, sy, ex, ey, delY);
-    else
-      this.updateShapesEnclsosingRectangles(
-        [sx, sy, ex, ey],
-        [nsx, nsy, nex, ney],
-      );
+    else this.updateEnclosingRectangle(nsx, nsy, nex, ney);
   }
   moveTopRightCorner(delX: number, delY: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
@@ -384,11 +422,7 @@ export class Selection implements Shape {
 
     if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
       this.scaleTopRightCorner(sx, sy, ex, ey, delY);
-    else
-      this.updateShapesEnclsosingRectangles(
-        [sx, sy, ex, ey],
-        [nsx, nsy, nex, ney],
-      );
+    else this.updateEnclosingRectangle(nsx, nsy, nex, ney);
   }
   moveBottomLeftCorner(delX: number, delY: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
@@ -400,11 +434,7 @@ export class Selection implements Shape {
 
     if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
       this.scaleBottomLeftCorner(sx, sy, ex, ey, delY);
-    else
-      this.updateShapesEnclsosingRectangles(
-        [sx, sy, ex, ey],
-        [nsx, nsy, nex, ney],
-      );
+    else this.updateEnclosingRectangle(nsx, nsy, nex, ney);
   }
   moveBottomRightCorner(delX: number, delY: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
@@ -416,11 +446,7 @@ export class Selection implements Shape {
 
     if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
       this.scaleBottomRightCorner(sx, sy, ex, ey, delY);
-    else
-      this.updateShapesEnclsosingRectangles(
-        [sx, sy, ex, ey],
-        [nsx, nsy, nex, ney],
-      );
+    else this.updateEnclosingRectangle(nsx, nsy, nex, ney);
   }
 
   moveTopBoundary(delY: number) {
@@ -433,11 +459,7 @@ export class Selection implements Shape {
 
     if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
       this.scaleTopLeftCorner(sx, sy, ex, ey, delY);
-    else
-      this.updateShapesEnclsosingRectangles(
-        [sx, sy, ex, ey],
-        [nsx, nsy, nex, ney],
-      );
+    else this.updateEnclosingRectangle(nsx, nsy, nex, ney);
   }
   moveLeftBoundary(delX: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
@@ -449,11 +471,7 @@ export class Selection implements Shape {
 
     if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
       this.scaleTopLeftCornerX(sx, sy, ex, ey, delX);
-    else
-      this.updateShapesEnclsosingRectangles(
-        [sx, sy, ex, ey],
-        [nsx, nsy, nex, ney],
-      );
+    else this.updateEnclosingRectangle(nsx, nsy, nex, ney);
   }
   moveRightBoundary(delX: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
@@ -465,11 +483,7 @@ export class Selection implements Shape {
 
     if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
       this.scaleBottomRightCornerX(sx, sy, ex, ey, delX);
-    else
-      this.updateShapesEnclsosingRectangles(
-        [sx, sy, ex, ey],
-        [nsx, nsy, nex, ney],
-      );
+    else this.updateEnclosingRectangle(nsx, nsy, nex, ney);
   }
   moveBottomBoundary(delY: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
@@ -481,11 +495,7 @@ export class Selection implements Shape {
 
     if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
       this.scaleBottomRightCorner(sx, sy, ex, ey, delY);
-    else
-      this.updateShapesEnclsosingRectangles(
-        [sx, sy, ex, ey],
-        [nsx, nsy, nex, ney],
-      );
+    else this.updateEnclosingRectangle(nsx, nsy, nex, ney);
   }
 
   liesInside(point1: Point, point2: Point) {

@@ -50,7 +50,7 @@ export default class ArrowTool implements Tool {
       case "idle":
         {
           this.curState = "drawingLine";
-          this.currentLine = new Arrow([curPoint, curPoint]);
+          this.currentLine = new Arrow([curPoint, curPoint], this.shapeManager);
           this.lastPointInLine = curPoint;
 
           this.shapeManager.addShape(this.currentLine);
@@ -73,8 +73,10 @@ export default class ArrowTool implements Tool {
     let { arrowType } = useToolStyle.getState();
 
     if (this.curState == "drawingLine") {
+      let pts = this.currentLine!.points;
+
       if (arrowType == "snake") {
-        let startPoint = this.currentLine!.points[0];
+        let startPoint = pts[0];
         let endPoint = curPoint;
 
         let dx = Math.abs(endPoint.x - startPoint.x);
@@ -82,28 +84,31 @@ export default class ArrowTool implements Tool {
 
         if (dx > dy) {
           let mx = Math.floor((startPoint.x + endPoint.x) / 2);
-          this.currentLine!.points = [
+          this.currentLine!.setPoints([
             startPoint,
             { x: mx, y: startPoint.y },
             { x: mx, y: endPoint.y },
             endPoint,
-          ];
+          ]);
         } else {
           let my = Math.floor((startPoint.y + endPoint.y) / 2);
-          this.currentLine!.points = [
+          this.currentLine!.setPoints([
             startPoint,
             { x: startPoint.x, y: my },
             { x: endPoint.x, y: my },
             endPoint,
-          ];
+          ]);
         }
       } else if (arrowType == "straight" || arrowType == "curve") {
-        this.currentLine?.points.pop();
-        this.currentLine?.points.push(curPoint);
+        pts.pop();
+        pts.push(curPoint);
+        this.currentLine!.setPoints(pts);
       }
     } else if (this.curState == "drawingPath") {
-      this.currentLine?.points.pop();
-      this.currentLine?.points.push(curPoint);
+      let pts = this.currentLine!.points;
+      pts.pop();
+      pts.push(curPoint);
+      this.currentLine!.setPoints(pts);
     }
   }
 
@@ -118,52 +123,52 @@ export default class ArrowTool implements Tool {
     switch (this.curState) {
       case "drawingLine":
         {
-          let firstPointInLine = this.currentLine?.points[0];
+          let pts = this.currentLine!.points;
+          let firstPointInLine = pts[0];
 
-          if (isSamePoint(curPoint, firstPointInLine!)) {
+          if (isSamePoint(curPoint, firstPointInLine)) {
             if (arrowType == "straight" || arrowType == "curve")
               this.curState = "drawingPath";
             else if (arrowType == "snake") {
               this.curState = "idle";
-              this.shapeManager.removeShape(this.currentLine!);
+              this.shapeManager.removeShape(this.currentLine!.shapeId);
               this.currentLine = null;
               this.lastPointInLine.x = -1e18;
               this.lastPointInLine.y = -1e18;
             }
           } else {
-            let startPoint = this.currentLine!.points[0];
-            let endPoint =
-              this.currentLine!.points[this.currentLine!.points.length - 1];
+            let startPoint = pts[0];
+            let endPoint = pts[pts.length - 1];
 
             if (arrowType == "straight" || arrowType == "curve") {
-              this.currentLine!.points = [
+              this.currentLine!.setPoints([
                 startPoint,
                 {
                   x: Math.floor((startPoint.x + endPoint.x) / 2),
                   y: Math.floor((startPoint.y + endPoint.y) / 2),
                 },
                 endPoint,
-              ];
+              ]);
             } else if (arrowType == "snake") {
               let dx = Math.abs(endPoint.x - startPoint.x);
               let dy = Math.abs(endPoint.y - startPoint.y);
 
               if (dx > dy) {
                 let mx = Math.floor((startPoint.x + endPoint.x) / 2);
-                this.currentLine!.points = [
+                this.currentLine!.setPoints([
                   startPoint,
                   { x: mx, y: startPoint.y },
                   { x: mx, y: endPoint.y },
                   endPoint,
-                ];
+                ]);
               } else {
                 let my = Math.floor((startPoint.y + endPoint.y) / 2);
-                this.currentLine!.points = [
+                this.currentLine!.setPoints([
                   startPoint,
                   { x: startPoint.x, y: my },
                   { x: endPoint.x, y: my },
                   endPoint,
-                ];
+                ]);
               }
             }
 
@@ -175,18 +180,24 @@ export default class ArrowTool implements Tool {
 
       case "drawingPath":
         {
-          if (isSamePoint(curPoint, this.lastPointInLine)) {
-            this.currentLine?.points.pop();
+          let pts = this.currentLine!.points;
 
-            let firstPointInLine = this.currentLine?.points[0];
+          if (isSamePoint(curPoint, this.lastPointInLine)) {
+            pts.pop();
+            this.currentLine!.setPoints(pts);
+
+            let firstPointInLine = this.currentLine!.points[0];
+            let updatedPts = this.currentLine!.points;
+
             if (
-              this.currentLine!.points.length > 3 &&
-              isSamePoint(this.lastPointInLine, firstPointInLine!)
+              updatedPts.length > 3 &&
+              isSamePoint(this.lastPointInLine, firstPointInLine)
             ) {
-              this.currentLine!.points[this.currentLine!.points.length - 1] = {
-                x: firstPointInLine!.x,
-                y: firstPointInLine!.y,
+              updatedPts[updatedPts.length - 1] = {
+                x: firstPointInLine.x,
+                y: firstPointInLine.y,
               };
+              this.currentLine!.setPoints(updatedPts);
             }
 
             this.curState = "idle";
@@ -196,7 +207,8 @@ export default class ArrowTool implements Tool {
             this.lastPointInLine.x = -1e18;
             this.lastPointInLine.y = -1e18;
           } else {
-            this.currentLine?.points.push(curPoint);
+            pts.push(curPoint);
+            this.currentLine!.setPoints(pts);
             this.lastPointInLine = curPoint;
           }
         }

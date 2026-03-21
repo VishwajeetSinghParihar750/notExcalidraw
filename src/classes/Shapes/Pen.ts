@@ -14,6 +14,7 @@ import {
   getBackgroundColorString,
   getStrokeColorString,
 } from "../../utils/Theme";
+import type { shapeUpdateEvent } from "../../types/shapeUpdateEvents";
 
 export class Pen implements Shape {
   readonly shapeType: ShapeType = "pen";
@@ -240,5 +241,39 @@ export class Pen implements Shape {
     let maxy = Math.max(point1.y, point2.y);
 
     return sx >= minx && ex <= maxx && sy >= miny && ey <= maxy;
+  }
+
+  propertySetters = {
+    strokeColor: this.setStrokeColor.bind(this),
+    strokeWidth: this.setStrokeWidth.bind(this),
+    opacity: this.setOpacity.bind(this),
+    points: this.setPoints.bind(this),
+    backgroundColor: this.setBackgroundColor.bind(this),
+    fillStyle: this.setFillStyle.bind(this),
+  };
+  applyUpdateEvent(shapeUpdateEvent: shapeUpdateEvent) {
+    //
+    switch (shapeUpdateEvent.eventType) {
+      case "updateProperty":
+        {
+          Object.entries(shapeUpdateEvent.payload).forEach(([key, val]) => {
+            let typedProp = key as keyof typeof this.propertySetters;
+            let typedFn = this.propertySetters[typedProp] as (val: any) => void;
+            typedFn?.(val);
+          });
+        }
+        break;
+      case "updateEnclosingRectangle":
+        {
+          switch (shapeUpdateEvent.payload.toUpdate) {
+            default:
+              break;
+          }
+        }
+        break;
+
+      default:
+        break;
+    }
   }
 }

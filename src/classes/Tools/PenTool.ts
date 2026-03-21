@@ -37,7 +37,11 @@ export default class PenTool implements Tool {
   onCanvasMouseDown(e: MouseEvent) {
     this.curState = "drawing";
     this.currentPen = new Pen([{ x: e.clientX, y: e.clientY }]);
-    this.shapeManager.addShape(this.currentPen);
+    this.shapeManager.handleShapeUpdateEvent({
+      _id: crypto.randomUUID(),
+      eventType: "addShape",
+      payload: { shape: this.currentPen },
+    });
   }
 
   onCanvasMouseMove(e: MouseEvent) {
@@ -57,7 +61,15 @@ export default class PenTool implements Tool {
       }
 
       pts.push(newPoint);
-      this.currentPen!.setPoints(pts);
+
+      this.shapeManager.handleShapeUpdateEvent({
+        _id: crypto.randomUUID(),
+        eventType: "updateProperty",
+        shapeId: this.currentPen!.shapeId,
+        payload: {
+          points: pts,
+        },
+      });
     }
   }
 

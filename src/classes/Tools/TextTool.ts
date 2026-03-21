@@ -20,14 +20,29 @@ export default class TextTool implements Tool {
   editableTextContainer: React.RefObject<HTMLDivElement | null>;
   currentInputElement: HTMLTextAreaElement;
 
+  #setCurrentTextPropertyHelper(payload: any) {
+    this.shapeManager.handleShapeUpdateEvent({
+      _id: crypto.randomUUID(),
+      eventType: "updateProperty",
+      shapeId: this.curText!.shapeId,
+      payload,
+    });
+  }
+
   updateCurrentEnclosingRectangle() {
     let rect = this.currentInputElement.getBoundingClientRect();
-    this.curText!.setEnclosingRectangleCoordinates(
-      rect.x,
-      rect.y,
-      rect.x + rect.width,
-      rect.y + rect.height,
-    );
+    this.shapeManager.handleShapeUpdateEvent({
+      _id: crypto.randomUUID(),
+      eventType: "updateEnclosingRectangle",
+      shapeId: this.curText!.shapeId,
+      payload: {
+        toUpdate: "updateFull",
+        x1: rect.x,
+        y1: rect.y,
+        x2: rect.x + rect.width,
+        y2: rect.y + rect.height,
+      },
+    });
   }
 
   lastMouseDown: Point = { x: -1e18, y: -1e18 };
@@ -39,7 +54,7 @@ export default class TextTool implements Tool {
       (state) => state.fontFamily,
       (state) => {
         if (this.curText) {
-          this.curText.setFontFamily(state);
+          this.#setCurrentTextPropertyHelper({ fontFamily: state });
 
           switch (this.curText.fontFamily) {
             case "code":
@@ -70,7 +85,7 @@ export default class TextTool implements Tool {
       (state) => state.fontSize,
       (state) => {
         if (this.curText) {
-          this.curText.setFontSize(state);
+          this.#setCurrentTextPropertyHelper({ fontSize: state });
 
           switch (this.curText.fontSize) {
             case "small":
@@ -109,7 +124,7 @@ export default class TextTool implements Tool {
       (state) => {
         if (this.curText) {
           this.currentInputElement.style.opacity = (state / 100).toString();
-          this.curText.setOpacity(state);
+          this.#setCurrentTextPropertyHelper({ opacity: state });
         }
       },
     );
@@ -119,7 +134,7 @@ export default class TextTool implements Tool {
       (state) => {
         if (this.curText) {
           this.currentInputElement.style.color = getStrokeColorString(state);
-          this.curText.setStrokeColor(state);
+          this.#setCurrentTextPropertyHelper({ strokeColor: state });
         }
       },
     );
@@ -204,13 +219,19 @@ export default class TextTool implements Tool {
 
       this.updateCurrentEnclosingRectangle();
 
-      this.curText!.setText(this.currentInputElement.value);
-      this.curText!.setCurState("render");
+      this.#setCurrentTextPropertyHelper({
+        text: this.currentInputElement.value,
+        curState: "render",
+      });
 
       this.currentInputElement.value = "";
 
       if (this.curText!.text.length == 0)
-        this.shapeManager.removeShape(this.curText!.shapeId);
+        this.shapeManager.handleShapeUpdateEvent({
+          _id: crypto.randomUUID(),
+          eventType: "deleteShape",
+          shapeId: this.curText!.shapeId,
+        });
 
       this.editableTextContainer.current?.removeChild?.(
         this.currentInputElement,
@@ -270,7 +291,11 @@ export default class TextTool implements Tool {
           { x: curPoint.x, y: curPoint.y },
         ]);
 
-        this.shapeManager.addShape(this.curText);
+        this.shapeManager.handleShapeUpdateEvent({
+          _id: crypto.randomUUID(),
+          eventType: "addShape",
+          payload: { shape: this.curText },
+        });
       }
 
       this.currentInputElement.value = this.curText.text;
@@ -334,7 +359,7 @@ export default class TextTool implements Tool {
       this.currentInputElement.style.width =
         this.currentInputElement.scrollWidth + "px";
 
-      this.curText.setCurState("edit");
+      this.#setCurrentTextPropertyHelper({ curState: "edit" });
 
       this.currentInputElement.select();
     }
@@ -354,13 +379,19 @@ export default class TextTool implements Tool {
 
       this.updateCurrentEnclosingRectangle();
 
-      this.curText!.setText(this.currentInputElement.value);
-      this.curText!.setCurState("render");
+      this.#setCurrentTextPropertyHelper({
+        text: this.currentInputElement.value,
+        state: "render",
+      });
 
       this.currentInputElement.value = "";
 
       if (this.curText!.text.length == 0)
-        this.shapeManager.removeShape(this.curText!.shapeId);
+        this.shapeManager.handleShapeUpdateEvent({
+          _id: crypto.randomUUID(),
+          eventType: "deleteShape",
+          shapeId: this.curText!.shapeId,
+        });
 
       this.editableTextContainer.current?.removeChild(this.currentInputElement);
 

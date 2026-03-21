@@ -14,6 +14,7 @@ import {
   getBackgroundColorString,
   getStrokeColorString,
 } from "../../utils/Theme";
+import type { shapeUpdateEvent } from "../../types/shapeUpdateEvents";
 
 export class Circle implements Shape {
   readonly shapeType: ShapeType = "circle";
@@ -270,4 +271,5 @@ export class Circle implements Shape {
 
     return sx >= minx && ex <= maxx && sy >= miny && ey <= maxy;
   }
+  applyUpdateEvent(shapeUpdateEvent: shapeUpdateEvent) {}
 }

@@ -12,6 +12,7 @@ import {
 } from "../../store/Tools.store";
 import { catmullRomToBezier } from "../../utils/Line";
 import { getStrokeColorString } from "../../utils/Theme";
+import type { shapeUpdateEvent } from "../../types/shapeUpdateEvents";
 
 export class Arrow implements Shape {
   readonly shapeType: ShapeType = "arrow";
@@ -249,4 +250,6 @@ export class Arrow implements Shape {
 
     return sx >= minx && ex <= maxx && sy >= miny && ey <= maxy;
   }
+
+  applyUpdateEvent(shapeUpdateEvent: shapeUpdateEvent) {}
 }

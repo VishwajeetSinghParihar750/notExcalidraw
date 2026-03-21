@@ -16,6 +16,7 @@ import {
   getBackgroundColorString,
   getStrokeColorString,
 } from "../../utils/Theme";
+import type { shapeUpdateEvent } from "../../types/shapeUpdateEvents";
 
 export class Line implements Shape {
   readonly shapeId: shapeId = crypto.randomUUID();
@@ -300,4 +301,5 @@ export class Line implements Shape {
 
     return sx >= minx && ex <= maxx && sy >= miny && ey <= maxy;
   }
+  applyUpdateEvent(shapeUpdateEvent: shapeUpdateEvent) {}
 }

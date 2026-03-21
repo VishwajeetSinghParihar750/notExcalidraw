@@ -36,49 +36,49 @@ export default function useCanvas(props: useCanvasProps) {
 
     let shapeManagerShapes = window.localStorage.getItem("shapeManagerShapes");
 
-    if (shapeManagerShapes) {
-      let parsedShapes: any[] = JSON.parse(shapeManagerShapes);
-      parsedShapes
-        .map((shape) => {
-          let shapeObj: Shape = Object.setPrototypeOf(
-            shape,
-            shapeTypeToPrototype[shape.shapeType as ShapeType].prototype,
-          );
+    // if (shapeManagerShapes) {
+    //   let parsedShapes: any[] = JSON.parse(shapeManagerShapes);
+    //   parsedShapes
+    //     .map((shape) => {
+    //       let shapeObj: Shape = Object.setPrototypeOf(
+    //         shape,
+    //         shapeTypeToPrototype[shape.shapeType as ShapeType].prototype,
+    //       );
 
-          shape._shapeManager = shapeManager;
-          return shapeObj;
-        })
-        .filter((shape) => shape)
-        .forEach((shape) => shapeManager.addShape(shape));
-    }
+    //       shape._shapeManager = shapeManager;
+    //       return shapeObj;
+    //     })
+    //     .filter((shape) => shape)
+    //     .forEach((shape) => shapeManager.addShape(shape));
+    // }
 
-    let oldShapes = shapeManagerShapes || JSON.stringify([]);
+    // let oldShapes = shapeManagerShapes || JSON.stringify([]);
 
-    const persistShapeManagerShapes = () => {
-      let shapesToSave = shapeManager.shapes
-        .filter(
-          (shape) =>
-            !(
-              shape.shapeType == "selection" ||
-              (shape.shapeType == "text" && (shape as Text).curState == "edit")
-            ),
-        )
-        .map((shape) => {
-          let { _shapeManager, ...rest } = shape;
-          return rest;
-        });
+    // const persistShapeManagerShapes = () => {
+    //   let shapesToSave = shapeManager.shapes
+    //     .filter(
+    //       (shape) =>
+    //         !(
+    //           shape.shapeType == "selection" ||
+    //           (shape.shapeType == "text" && (shape as Text).curState == "edit")
+    //         ),
+    //     )
+    //     .map((shape) => {
+    //       let { _shapeManager, ...rest } = shape;
+    //       return rest;
+    //     });
 
-      let curShapes = JSON.stringify(shapesToSave);
+    //   let curShapes = JSON.stringify(shapesToSave);
 
-      if (oldShapes != curShapes) {
-        window.localStorage.setItem("shapeManagerShapes", curShapes);
-        oldShapes = curShapes;
-      }
-    };
+    //   if (oldShapes != curShapes) {
+    //     window.localStorage.setItem("shapeManagerShapes", curShapes);
+    //     oldShapes = curShapes;
+    //   }
+    // };
 
-    let shapeManagerShapesPersistenceInterval = setInterval(() => {
-      persistShapeManagerShapes();
-    }, 5000);
+    // let shapeManagerShapesPersistenceInterval = setInterval(() => {
+    //   persistShapeManagerShapes();
+    // }, 5000);
 
     let toolManager = new ToolMangager(
       shapeManager,
@@ -123,13 +123,13 @@ export default function useCanvas(props: useCanvasProps) {
     document.addEventListener("pointermove", handleMouseMove);
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("resize", handleDocumentResize);
-    window.addEventListener("beforeunload", persistShapeManagerShapes);
-    window.addEventListener("pagehide", persistShapeManagerShapes);
+    // window.addEventListener("beforeunload", persistShapeManagerShapes);
+    // window.addEventListener("pagehide", persistShapeManagerShapes);
 
     let animationid: number;
 
     let draw = () => {
-      for (let shape of shapeManager.shapes) {
+      for (let shape of Object.values(shapeManager.shapes)) {
         shape.draw(ctx);
       }
     };
@@ -151,10 +151,10 @@ export default function useCanvas(props: useCanvasProps) {
       document.removeEventListener("pointermove", handleMouseMove);
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("resize", handleDocumentResize);
-      window.removeEventListener("beforeunload", persistShapeManagerShapes);
-      window.removeEventListener("pagehide", persistShapeManagerShapes);
+      // window.removeEventListener("beforeunload", persistShapeManagerShapes);
+      // window.removeEventListener("pagehide", persistShapeManagerShapes);
 
-      clearInterval(shapeManagerShapesPersistenceInterval);
+      // clearInterval(shapeManagerShapesPersistenceInterval);
     };
   }, []);
 }

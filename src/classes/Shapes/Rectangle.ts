@@ -1,4 +1,5 @@
-import type { Shape, ShapeType, shapeId } from "./Shape";
+import type { ShapeType, shapeId } from "./Shape";
+import { Shape } from "./Shape";
 
 import {
   useToolStyle,
@@ -15,8 +16,9 @@ import {
   getBackgroundColorString,
   getStrokeColorString,
 } from "../../utils/Theme";
+import type { shapeUpdateEvent } from "../../types/shapeUpdateEvents";
 
-export class Rectangle implements Shape {
+export class Rectangle extends Shape {
   readonly shapeId: shapeId = crypto.randomUUID();
   readonly shapeType: ShapeType = "rect";
 
@@ -121,7 +123,7 @@ export class Rectangle implements Shape {
     this._endY = v;
   }
 
-  clone() {
+  clone(): Shape {
     let rect = new Rectangle(
       this._startX,
       this._startY,
@@ -138,6 +140,8 @@ export class Rectangle implements Shape {
   }
 
   constructor(startX: number, startY: number, endX: number, endY: number) {
+    super();
+
     this._startX = startX;
     this._startY = startY;
     this._endX = endX;
@@ -280,5 +284,47 @@ export class Rectangle implements Shape {
     let maxy = Math.max(point1.y, point2.y);
 
     return sx >= minx && ex <= maxx && sy >= miny && ey <= maxy;
+  }
+
+  propertySetters = {
+    backgroundColor: this.setBackgroundColor.bind(this),
+    strokeColor: this.setStrokeColor.bind(this),
+    strokeWidth: this.setStrokeWidth.bind(this),
+    strokeStyle: this.setStrokeStyle.bind(this),
+    edgeRadius: this.setEdgeRadius.bind(this),
+    opacity: this.setOpacity.bind(this),
+    fillStyle: this.setFillStyle.bind(this),
+  };
+  applyUpdateEvent(shapeUpdateEvent: shapeUpdateEvent) {
+    //
+    switch (shapeUpdateEvent.eventType) {
+      case "updateProperty":
+        {
+          Object.entries(shapeUpdateEvent.payload).forEach(([key, val]) => {
+            let typedProp = key as keyof typeof this.propertySetters;
+            let typedFn = this.propertySetters[typedProp] as (val: any) => void;
+            typedFn?.(val);
+          });
+        }
+        break;
+      case "updateEnclosingRectangle":
+        {
+          switch (shapeUpdateEvent.payload.toUpdate) {
+            case "bottomRightCorner":
+              {
+                this.setEndX(shapeUpdateEvent.payload.x2!);
+                this.setEndY(shapeUpdateEvent.payload.y2!);
+              }
+              break;
+
+            default:
+              break;
+          }
+        }
+        break;
+
+      default:
+        break;
+    }
   }
 }

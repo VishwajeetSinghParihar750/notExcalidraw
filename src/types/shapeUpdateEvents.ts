@@ -14,28 +14,26 @@ import type {
   strokeWidth,
 } from "../store/Tools.store";
 
-type updateEnclosingRectangleSchema =
-  | {
-      x1: number;
-      y1: number;
-      x2: number;
-      y2: number;
-    }
-  | {
-      toMove:
-        | "fullShape"
-        | "topBoundary"
-        | "bottomBoundary"
-        | "leftBoundary"
-        | "rightBoundary"
-        | "topLeftCorner"
-        | "topRightCorner"
-        | "bottomLeftCorner"
-        | "bottomRightCorner";
+type updateEnclosingRectangleSchema = {
+  toUpdate:
+    | "updateFull"
+    | "moveFull"
+    | "topBoundary"
+    | "bottomBoundary"
+    | "leftBoundary"
+    | "rightBoundary"
+    | "topLeftCorner"
+    | "topRightCorner"
+    | "bottomLeftCorner"
+    | "bottomRightCorner";
 
-      delX?: number;
-      delY?: number;
-    };
+  delX?: number;
+  delY?: number;
+  x1?: number;
+  y1?: number;
+  x2?: number;
+  y2?: number; // either send new coords or change to coords
+};
 
 type updatePropertySchema = {
   //styles
@@ -59,6 +57,10 @@ type updatePropertySchema = {
   drawSelectionArea?: boolean;
 };
 
+type addShapeSchema = {
+  shape: Shape;
+};
+
 type eventType =
   | "updateEnclosingRectangle"
   | "updateProperty"
@@ -67,14 +69,26 @@ type eventType =
 
 type shapeUpdateEvent =
   | {
+      _id: string;
       eventType: "updateEnclosingRectangle";
       shapeId: shapeId;
       payload: updateEnclosingRectangleSchema;
     }
   | {
+      _id: string;
       eventType: "updateProperty";
       shapeId: shapeId;
       payload: updatePropertySchema;
+    }
+  | {
+      _id: string;
+      eventType: "addShape";
+      payload: addShapeSchema;
+    }
+  | {
+      _id: string;
+      eventType: "deleteShape";
+      shapeId: shapeId;
     };
 
 export type {

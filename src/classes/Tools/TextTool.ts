@@ -265,15 +265,10 @@ export default class TextTool implements Tool {
       if (lastText) {
         this.curText = lastText as Text;
       } else {
-        this.curText = new Text(
-          "edit",
-          "",
-          [
-            { x: curPoint.x, y: curPoint.y },
-            { x: curPoint.x, y: curPoint.y },
-          ],
-          this.shapeManager,
-        );
+        this.curText = new Text("edit", "", [
+          { x: curPoint.x, y: curPoint.y },
+          { x: curPoint.x, y: curPoint.y },
+        ]);
 
         this.shapeManager.addShape(this.curText);
       }

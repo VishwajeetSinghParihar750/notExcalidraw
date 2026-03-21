@@ -15,13 +15,10 @@ import {
   getBackgroundColorString,
   getStrokeColorString,
 } from "../../utils/Theme";
-import type ShapeManager from "../Managers/ShapeManager";
-import type { updatePropertySchema } from "../../types/shapeUpdateEvents";
 
 export class Rectangle implements Shape {
   readonly shapeId: shapeId = crypto.randomUUID();
   readonly shapeType: ShapeType = "rect";
-  _shapeManager: ShapeManager;
 
   private _backgroundColor: backgroundColor;
   private _strokeColor: strokeColor;
@@ -36,34 +33,12 @@ export class Rectangle implements Shape {
   private _endX: number;
   private _endY: number;
 
-  private shapeManagerPropertyUpdate(payload: updatePropertySchema) {
-    this.shapeManager.handleShapeUpdateEvent({
-      eventType: "updateProperty",
-      shapeId: this.shapeId,
-      payload,
-    });
-  }
-
-  private shapeManagerEnclosingRectangleUpdate() {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
-    this.shapeManager.handleShapeUpdateEvent({
-      eventType: "updateEnclosingRectangle",
-      shapeId: this.shapeId,
-      payload: { x1: sx, y1: sy, x2: ex, y2: ey },
-    });
-  }
-
-  get shapeManager() {
-    return this._shapeManager;
-  }
-
   get backgroundColor() {
     return this._backgroundColor;
   }
 
   setBackgroundColor(color: backgroundColor) {
     this._backgroundColor = color;
-    this.shapeManagerPropertyUpdate({ backgroundColor: color });
   }
 
   get strokeColor() {
@@ -72,7 +47,6 @@ export class Rectangle implements Shape {
 
   setStrokeColor(color: strokeColor) {
     this._strokeColor = color;
-    this.shapeManagerPropertyUpdate({ strokeColor: color });
   }
 
   get strokeWidth() {
@@ -81,7 +55,6 @@ export class Rectangle implements Shape {
 
   setStrokeWidth(width: strokeWidth) {
     this._strokeWidth = width;
-    this.shapeManagerPropertyUpdate({ strokeWidth: width });
   }
 
   get strokeStyle() {
@@ -90,7 +63,6 @@ export class Rectangle implements Shape {
 
   setStrokeStyle(style: strokeStyle) {
     this._strokeStyle = style;
-    this.shapeManagerPropertyUpdate({ strokeStyle: style });
   }
 
   get edgeRadius() {
@@ -99,7 +71,6 @@ export class Rectangle implements Shape {
 
   setEdgeRadius(radius: edgeRadius) {
     this._edgeRadius = radius;
-    this.shapeManagerPropertyUpdate({ edgeRadius: radius });
   }
 
   get opacity() {
@@ -108,7 +79,6 @@ export class Rectangle implements Shape {
 
   setOpacity(opacity: opacity) {
     this._opacity = opacity;
-    this.shapeManagerPropertyUpdate({ opacity: opacity });
   }
 
   get fillStyle() {
@@ -117,7 +87,6 @@ export class Rectangle implements Shape {
 
   setFillStyle(style: fillStyle) {
     this._fillStyle = style;
-    this.shapeManagerPropertyUpdate({ fillStyle: style });
   }
 
   get startX() {
@@ -126,7 +95,6 @@ export class Rectangle implements Shape {
 
   setStartX(v: number) {
     this._startX = v;
-    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   get startY() {
@@ -135,7 +103,6 @@ export class Rectangle implements Shape {
 
   setStartY(v: number) {
     this._startY = v;
-    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   get endX() {
@@ -144,7 +111,6 @@ export class Rectangle implements Shape {
 
   setEndX(v: number) {
     this._endX = v;
-    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   get endY() {
@@ -153,7 +119,6 @@ export class Rectangle implements Shape {
 
   setEndY(v: number) {
     this._endY = v;
-    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   clone() {
@@ -162,7 +127,6 @@ export class Rectangle implements Shape {
       this._startY,
       this._endX,
       this._endY,
-      this.shapeManager,
     );
     rect.setBackgroundColor(this._backgroundColor);
     rect.setFillStyle(this._fillStyle);
@@ -173,14 +137,7 @@ export class Rectangle implements Shape {
     return rect;
   }
 
-  constructor(
-    startX: number,
-    startY: number,
-    endX: number,
-    endY: number,
-    shapeMan: ShapeManager,
-  ) {
-    this._shapeManager = shapeMan;
+  constructor(startX: number, startY: number, endX: number, endY: number) {
     this._startX = startX;
     this._startY = startY;
     this._endX = endX;
@@ -203,14 +160,6 @@ export class Rectangle implements Shape {
     this._edgeRadius = edgeRadius;
     this._opacity = opacity;
     this._fillStyle = fillStyle;
-  }
-
-  update(startX: number, startY: number, endX: number, endY: number) {
-    this._startX = startX;
-    this._startY = startY;
-    this._endX = endX;
-    this._endY = endY;
-    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   draw(ctx: CanvasRenderingContext2D) {
@@ -309,7 +258,6 @@ export class Rectangle implements Shape {
     this._startY = y1;
     this._endX = x2;
     this._endY = y2;
-    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   moveEnclosingRectangle(delX: number, delY: number) {
@@ -317,7 +265,6 @@ export class Rectangle implements Shape {
     this._endX += delX;
     this._startY += delY;
     this._endY += delY;
-    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   containsPoint(x: number, y: number) {

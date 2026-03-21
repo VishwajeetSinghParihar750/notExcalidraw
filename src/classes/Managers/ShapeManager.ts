@@ -1,9 +1,97 @@
 import type { Point } from "../Shapes/Point";
 import type { Shape, shapeId } from "../Shapes/Shape";
-import type { shapeUpdateEvent } from "../../types/shapeUpdateEvents";
+import type {
+  eventType,
+  shapeUpdateEvent,
+} from "../../types/shapeUpdateEvents";
+
+type shapeUpdateSubscriptionInfo =
+  | { eventType: "addShape" }
+  | { eventType: "removeShape"; shapeId: shapeId }
+  | { eventType: "updateEnclosingRectangle"; shapeId: shapeId }
+  | { eventType: "updateProperty"; shapeId: shapeId };
+
+type shapeUpdateSubscriptionCallback = (
+  shapeUpdateEvent: shapeUpdateEvent,
+) => void;
+
+type shapeIdToCallbackArrayMapping = Partial<
+  Record<shapeId, shapeUpdateSubscriptionCallback[]>
+>;
+type shapeUpdateSubscriptionId = string;
+type shapeUpdateEventSubscriptions = {
+  addShape?: shapeUpdateSubscriptionCallback[];
+  removeShape?: shapeIdToCallbackArrayMapping;
+  updateEnclosingRectangle?: shapeIdToCallbackArrayMapping;
+  updateProperty?: shapeIdToCallbackArrayMapping;
+};
+
+type shapeUpdateEventSubscription = Partial<
+  Record<eventType, shapeUpdateSubscriptionCallback>
+>;
+
+type shapeUpdateEventSubscriptionsIdMapping = Partial<
+  Record<shapeUpdateSubscriptionId, shapeUpdateEventSubscription>
+>;
 
 export default class ShapeManager {
   shapes: Shape[] = [];
+
+  shapeUpdateEventSubscriptions: shapeUpdateEventSubscriptions = {};
+  shapeUpdateEventSubscriptionsById: shapeUpdateEventSubscriptionsIdMapping =
+    {};
+
+  subscribeToShapeUpdateEvent(
+    shapeUpdateSubscriptionInfo: shapeUpdateSubscriptionInfo,
+    shapeUpdateSubscriptionCallback: shapeUpdateSubscriptionCallback,
+  ): shapeUpdateSubscriptionId {
+    switch (shapeUpdateSubscriptionInfo.eventType) {
+      case "addShape":
+        {
+          if (!this.shapeUpdateEventSubscriptions.addShape)
+            this.shapeUpdateEventSubscriptions.addShape = [];
+
+          this.shapeUpdateEventSubscriptions.addShape.push(
+            shapeUpdateSubscriptionCallback,
+          );
+
+          let id = crypto.randomUUID();
+          this.shapeUpdateEventSubscriptionsById[id] = {};
+        }
+
+        break;
+
+      default:
+        {
+          if (
+            !this.shapeUpdateEventSubscriptions[
+              shapeUpdateSubscriptionInfo.eventType
+            ]
+          ) {
+            this.shapeUpdateEventSubscriptions[
+              shapeUpdateSubscriptionInfo.eventType
+            ] = {};
+          }
+
+          if (
+            !this.shapeUpdateEventSubscriptions[
+              shapeUpdateSubscriptionInfo.eventType
+            ]?.[shapeUpdateSubscriptionInfo.shapeId]
+          )
+            this.shapeUpdateEventSubscriptions[
+              shapeUpdateSubscriptionInfo.eventType
+            ]![shapeUpdateSubscriptionInfo.shapeId] = [];
+
+          this.shapeUpdateEventSubscriptions[
+            shapeUpdateSubscriptionInfo.eventType
+          ]?.[shapeUpdateSubscriptionInfo.shapeId]?.push(
+            shapeUpdateSubscriptionCallback,
+          );
+        }
+        break;
+    }
+  }
+  unsubscribeToShapeUpdateEvent() {}
 
   addShape(shape: Shape) {
     this.shapes.push(shape);

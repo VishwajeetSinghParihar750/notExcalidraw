@@ -12,14 +12,11 @@ import {
 } from "../../store/Tools.store";
 import { catmullRomToBezier } from "../../utils/Line";
 import { getStrokeColorString } from "../../utils/Theme";
-import ShapeManager from "../Managers/ShapeManager";
-import type { updatePropertySchema } from "../../types/shapeUpdateEvents";
 
 export class Arrow implements Shape {
   readonly shapeType: ShapeType = "arrow";
   readonly shapeId: shapeId = crypto.randomUUID();
 
-  _shapeManager: ShapeManager;
   private _strokeColor: strokeColor;
   private _strokeWidth: strokeWidth;
   private _strokeStyle: strokeStyle;
@@ -28,33 +25,12 @@ export class Arrow implements Shape {
 
   private _points: Point[];
 
-  private shapeManagerPropertyUpdate(payload: updatePropertySchema) {
-    this.shapeManager.handleShapeUpdateEvent({
-      eventType: "updateProperty",
-      shapeId: this.shapeId,
-      payload,
-    });
-  }
-  private shapeManagerEnclosingRectangleUpdate() {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
-    this.shapeManager.handleShapeUpdateEvent({
-      eventType: "updateEnclosingRectangle",
-      shapeId: this.shapeId,
-      payload: { x1: sx, y1: sy, x2: ex, y2: ey },
-    });
-  }
-
-  get shapeManager() {
-    return this._shapeManager;
-  }
-
   get strokeColor() {
     return this._strokeColor;
   }
 
   setStrokeColor(color: strokeColor) {
     this._strokeColor = color;
-    this.shapeManagerPropertyUpdate({ strokeColor: color });
   }
 
   get strokeWidth() {
@@ -63,7 +39,6 @@ export class Arrow implements Shape {
 
   setStrokeWidth(width: strokeWidth) {
     this._strokeWidth = width;
-    this.shapeManagerPropertyUpdate({ strokeWidth: width });
   }
 
   get strokeStyle() {
@@ -72,7 +47,6 @@ export class Arrow implements Shape {
 
   setStrokeStyle(style: strokeStyle) {
     this._strokeStyle = style;
-    this.shapeManagerPropertyUpdate({ strokeStyle: style });
   }
 
   get opacity() {
@@ -81,7 +55,6 @@ export class Arrow implements Shape {
 
   setOpacity(opacity: opacity) {
     this._opacity = opacity;
-    this.shapeManagerPropertyUpdate({ opacity: opacity });
   }
 
   get arrowType() {
@@ -90,7 +63,6 @@ export class Arrow implements Shape {
 
   setArrowType(arrowType: arrowType) {
     this._arrowType = arrowType;
-    this.shapeManagerPropertyUpdate({ arrowType: arrowType });
   }
 
   get points() {
@@ -99,11 +71,10 @@ export class Arrow implements Shape {
 
   setPoints(points: Point[]) {
     this._points = points;
-    this.shapeManagerPropertyUpdate({ points: points });
   }
 
   clone() {
-    let line = new Arrow(structuredClone(this._points), this.shapeManager);
+    let line = new Arrow(structuredClone(this._points));
     line.setArrowType(this._arrowType);
     line.setOpacity(this._opacity);
     line.setStrokeColor(this._strokeColor);
@@ -112,9 +83,7 @@ export class Arrow implements Shape {
     return line;
   }
 
-  constructor(points: Point[], shapeManager: ShapeManager) {
-    this._shapeManager = shapeManager;
-
+  constructor(points: Point[]) {
     this._points = points;
 
     let { strokeColor, strokeWidth, strokeStyle, opacity, arrowType } =
@@ -248,8 +217,6 @@ export class Arrow implements Shape {
       point.x += delX;
       point.y += delY;
     }
-
-    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   updateEnclosingRectangle(nsx: number, nsy: number, nex: number, ney: number) {
@@ -265,7 +232,6 @@ export class Arrow implements Shape {
       point.x = x1;
       point.y = y1;
     });
-    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   containsPoint(x: number, y: number) {

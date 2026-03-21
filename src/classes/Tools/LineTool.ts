@@ -49,7 +49,7 @@ export default class LineTool implements Tool {
       case "idle":
         {
           this.curState = "drawingLine";
-          this.currentLine = new Line([curPoint, curPoint], this.shapeManager);
+          this.currentLine = new Line([curPoint, curPoint]);
           this.lastPointInLine = curPoint;
 
           this.shapeManager.addShape(this.currentLine);

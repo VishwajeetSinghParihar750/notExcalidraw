@@ -2,13 +2,10 @@ import type { Shape, ShapeType, shapeId } from "./Shape";
 
 import { isSamePoint } from "./Point";
 import type { Point } from "./Point";
-import type ShapeManager from "../Managers/ShapeManager";
-import type { updatePropertySchema } from "../../types/shapeUpdateEvents";
 
 export class Selection implements Shape {
   readonly shapeType: ShapeType = "selection";
   readonly shapeId: shapeId = crypto.randomUUID();
-  _shapeManager: ShapeManager;
 
   private _selectionArea: [Point, Point];
   private _selectedShapes: Shape[] = [];
@@ -17,26 +14,6 @@ export class Selection implements Shape {
   private _enclosingRectanglePadding = 5;
   private _shapeResizeThreshold = 5;
 
-  private shapeManagerPropertyUpdate(payload: updatePropertySchema) {
-    this.shapeManager.handleShapeUpdateEvent({
-      eventType: "updateProperty",
-      shapeId: this.shapeId,
-      payload,
-    });
-  }
-
-  private shapeManagerEnclosingRectangleUpdate() {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
-    this.shapeManager.handleShapeUpdateEvent({
-      eventType: "updateEnclosingRectangle",
-      shapeId: this.shapeId,
-      payload: { x1: sx, y1: sy, x2: ex, y2: ey },
-    });
-  }
-
-  get shapeManager() {
-    return this._shapeManager;
-  }
   get selectionArea(): [Point, Point] {
     return [{ ...this._selectionArea[0] }, { ...this._selectionArea[1] }];
   }
@@ -59,7 +36,6 @@ export class Selection implements Shape {
 
   setDrawSelectionArea(bool: boolean) {
     this._drawSelectionArea = bool;
-    this.shapeManagerPropertyUpdate({ drawSelectionArea: bool });
   }
 
   get enclosingRectanglePadding() {
@@ -77,16 +53,10 @@ export class Selection implements Shape {
         structuredClone(this._selectionArea[1]),
       ],
       this._selectedShapes.map((shape) => shape.clone()),
-      this.shapeManager,
     );
   }
 
-  constructor(
-    selectionArea: [Point, Point],
-    selectedShapes: Shape[],
-    shapeMan: ShapeManager,
-  ) {
-    this._shapeManager = shapeMan;
+  constructor(selectionArea: [Point, Point], selectedShapes: Shape[]) {
     this._selectedShapes = selectedShapes;
     this._selectionArea = selectionArea;
   }
@@ -215,7 +185,6 @@ export class Selection implements Shape {
     this._selectedShapes.forEach((shape) =>
       shape.moveEnclosingRectangle(delX, delY),
     );
-    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   containsPoint(x: number, y: number) {
@@ -307,8 +276,6 @@ export class Selection implements Shape {
 
       shape.updateEnclosingRectangle(x1, y1, x2, y2);
     });
-
-    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   scaleTopLeftCorner(

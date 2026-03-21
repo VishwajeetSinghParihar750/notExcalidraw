@@ -10,7 +10,6 @@ import type {
   strokeStyle,
   strokeWidth,
 } from "../../store/Tools.store";
-import type ShapeManager from "../Managers/ShapeManager";
 import type { Arrow } from "./Arrow";
 import type { Circle } from "./Circle";
 import type { Line } from "./Line";
@@ -34,7 +33,6 @@ export type ShapeType =
 export type ShapeData = {
   shapeType: ShapeType;
   shapeId: shapeId;
-  _shapeManager: ShapeManager;
 
   //styles
   opacity?: opacity;
@@ -55,7 +53,6 @@ export type ShapeData = {
 export interface Shape {
   shapeType: ShapeType;
   shapeId: shapeId;
-  _shapeManager: ShapeManager;
 
   //styles
   opacity?: opacity;

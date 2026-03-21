@@ -36,10 +36,7 @@ export default class PenTool implements Tool {
 
   onCanvasMouseDown(e: MouseEvent) {
     this.curState = "drawing";
-    this.currentPen = new Pen(
-      [{ x: e.clientX, y: e.clientY }],
-      this.shapeManager,
-    );
+    this.currentPen = new Pen([{ x: e.clientX, y: e.clientY }]);
     this.shapeManager.addShape(this.currentPen);
   }
 

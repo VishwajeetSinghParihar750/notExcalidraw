@@ -9,15 +9,12 @@ import {
 } from "../../store/Tools.store";
 import type { Point } from "./Point";
 import { getStrokeColorString } from "../../utils/Theme";
-import type ShapeManager from "../Managers/ShapeManager";
-import type { updatePropertySchema } from "../../types/shapeUpdateEvents";
 
 export type TextShapeState = "render" | "edit";
 
 export class Text implements Shape {
   readonly shapeType: ShapeType = "text";
   readonly shapeId: shapeId = crypto.randomUUID();
-  _shapeManager: ShapeManager;
 
   private _strokeColor: strokeColor;
   private _opacity: opacity;
@@ -31,26 +28,6 @@ export class Text implements Shape {
 
   private _enclosingRectangle: [Point, Point];
 
-  private shapeManagerPropertyUpdate(payload: updatePropertySchema) {
-    this.shapeManager.handleShapeUpdateEvent({
-      eventType: "updateProperty",
-      shapeId: this.shapeId,
-      payload,
-    });
-  }
-
-  private shapeManagerEnclosingRectangleUpdate() {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
-    this.shapeManager.handleShapeUpdateEvent({
-      eventType: "updateEnclosingRectangle",
-      shapeId: this.shapeId,
-      payload: { x1: sx, y1: sy, x2: ex, y2: ey },
-    });
-  }
-
-  get shapeManager() {
-    return this._shapeManager;
-  }
   get strokeColor() {
     return this._strokeColor;
   }
@@ -65,7 +42,6 @@ export class Text implements Shape {
 
   setOpacity(opacity: opacity) {
     this._opacity = opacity;
-    this.shapeManagerPropertyUpdate({ opacity });
   }
 
   get fontFamily() {
@@ -75,7 +51,6 @@ export class Text implements Shape {
   setFontFamily(fontFamily: fontFamily) {
     this._fontFamily = fontFamily;
     this._shouldUpdateRectangleBasedOnText = true;
-    this.shapeManagerPropertyUpdate({ fontFamily });
   }
 
   get fontSize() {
@@ -85,7 +60,6 @@ export class Text implements Shape {
   setFontSize(fontSize: fontSize) {
     this._fontSize = fontSize;
     this._shouldUpdateRectangleBasedOnText = true;
-    this.shapeManagerPropertyUpdate({ fontSize });
   }
 
   get curState() {
@@ -94,8 +68,6 @@ export class Text implements Shape {
 
   setCurState(curState: TextShapeState) {
     this._curState = curState;
-
-    this.shapeManagerPropertyUpdate({ curState });
   }
 
   get text() {
@@ -105,7 +77,6 @@ export class Text implements Shape {
   setText(text: string) {
     this._text = text;
     this._shouldUpdateRectangleBasedOnText = true;
-    this.shapeManagerPropertyUpdate({ text });
   }
 
   get shouldUpdateRectangleBasedOnText() {
@@ -126,7 +97,6 @@ export class Text implements Shape {
       structuredClone(this._curState),
       structuredClone(this._text),
       structuredClone(this._enclosingRectangle),
-      this.shapeManager,
     );
     text.setStrokeColor(this._strokeColor);
     text.setOpacity(this._opacity);
@@ -139,9 +109,7 @@ export class Text implements Shape {
     curState: TextShapeState,
     text: string,
     enclosingRectangle: [Point, Point],
-    shapeMan: ShapeManager,
   ) {
-    this._shapeManager = shapeMan;
     let { strokeColor, opacity, fontFamily, fontSize } =
       useToolStyle.getState();
 
@@ -295,8 +263,6 @@ export class Text implements Shape {
     this._enclosingRectangle[1].x += delX;
     this._enclosingRectangle[0].y += delY;
     this._enclosingRectangle[1].y += delY;
-
-    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   updateEnclosingRectangle(nsx: number, nsy: number, nex: number, ney: number) {
@@ -306,8 +272,6 @@ export class Text implements Shape {
 
     this.setFontSize(fontsizevalue);
     this.setEnclosingRectangleCoordinates(nsx, nsy, nex, ney);
-
-    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   containsPoint(x: number, y: number) {

@@ -14,13 +14,10 @@ import {
   getBackgroundColorString,
   getStrokeColorString,
 } from "../../utils/Theme";
-import type ShapeManager from "../Managers/ShapeManager";
-import type { updatePropertySchema } from "../../types/shapeUpdateEvents";
 
 export class Pen implements Shape {
   readonly shapeType: ShapeType = "pen";
   readonly shapeId: shapeId = crypto.randomUUID();
-  _shapeManager: ShapeManager;
 
   private _backgroundColor: backgroundColor;
   private _strokeColor: strokeColor;
@@ -30,34 +27,12 @@ export class Pen implements Shape {
 
   private _points: Point[] = [];
 
-  private shapeManagerPropertyUpdate(payload: updatePropertySchema) {
-    this.shapeManager.handleShapeUpdateEvent({
-      eventType: "updateProperty",
-      shapeId: this.shapeId,
-      payload,
-    });
-  }
-
-  private shapeManagerEnclosingRectangleUpdate() {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
-    this.shapeManager.handleShapeUpdateEvent({
-      eventType: "updateEnclosingRectangle",
-      shapeId: this.shapeId,
-      payload: { x1: sx, y1: sy, x2: ex, y2: ey },
-    });
-  }
-
-  get shapeManager() {
-    return this._shapeManager;
-  }
-
   get backgroundColor() {
     return this._backgroundColor;
   }
 
   setBackgroundColor(color: backgroundColor) {
     this._backgroundColor = color;
-    this.shapeManagerPropertyUpdate({ backgroundColor: color });
   }
 
   get strokeColor() {
@@ -66,7 +41,6 @@ export class Pen implements Shape {
 
   setStrokeColor(color: strokeColor) {
     this._strokeColor = color;
-    this.shapeManagerPropertyUpdate({ strokeColor: color });
   }
 
   get strokeWidth() {
@@ -75,7 +49,6 @@ export class Pen implements Shape {
 
   setStrokeWidth(width: strokeWidth) {
     this._strokeWidth = width;
-    this.shapeManagerPropertyUpdate({ strokeWidth: width });
   }
 
   get opacity() {
@@ -84,7 +57,6 @@ export class Pen implements Shape {
 
   setOpacity(opacity: opacity) {
     this._opacity = opacity;
-    this.shapeManagerPropertyUpdate({ opacity: opacity });
   }
 
   get fillStyle() {
@@ -93,7 +65,6 @@ export class Pen implements Shape {
 
   setFillStyle(style: fillStyle) {
     this._fillStyle = style;
-    this.shapeManagerPropertyUpdate({ fillStyle: style });
   }
 
   get points() {
@@ -102,11 +73,10 @@ export class Pen implements Shape {
 
   setPoints(points: Point[]) {
     this._points = points;
-    this.shapeManagerPropertyUpdate({ points: points });
   }
 
   clone() {
-    let pen = new Pen(structuredClone(this._points), this.shapeManager);
+    let pen = new Pen(structuredClone(this._points));
     pen.setFillStyle(this._fillStyle);
     pen.setOpacity(this._opacity);
     pen.setStrokeColor(this._strokeColor);
@@ -115,8 +85,7 @@ export class Pen implements Shape {
     return pen;
   }
 
-  constructor(points: Point[], shapeMan: ShapeManager) {
-    this._shapeManager = shapeMan;
+  constructor(points: Point[]) {
     this._points = points;
 
     let { backgroundColor, strokeColor, strokeWidth, opacity, fillStyle } =
@@ -226,8 +195,6 @@ export class Pen implements Shape {
       point.x += delX;
       point.y += delY;
     }
-
-    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   updateEnclosingRectangle(nsx: number, nsy: number, nex: number, ney: number) {
@@ -243,8 +210,6 @@ export class Pen implements Shape {
       point.x = x1;
       point.y = y1;
     });
-
-    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   getEnclosingRectangle(): [number, number, number, number] {

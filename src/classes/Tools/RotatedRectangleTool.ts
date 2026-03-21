@@ -40,7 +40,6 @@ export default class RotatedRectangleTool implements Tool {
       e.clientY,
       e.clientX,
       e.clientY,
-      this.shapeManager,
     );
     this.shapeManager.addShape(this.currentRectangle);
   }

@@ -14,12 +14,28 @@ import type {
   strokeWidth,
 } from "../store/Tools.store";
 
-type updateEnclosingRectangleSchema = {
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-};
+type updateEnclosingRectangleSchema =
+  | {
+      x1: number;
+      y1: number;
+      x2: number;
+      y2: number;
+    }
+  | {
+      toMove:
+        | "fullShape"
+        | "topBoundary"
+        | "bottomBoundary"
+        | "leftBoundary"
+        | "rightBoundary"
+        | "topLeftCorner"
+        | "topRightCorner"
+        | "bottomLeftCorner"
+        | "bottomRightCorner";
+
+      delX?: number;
+      delY?: number;
+    };
 
 type updatePropertySchema = {
   //styles

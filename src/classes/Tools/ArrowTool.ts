@@ -50,7 +50,7 @@ export default class ArrowTool implements Tool {
       case "idle":
         {
           this.curState = "drawingLine";
-          this.currentLine = new Arrow([curPoint, curPoint], this.shapeManager);
+          this.currentLine = new Arrow([curPoint, curPoint]);
           this.lastPointInLine = curPoint;
 
           this.shapeManager.addShape(this.currentLine);

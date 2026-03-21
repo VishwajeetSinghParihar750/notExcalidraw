@@ -14,14 +14,10 @@ import {
   getBackgroundColorString,
   getStrokeColorString,
 } from "../../utils/Theme";
-import type ShapeManager from "../Managers/ShapeManager";
-import type { updatePropertySchema } from "../../types/shapeUpdateEvents";
 
 export class Circle implements Shape {
   readonly shapeType: ShapeType = "circle";
   readonly shapeId: shapeId = crypto.randomUUID();
-
-  _shapeManager: ShapeManager;
 
   private _backgroundColor: backgroundColor;
   private _strokeColor: strokeColor;
@@ -35,30 +31,12 @@ export class Circle implements Shape {
   private _endX: number;
   private _endY: number;
 
-  private shapeManagerPropertyUpdate(payload: updatePropertySchema) {
-    this.shapeManager.handleShapeUpdateEvent({
-      eventType: "updateProperty",
-      shapeId: this.shapeId,
-      payload,
-    });
-  }
-
-  private shapeManagerEnclosingRectangleUpdate() {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
-    this.shapeManager.handleShapeUpdateEvent({
-      eventType: "updateEnclosingRectangle",
-      shapeId: this.shapeId,
-      payload: { x1: sx, y1: sy, x2: ex, y2: ey },
-    });
-  }
-
   get backgroundColor() {
     return this._backgroundColor;
   }
 
   setBackgroundColor(color: backgroundColor) {
     this._backgroundColor = color;
-    this.shapeManagerPropertyUpdate({ backgroundColor: color });
   }
 
   get strokeColor() {
@@ -67,7 +45,6 @@ export class Circle implements Shape {
 
   setStrokeColor(color: strokeColor) {
     this._strokeColor = color;
-    this.shapeManagerPropertyUpdate({ strokeColor: color });
   }
 
   get strokeWidth() {
@@ -76,7 +53,6 @@ export class Circle implements Shape {
 
   setStrokeWidth(width: strokeWidth) {
     this._strokeWidth = width;
-    this.shapeManagerPropertyUpdate({ strokeWidth: width });
   }
 
   get strokeStyle() {
@@ -85,7 +61,6 @@ export class Circle implements Shape {
 
   setStrokeStyle(style: strokeStyle) {
     this._strokeStyle = style;
-    this.shapeManagerPropertyUpdate({ strokeStyle: style });
   }
 
   get opacity() {
@@ -94,7 +69,6 @@ export class Circle implements Shape {
 
   setOpacity(opacity: opacity) {
     this._opacity = opacity;
-    this.shapeManagerPropertyUpdate({ opacity: opacity });
   }
 
   get fillStyle() {
@@ -103,7 +77,6 @@ export class Circle implements Shape {
 
   setFillStyle(style: fillStyle) {
     this._fillStyle = style;
-    this.shapeManagerPropertyUpdate({ fillStyle: style });
   }
 
   get startX() {
@@ -112,7 +85,6 @@ export class Circle implements Shape {
 
   setStartX(value: number) {
     this._startX = value;
-    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   get startY() {
@@ -121,7 +93,6 @@ export class Circle implements Shape {
 
   setStartY(value: number) {
     this._startY = value;
-    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   get endX() {
@@ -130,7 +101,6 @@ export class Circle implements Shape {
 
   setEndX(value: number) {
     this._endX = value;
-    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   get endY() {
@@ -139,21 +109,10 @@ export class Circle implements Shape {
 
   setEndY(value: number) {
     this._endY = value;
-    this.shapeManagerEnclosingRectangleUpdate();
-  }
-
-  get shapeManager() {
-    return this._shapeManager;
   }
 
   clone() {
-    let circle = new Circle(
-      this._startX,
-      this._startY,
-      this._endX,
-      this._endY,
-      this.shapeManager,
-    );
+    let circle = new Circle(this._startX, this._startY, this._endX, this._endY);
     circle.setBackgroundColor(this._backgroundColor);
     circle.setFillStyle(this._fillStyle);
     circle.setOpacity(this._opacity);
@@ -163,15 +122,7 @@ export class Circle implements Shape {
     return circle;
   }
 
-  constructor(
-    startX: number,
-    startY: number,
-    endX: number,
-    endY: number,
-    shapeManager: ShapeManager,
-  ) {
-    this._shapeManager = shapeManager;
-
+  constructor(startX: number, startY: number, endX: number, endY: number) {
     this._startX = startX;
     this._startY = startY;
     this._endX = endX;
@@ -199,7 +150,6 @@ export class Circle implements Shape {
     this._startY = startY;
     this._endX = endX;
     this._endY = endY;
-    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   draw(ctx: CanvasRenderingContext2D) {
@@ -289,8 +239,6 @@ export class Circle implements Shape {
     this._endX += delX;
     this._startY += delY;
     this._endY += delY;
-
-    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   updateEnclosingRectangle(x1: number, y1: number, x2: number, y2: number) {
@@ -298,8 +246,6 @@ export class Circle implements Shape {
     this._startY = y1;
     this._endX = x2;
     this._endY = y2;
-
-    this.shapeManagerEnclosingRectangleUpdate();
   }
 
   getEnclosingRectangle(): [number, number, number, number] {

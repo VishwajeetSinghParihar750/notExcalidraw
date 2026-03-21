@@ -38,13 +38,7 @@ export default class CircleTool implements Tool {
 
   onCanvasMouseDown(e: MouseEvent) {
     this.curState = "drawing";
-    this.currentCircle = new Circle(
-      e.clientX,
-      e.clientY,
-      e.clientX,
-      e.clientY,
-      this.shapeManager,
-    );
+    this.currentCircle = new Circle(e.clientX, e.clientY, e.clientX, e.clientY);
     this.shapeManager.addShape(this.currentCircle);
   }
 

@@ -333,7 +333,6 @@ export default class CursorTool implements Tool {
     this.curSelection = new Selection(
       [this.selectionStart, this.selectionEnd],
       this.selectedShapes,
-      shapeManager,
     );
 
     this.zustandSubscribe();
@@ -781,15 +780,10 @@ export default class CursorTool implements Tool {
                 x: Math.floor(e.clientX - containerRect.left),
                 y: Math.floor(e.clientY - containerRect.top),
               };
-              this.curText = new Text(
-                "edit",
-                "",
-                [
-                  { x: curPoint.x, y: curPoint.y },
-                  { x: curPoint.x, y: curPoint.y },
-                ],
-                this.shapeManager,
-              );
+              this.curText = new Text("edit", "", [
+                { x: curPoint.x, y: curPoint.y },
+                { x: curPoint.x, y: curPoint.y },
+              ]);
               this.shapeManager.addShape(this.curText);
 
               this.currentInputElement.value = this.curText.text;

@@ -35,92 +35,92 @@ type shapeUpdateEventSubscriptionsIdMapping = Partial<
 >;
 
 export default class ShapeManager {
-  shapes: Shape[] = [];
+  shapes: Record<shapeId, Shape> = {};
 
   shapeUpdateEventSubscriptions: shapeUpdateEventSubscriptions = {};
   shapeUpdateEventSubscriptionsById: shapeUpdateEventSubscriptionsIdMapping =
     {};
 
-  subscribeToShapeUpdateEvent(
-    shapeUpdateSubscriptionInfo: shapeUpdateSubscriptionInfo,
-    shapeUpdateSubscriptionCallback: shapeUpdateSubscriptionCallback,
-  ): shapeUpdateSubscriptionId {
-    switch (shapeUpdateSubscriptionInfo.eventType) {
-      case "addShape":
-        {
-          if (!this.shapeUpdateEventSubscriptions.addShape)
-            this.shapeUpdateEventSubscriptions.addShape = [];
+  // subscribeToShapeUpdateEvent(
+  //   shapeUpdateSubscriptionInfo: shapeUpdateSubscriptionInfo,
+  //   shapeUpdateSubscriptionCallback: shapeUpdateSubscriptionCallback,
+  // ): shapeUpdateSubscriptionId {
+  //   switch (shapeUpdateSubscriptionInfo.eventType) {
+  //     case "addShape":
+  //       {
+  //         if (!this.shapeUpdateEventSubscriptions.addShape)
+  //           this.shapeUpdateEventSubscriptions.addShape = [];
 
-          this.shapeUpdateEventSubscriptions.addShape.push(
-            shapeUpdateSubscriptionCallback,
-          );
+  //         this.shapeUpdateEventSubscriptions.addShape.push(
+  //           shapeUpdateSubscriptionCallback,
+  //         );
 
-          let id = crypto.randomUUID();
-          this.shapeUpdateEventSubscriptionsById[id] = {};
-        }
+  //         let id = crypto.randomUUID();
+  //         this.shapeUpdateEventSubscriptionsById[id] = {};
+  //       }
 
-        break;
+  //       break;
 
-      default:
-        {
-          if (
-            !this.shapeUpdateEventSubscriptions[
-              shapeUpdateSubscriptionInfo.eventType
-            ]
-          ) {
-            this.shapeUpdateEventSubscriptions[
-              shapeUpdateSubscriptionInfo.eventType
-            ] = {};
-          }
+  //     default:
+  //       {
+  //         if (
+  //           !this.shapeUpdateEventSubscriptions[
+  //             shapeUpdateSubscriptionInfo.eventType
+  //           ]
+  //         ) {
+  //           this.shapeUpdateEventSubscriptions[
+  //             shapeUpdateSubscriptionInfo.eventType
+  //           ] = {};
+  //         }
 
-          if (
-            !this.shapeUpdateEventSubscriptions[
-              shapeUpdateSubscriptionInfo.eventType
-            ]?.[shapeUpdateSubscriptionInfo.shapeId]
-          )
-            this.shapeUpdateEventSubscriptions[
-              shapeUpdateSubscriptionInfo.eventType
-            ]![shapeUpdateSubscriptionInfo.shapeId] = [];
+  //         if (
+  //           !this.shapeUpdateEventSubscriptions[
+  //             shapeUpdateSubscriptionInfo.eventType
+  //           ]?.[shapeUpdateSubscriptionInfo.shapeId]
+  //         )
+  //           this.shapeUpdateEventSubscriptions[
+  //             shapeUpdateSubscriptionInfo.eventType
+  //           ]![shapeUpdateSubscriptionInfo.shapeId] = [];
 
-          this.shapeUpdateEventSubscriptions[
-            shapeUpdateSubscriptionInfo.eventType
-          ]?.[shapeUpdateSubscriptionInfo.shapeId]?.push(
-            shapeUpdateSubscriptionCallback,
-          );
-        }
-        break;
-    }
-  }
+  //         this.shapeUpdateEventSubscriptions[
+  //           shapeUpdateSubscriptionInfo.eventType
+  //         ]?.[shapeUpdateSubscriptionInfo.shapeId]?.push(
+  //           shapeUpdateSubscriptionCallback,
+  //         );
+  //       }
+  //       break;
+  //   }
+  // }
   unsubscribeToShapeUpdateEvent() {}
-
-  addShape(shape: Shape) {
-    this.shapes.push(shape);
-  }
-  removeShape(id: shapeId) {
-    this.shapes = this.shapes.filter((v) => v.shapeId != id);
-  }
 
   handleShapeUpdateEvent(op: shapeUpdateEvent) {
     switch (op.eventType) {
-      case "updateEnclosingRectangle":
+      case "addShape":
         {
+          this.shapes[op.payload.shape.shapeId] = op.payload.shape;
         }
         break;
 
-      case "updateProperty":
+      case "deleteShape":
         {
+          delete this.shapes[op.shapeId];
         }
         break;
 
       default:
+        this.shapes[op.shapeId].applyUpdateEvent(op);
         break;
     }
   }
 
   getShapesAt(x: number, y: number): Shape[] {
-    return this.shapes.filter((shape) => shape.containsPoint(x, y));
+    return Object.values(this.shapes).filter((shape) =>
+      shape.containsPoint(x, y),
+    );
   }
   getShapesInside(point1: Point, point2: Point) {
-    return this.shapes.filter((shape) => shape.liesInside(point1, point2));
+    return Object.values(this.shapes).filter((shape) =>
+      shape.liesInside(point1, point2),
+    );
   }
 }

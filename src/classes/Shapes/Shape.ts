@@ -10,6 +10,7 @@ import type {
   strokeStyle,
   strokeWidth,
 } from "../../store/Tools.store";
+import type { shapeUpdateEvent } from "../../types/shapeUpdateEvents";
 import type { Arrow } from "./Arrow";
 import type { Circle } from "./Circle";
 import type { Line } from "./Line";
@@ -50,53 +51,29 @@ export type ShapeData = {
   points?: Point[];
 };
 
-export interface Shape {
-  shapeType: ShapeType;
-  shapeId: shapeId;
-
-  //styles
-  opacity?: opacity;
-  fillStyle?: fillStyle;
-  strokeStyle?: strokeStyle;
-  arrowType?: arrowType;
-  strokeWidth?: strokeWidth;
-  edgeRadius?: edgeRadius;
-  backgroundColor?: backgroundColor;
-  strokeColor?: strokeColor;
-  fontFamily?: fontFamily;
-  fontSize?: fontSize;
-
-  // properties
-  points?: Point[];
+export abstract class Shape {
+  abstract shapeType: ShapeType;
+  abstract shapeId: shapeId;
 
   // geometry
-  draw: (ctx: CanvasRenderingContext2D) => void;
-  containsPoint: (x: number, y: number) => boolean;
-  liesInside: (point1: Point, point2: Point) => boolean;
+  abstract draw(ctx: CanvasRenderingContext2D): void;
+  abstract containsPoint(x: number, y: number): boolean;
+  abstract liesInside(point1: Point, point2: Point): boolean;
 
-  getEnclosingRectangle: () => [number, number, number, number];
-  updateEnclosingRectangle: (
+  abstract getEnclosingRectangle(): [number, number, number, number];
+  abstract updateEnclosingRectangle(
     x1: number,
     y1: number,
     x2: number,
     y2: number,
-  ) => void;
+  ): void;
 
-  moveEnclosingRectangle: (delX: number, delY: number) => void;
+  abstract moveEnclosingRectangle(delX: number, delY: number): void;
 
-  clone: () => Shape;
+  abstract clone(): Shape;
 
-  //style setters
-  setEdgeRadius?: (radius: edgeRadius) => void;
-  setStrokeColor?: (color: strokeColor) => void;
-  setStrokeWidth?: (width: strokeWidth) => void;
-  setStrokeStyle?: (style: strokeStyle) => void;
-  setOpacity?: (opacity: opacity) => void;
-  setArrowType?: (arrowType: arrowType) => void;
-  setBackgroundColor?: (color: backgroundColor) => void;
-  setFillStyle?: (style: fillStyle) => void;
-  setFontFamily?: (fontFamily: fontFamily) => void;
-  setFontSize?: (fontSize: fontSize) => void;
+  // for updates through events
+  abstract applyUpdateEvent(shapeUpdateEvent: shapeUpdateEvent): void;
 }
 
 export function serializeShape(shape: Shape) {

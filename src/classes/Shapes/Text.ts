@@ -9,6 +9,7 @@ import {
 } from "../../store/Tools.store";
 import type { Point } from "./Point";
 import { getStrokeColorString } from "../../utils/Theme";
+import type { shapeUpdateEvent } from "../../types/shapeUpdateEvents";
 
 export type TextShapeState = "render" | "edit";
 
@@ -287,5 +288,39 @@ export class Text implements Shape {
     let maxy = Math.max(point1.y, point2.y);
 
     return sx >= minx && ex <= maxx && sy >= miny && ey <= maxy;
+  }
+
+  propertySetters = {
+    strokeColor: this.setStrokeColor.bind(this),
+    opacity: this.setOpacity.bind(this),
+    fontFamily: this.setFontFamily.bind(this),
+    fontSize: this.setFontSize.bind(this),
+    text: this.setText.bind(this),
+    curState: this.setCurState.bind(this),
+  };
+  applyUpdateEvent(shapeUpdateEvent: shapeUpdateEvent) {
+    //
+    switch (shapeUpdateEvent.eventType) {
+      case "updateProperty":
+        {
+          Object.entries(shapeUpdateEvent.payload).forEach(([key, val]) => {
+            let typedProp = key as keyof typeof this.propertySetters;
+            let typedFn = this.propertySetters[typedProp] as (val: any) => void;
+            typedFn?.(val);
+          });
+        }
+        break;
+      case "updateEnclosingRectangle":
+        {
+          switch (shapeUpdateEvent.payload.toUpdate) {
+            default:
+              break;
+          }
+        }
+        break;
+
+      default:
+        break;
+    }
   }
 }

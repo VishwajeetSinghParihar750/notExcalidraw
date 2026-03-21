@@ -301,5 +301,40 @@ export class Line implements Shape {
 
     return sx >= minx && ex <= maxx && sy >= miny && ey <= maxy;
   }
-  applyUpdateEvent(shapeUpdateEvent: shapeUpdateEvent) {}
+
+  propertySetters = {
+    strokeColor: this.setStrokeColor.bind(this),
+    strokeWidth: this.setStrokeWidth.bind(this),
+    strokeStyle: this.setStrokeStyle.bind(this),
+    opacity: this.setOpacity.bind(this),
+    points: this.setPoints.bind(this),
+    backgroundColor: this.setBackgroundColor.bind(this),
+    edgeRadius: this.setEdgeRadius.bind(this),
+    fillStyle: this.setFillStyle.bind(this),
+  };
+  applyUpdateEvent(shapeUpdateEvent: shapeUpdateEvent) {
+    //
+    switch (shapeUpdateEvent.eventType) {
+      case "updateProperty":
+        {
+          Object.entries(shapeUpdateEvent.payload).forEach(([key, val]) => {
+            let typedProp = key as keyof typeof this.propertySetters;
+            let typedFn = this.propertySetters[typedProp] as (val: any) => void;
+            typedFn?.(val);
+          });
+        }
+        break;
+      case "updateEnclosingRectangle":
+        {
+          switch (shapeUpdateEvent.payload.toUpdate) {
+            default:
+              break;
+          }
+        }
+        break;
+
+      default:
+        break;
+    }
+  }
 }

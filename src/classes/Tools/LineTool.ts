@@ -14,6 +14,16 @@ export default class LineTool implements Tool {
   curState: state = "idle";
 
   currentLine: Line | null = null;
+  #setCurrentLinePointsHelper(points: Point[]) {
+    this.shapeManager.handleShapeUpdateEvent({
+      _id: crypto.randomUUID(),
+      eventType: "updateProperty",
+      shapeId: this.currentLine!.shapeId,
+      payload: {
+        points,
+      },
+    });
+  }
   lastPointInLine: Point = { x: -1e18, y: -1e18 };
 
   emit: (tool: ToolType, event: EventType) => void;
@@ -52,7 +62,11 @@ export default class LineTool implements Tool {
           this.currentLine = new Line([curPoint, curPoint]);
           this.lastPointInLine = curPoint;
 
-          this.shapeManager.addShape(this.currentLine);
+          this.shapeManager.handleShapeUpdateEvent({
+            _id: crypto.randomUUID(),
+            eventType: "addShape",
+            payload: { shape: this.currentLine },
+          });
         }
         break;
 
@@ -73,7 +87,7 @@ export default class LineTool implements Tool {
       let pts = this.currentLine!.points;
       pts.pop();
       pts.push(curPoint);
-      this.currentLine!.setPoints(pts);
+      this.#setCurrentLinePointsHelper(pts);
     }
 
     let firstPointInLine = this.currentLine?.points[0];
@@ -104,7 +118,7 @@ export default class LineTool implements Tool {
             let sp = pts[0];
             let ep = pts[1];
 
-            this.currentLine!.setPoints([
+            this.#setCurrentLinePointsHelper([
               sp,
               {
                 x: Math.floor((sp.x + ep.x) / 2),
@@ -124,7 +138,7 @@ export default class LineTool implements Tool {
           if (isSamePoint(curPoint, this.lastPointInLine)) {
             let pts = this.currentLine!.points;
             pts.pop();
-            this.currentLine!.setPoints(pts);
+            this.#setCurrentLinePointsHelper(pts);
 
             let firstPointInLine = this.currentLine?.points[0];
             let updatedPts = this.currentLine!.points;
@@ -137,7 +151,7 @@ export default class LineTool implements Tool {
                 x: firstPointInLine!.x,
                 y: firstPointInLine!.y,
               };
-              this.currentLine!.setPoints(updatedPts);
+              this.#setCurrentLinePointsHelper(updatedPts);
             }
 
             this.curState = "idle";
@@ -149,7 +163,7 @@ export default class LineTool implements Tool {
           } else {
             let pts = this.currentLine!.points;
             pts.push(curPoint);
-            this.currentLine!.setPoints(pts);
+            this.#setCurrentLinePointsHelper(pts);
             this.lastPointInLine = curPoint;
           }
         }

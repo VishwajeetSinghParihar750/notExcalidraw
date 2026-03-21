@@ -18,6 +18,16 @@ export default class ArrowTool implements Tool {
   currentLine: Arrow | null = null;
   lastPointInLine: Point = { x: -1e18, y: -1e18 };
 
+  #setCurrentLinePointsHelper(points: Point[]) {
+    this.shapeManager.handleShapeUpdateEvent({
+      _id: crypto.randomUUID(),
+      eventType: "updateProperty",
+      shapeId: this.currentLine!.shapeId,
+      payload: {
+        points,
+      },
+    });
+  }
   emit: (tool: ToolType, event: EventType) => void;
 
   reset(): void {
@@ -53,7 +63,11 @@ export default class ArrowTool implements Tool {
           this.currentLine = new Arrow([curPoint, curPoint]);
           this.lastPointInLine = curPoint;
 
-          this.shapeManager.addShape(this.currentLine);
+          this.shapeManager.handleShapeUpdateEvent({
+            _id: crypto.randomUUID(),
+            eventType: "addShape",
+            payload: { shape: this.currentLine! },
+          });
         }
         break;
 
@@ -84,7 +98,7 @@ export default class ArrowTool implements Tool {
 
         if (dx > dy) {
           let mx = Math.floor((startPoint.x + endPoint.x) / 2);
-          this.currentLine!.setPoints([
+          this.#setCurrentLinePointsHelper([
             startPoint,
             { x: mx, y: startPoint.y },
             { x: mx, y: endPoint.y },
@@ -92,7 +106,7 @@ export default class ArrowTool implements Tool {
           ]);
         } else {
           let my = Math.floor((startPoint.y + endPoint.y) / 2);
-          this.currentLine!.setPoints([
+          this.#setCurrentLinePointsHelper([
             startPoint,
             { x: startPoint.x, y: my },
             { x: endPoint.x, y: my },
@@ -102,13 +116,13 @@ export default class ArrowTool implements Tool {
       } else if (arrowType == "straight" || arrowType == "curve") {
         pts.pop();
         pts.push(curPoint);
-        this.currentLine!.setPoints(pts);
+        this.#setCurrentLinePointsHelper(pts);
       }
     } else if (this.curState == "drawingPath") {
       let pts = this.currentLine!.points;
       pts.pop();
       pts.push(curPoint);
-      this.currentLine!.setPoints(pts);
+      this.#setCurrentLinePointsHelper(pts);
     }
   }
 
@@ -131,7 +145,11 @@ export default class ArrowTool implements Tool {
               this.curState = "drawingPath";
             else if (arrowType == "snake") {
               this.curState = "idle";
-              this.shapeManager.removeShape(this.currentLine!.shapeId);
+              this.shapeManager.handleShapeUpdateEvent({
+                _id: crypto.randomUUID(),
+                eventType: "deleteShape",
+                shapeId: this.currentLine!.shapeId,
+              });
               this.currentLine = null;
               this.lastPointInLine.x = -1e18;
               this.lastPointInLine.y = -1e18;
@@ -141,7 +159,7 @@ export default class ArrowTool implements Tool {
             let endPoint = pts[pts.length - 1];
 
             if (arrowType == "straight" || arrowType == "curve") {
-              this.currentLine!.setPoints([
+              this.#setCurrentLinePointsHelper([
                 startPoint,
                 {
                   x: Math.floor((startPoint.x + endPoint.x) / 2),
@@ -155,7 +173,7 @@ export default class ArrowTool implements Tool {
 
               if (dx > dy) {
                 let mx = Math.floor((startPoint.x + endPoint.x) / 2);
-                this.currentLine!.setPoints([
+                this.#setCurrentLinePointsHelper([
                   startPoint,
                   { x: mx, y: startPoint.y },
                   { x: mx, y: endPoint.y },
@@ -163,7 +181,7 @@ export default class ArrowTool implements Tool {
                 ]);
               } else {
                 let my = Math.floor((startPoint.y + endPoint.y) / 2);
-                this.currentLine!.setPoints([
+                this.#setCurrentLinePointsHelper([
                   startPoint,
                   { x: startPoint.x, y: my },
                   { x: endPoint.x, y: my },
@@ -184,7 +202,7 @@ export default class ArrowTool implements Tool {
 
           if (isSamePoint(curPoint, this.lastPointInLine)) {
             pts.pop();
-            this.currentLine!.setPoints(pts);
+            this.#setCurrentLinePointsHelper(pts);
 
             let firstPointInLine = this.currentLine!.points[0];
             let updatedPts = this.currentLine!.points;
@@ -197,7 +215,7 @@ export default class ArrowTool implements Tool {
                 x: firstPointInLine.x,
                 y: firstPointInLine.y,
               };
-              this.currentLine!.setPoints(updatedPts);
+              this.#setCurrentLinePointsHelper(updatedPts);
             }
 
             this.curState = "idle";
@@ -208,7 +226,7 @@ export default class ArrowTool implements Tool {
             this.lastPointInLine.y = -1e18;
           } else {
             pts.push(curPoint);
-            this.currentLine!.setPoints(pts);
+            this.#setCurrentLinePointsHelper(pts);
             this.lastPointInLine = curPoint;
           }
         }

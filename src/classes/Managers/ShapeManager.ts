@@ -5,101 +5,96 @@ import type {
   shapeUpdateEvent,
   shapeUpdateEventId,
 } from "../../types/shapeUpdateEvents";
-import type { opacity } from "../../store/Tools.store";
 
-type shapeUpdateSubscriptionInfo =
-  | { eventType: "addShape" }
-  | { eventType: "deleteShape"; shapeId: shapeId }
-  | { eventType: "updateEnclosingRectangle"; shapeId: shapeId }
-  | { eventType: "updateProperty"; shapeId: shapeId };
-
-type shapeUpdateSubscriptionCallback = (
-  shapeUpdateEvent: shapeUpdateEvent,
-) => void;
-
-type shapeIdToCallbackArrayMapping = Partial<
-  Record<shapeId, shapeUpdateSubscriptionCallback[]>
->;
-type shapeUpdateSubscriptionId = string;
-type shapeUpdateEventSubscriptions = {
-  addShape?: shapeUpdateSubscriptionCallback[];
-  removeShape?: shapeIdToCallbackArrayMapping;
-  updateEnclosingRectangle?: shapeIdToCallbackArrayMapping;
-  updateProperty?: shapeIdToCallbackArrayMapping;
-};
-
-type shapeUpdateEventSubscription = Partial<
-  Record<eventType, shapeUpdateSubscriptionCallback>
->;
-
-type shapeUpdateEventSubscriptionsIdMapping = Partial<
-  Record<shapeUpdateSubscriptionId, shapeUpdateEventSubscription>
->;
+type shapeUpdateSubId = string;
+type shapeUpdateSubCallback = (event: shapeUpdateEvent) => void;
+type subsInfo = shapeUpdateSubCallback[];
+type subsEventMapping = Partial<Record<"all" | eventType, subsInfo>>;
+type shapeUpdateSubs = Partial<Record<"all" | shapeId, subsEventMapping>>;
 
 export default class ShapeManager {
   shapes: Record<shapeId, Shape> = {};
 
-  shapeUpdateEventSubscriptions: shapeUpdateEventSubscriptions = {};
-  shapeUpdateEventSubscriptionsById: shapeUpdateEventSubscriptionsIdMapping =
-    {};
-
-  // subscribeToShapeUpdateEvent(
-  //   shapeUpdateSubscriptionInfo: shapeUpdateSubscriptionInfo,
-  //   shapeUpdateSubscriptionCallback: shapeUpdateSubscriptionCallback,
-  // ): shapeUpdateSubscriptionId {
-  //   switch (shapeUpdateSubscriptionInfo.eventType) {
-  //     case "addShape":
-  //       {
-  //         if (!this.shapeUpdateEventSubscriptions.addShape)
-  //           this.shapeUpdateEventSubscriptions.addShape = [];
-
-  //         this.shapeUpdateEventSubscriptions.addShape.push(
-  //           shapeUpdateSubscriptionCallback,
-  //         );
-
-  //         let id = crypto.randomUUID();
-  //         this.shapeUpdateEventSubscriptionsById[id] = {};
-  //       }
-
-  //       break;
-
-  //     default:
-  //       {
-  //         if (
-  //           !this.shapeUpdateEventSubscriptions[
-  //             shapeUpdateSubscriptionInfo.eventType
-  //           ]
-  //         ) {
-  //           this.shapeUpdateEventSubscriptions[
-  //             shapeUpdateSubscriptionInfo.eventType
-  //           ] = {};
-  //         }
-
-  //         if (
-  //           !this.shapeUpdateEventSubscriptions[
-  //             shapeUpdateSubscriptionInfo.eventType
-  //           ]?.[shapeUpdateSubscriptionInfo.shapeId]
-  //         )
-  //           this.shapeUpdateEventSubscriptions[
-  //             shapeUpdateSubscriptionInfo.eventType
-  //           ]![shapeUpdateSubscriptionInfo.shapeId] = [];
-
-  //         this.shapeUpdateEventSubscriptions[
-  //           shapeUpdateSubscriptionInfo.eventType
-  //         ]?.[shapeUpdateSubscriptionInfo.shapeId]?.push(
-  //           shapeUpdateSubscriptionCallback,
-  //         );
-  //       }
-  //       break;
-  //   }
-  // }
-
   shapeUpdateEvents: Record<shapeUpdateEventId, shapeUpdateEvent> = {};
   shapeUpdateEventsInverse: Record<shapeUpdateEventId, shapeUpdateEvent> = {}; // og event id mapped to inverse event
 
-  unsubscribeToShapeUpdateEvent() {}
-  destructor() {}
+  shapeUpdateEventSubscriptions: shapeUpdateSubs = {};
+  shapeUpdateEventSubscriptionsInfo: Record<
+    shapeUpdateSubId,
+    {
+      shape: shapeId | "all";
+      event: eventType | "all";
+      cb: shapeUpdateSubCallback;
+    }
+  > = {};
 
+  subsribeShapeUpdateEvents(
+    shape: "all" | shapeId,
+    event: "all" | eventType,
+    shapeUpdateSubCallback: shapeUpdateSubCallback,
+  ): shapeUpdateSubId {
+    let subId = crypto.randomUUID();
+
+    if (!this.shapeUpdateEventSubscriptions[shape]) {
+      this.shapeUpdateEventSubscriptions[shape] = { [event]: [] };
+    } else if (!this.shapeUpdateEventSubscriptions[shape][event])
+      this.shapeUpdateEventSubscriptions[shape][event] = [];
+
+    this.shapeUpdateEventSubscriptionsInfo[subId] = {
+      shape,
+      event,
+      cb: shapeUpdateSubCallback,
+    };
+    this.shapeUpdateEventSubscriptions[shape][event]!.push(
+      shapeUpdateSubCallback,
+    );
+
+    return subId;
+  }
+
+  unsubsribeShapeUpdateEvents(shapeUpdateSubId: shapeUpdateSubId) {
+    let subInfo = this.shapeUpdateEventSubscriptionsInfo[shapeUpdateSubId];
+    if (
+      subInfo &&
+      this.shapeUpdateEventSubscriptions[subInfo.shape]?.[subInfo.event]
+    ) {
+      this.shapeUpdateEventSubscriptions[subInfo.shape]![subInfo.event] =
+        this.shapeUpdateEventSubscriptions[subInfo.shape]![
+          subInfo.event
+        ]?.filter((cb) => cb != subInfo.cb);
+
+      delete this.shapeUpdateEventSubscriptionsInfo[shapeUpdateSubId];
+
+      if (
+        this.shapeUpdateEventSubscriptions[subInfo.shape]?.[subInfo.event]
+          ?.length == 0
+      ) {
+        delete this.shapeUpdateEventSubscriptions[subInfo.shape]?.[
+          subInfo.event
+        ];
+      }
+      if (
+        Object.keys(
+          this.shapeUpdateEventSubscriptions[subInfo.shape] || { 1: 1 },
+        ).length == 0
+      ) {
+        delete this.shapeUpdateEventSubscriptions[subInfo.shape];
+      }
+    }
+  }
+  passEventToSubscribers(op: shapeUpdateEvent) {
+    this.shapeUpdateEventSubscriptions?.["all"]?.["all"]?.forEach((cb) =>
+      cb(op),
+    );
+    if (op.eventType != "addShape") {
+      this.shapeUpdateEventSubscriptions?.[op.shapeId]?.["all"]?.forEach((cb) =>
+        cb(op),
+      );
+      this.shapeUpdateEventSubscriptions?.[op.shapeId]?.[op.eventType]?.forEach(
+        (cb) => cb(op),
+      );
+    }
+  }
   handleShapeUpdateEvent(op: shapeUpdateEvent) {
     switch (op.eventType) {
       case "addShape":
@@ -159,7 +154,9 @@ export default class ShapeManager {
       default:
         break;
     }
+    this.passEventToSubscribers(op);
   }
+  destructor() {}
 
   getShapesAt(x: number, y: number): Shape[] {
     return Object.values(this.shapes).filter((shape) =>

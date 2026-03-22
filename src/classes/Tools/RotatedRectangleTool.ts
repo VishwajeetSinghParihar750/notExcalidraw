@@ -41,17 +41,31 @@ export default class RotatedRectangleTool implements Tool {
       e.clientX,
       e.clientY,
     );
-    this.shapeManager.addShape(this.currentRectangle);
+    // this.shapeManager.addShape(this.currentRectangle);
+    this.shapeManager.handleShapeUpdateEvent({
+      _id: crypto.randomUUID(),
+      eventType: "addShape",
+      payload: { shape: this.currentRectangle },
+    });
   }
 
   onCanvasMouseMove(e: MouseEvent) {
     document.body.style.cursor = "crosshair";
     if (this.curState == "drawing") {
-      this.currentRectangle!.setEndX(e.clientX);
-      this.currentRectangle!.setEndY(e.clientY);
+      this.shapeManager.handleShapeUpdateEvent({
+        _id: crypto.randomUUID(),
+        eventType: "updateEnclosingRectangle",
+        shapeId: this.currentRectangle!.shapeId,
+        payload: {
+          toUpdate: "updateFull",
+          x1: this.currentRectangle!.startX,
+          y1: this.currentRectangle!.startY,
+          x2: e.clientX,
+          y2: e.clientY,
+        },
+      });
     }
   }
-
   onCanvasMouseUp() {
     if (this.curState == "drawing") {
       this.curState = "idle";
@@ -62,7 +76,12 @@ export default class RotatedRectangleTool implements Tool {
         Math.floor(this.currentRectangle!.startY) ==
           Math.floor(this.currentRectangle!.endY)
       )
-        this.shapeManager.removeShape(this.currentRectangle!.shapeId);
+        // this.shapeManager.removeShape(this.currentRectangle!.shapeId);
+        this.shapeManager.handleShapeUpdateEvent({
+          _id: crypto.randomUUID(),
+          eventType: "deleteShape",
+          shapeId: this.currentRectangle!.shapeId,
+        });
       else this.emit(this.toolType, "taskComplete");
 
       this.currentRectangle = null;

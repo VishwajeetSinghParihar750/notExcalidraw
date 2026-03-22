@@ -381,7 +381,7 @@ export default class TextTool implements Tool {
 
       this.#setCurrentTextPropertyHelper({
         text: this.currentInputElement.value,
-        state: "render",
+        curState: "render",
       });
 
       this.currentInputElement.value = "";

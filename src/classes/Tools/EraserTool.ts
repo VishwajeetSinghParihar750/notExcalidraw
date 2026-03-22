@@ -43,7 +43,16 @@ export default class EraserTool implements Tool {
       for (let shape of shapes) {
         if (!this.currentToEraseShapes.has(shape)) {
           this.currentToEraseShapes.add(shape);
-          shape.setOpacity?.(Math.max(0, shape.opacity! - 50) as opacity);
+          if ((shape as any).setOpacity) {
+            this.shapeManager.handleShapeUpdateEvent({
+              _id: crypto.randomUUID(),
+              eventType: "updateProperty",
+              shapeId: shape.shapeId,
+              payload: {
+                opacity: Math.max(0, (shape as any).opacity - 50) as opacity,
+              },
+            });
+          }
         }
       }
     } else document.body.style.cursor = "default";
@@ -53,7 +62,11 @@ export default class EraserTool implements Tool {
       this.curState = "idle";
 
       this.currentToEraseShapes.forEach((shape) =>
-        this.shapeManager.removeShape(shape.shapeId),
+        this.shapeManager.handleShapeUpdateEvent({
+          _id: crypto.randomUUID(),
+          eventType: "deleteShape",
+          shapeId: shape.shapeId,
+        }),
       );
 
       this.currentToEraseShapes.clear();

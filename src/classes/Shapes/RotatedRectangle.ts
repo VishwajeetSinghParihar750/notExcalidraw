@@ -352,13 +352,20 @@ export class RotatedRecangle implements Shape {
       case "updateEnclosingRectangle":
         {
           switch (shapeUpdateEvent.payload.toUpdate) {
-            case "bottomRightCorner":
+            case "updateFull":
               {
-                this.setEndX(shapeUpdateEvent.payload.x2!);
-                this.setEndY(shapeUpdateEvent.payload.y2!);
+                let { x1, y1, x2, y2 } = shapeUpdateEvent.payload;
+                this.updateEnclosingRectangle(x1!, y1!, x2!, y2!);
               }
               break;
-
+            case "moveFull":
+              {
+                this.moveEnclosingRectangle(
+                  shapeUpdateEvent.payload.delX!,
+                  shapeUpdateEvent.payload.delY!,
+                );
+              }
+              break;
             default:
               break;
           }

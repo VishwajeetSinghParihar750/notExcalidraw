@@ -273,6 +273,7 @@ export class Selection implements Shape {
     selectedShapes: this.setSelectedShapes.bind(this),
     drawSelectionArea: this.setDrawSelectionArea.bind(this),
   };
+
   applyUpdateEvent(shapeUpdateEvent: shapeUpdateEvent) {
     //
     switch (shapeUpdateEvent.eventType) {

@@ -63,7 +63,7 @@ export default class SelectionTool implements Tool {
     this.selectedShapes.push(...shapes);
 
     this.#setShapePropertyHelper(this.curSelection.shapeId, {
-      selectedShapes: shapes,
+      selectedShapes: this.selectedShapes,
     });
   }
 

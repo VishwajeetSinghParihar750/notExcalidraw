@@ -41,7 +41,7 @@ export default class GrabTool implements Tool {
 
   updateScreenEmpty() {
     if (
-      this.shapeManager.shapes.some((shape) =>
+      Object.values(this.shapeManager.shapes).some((shape) =>
         shape.liesInside(
           { x: -this.totalMovementX, y: -this.totalMovementY },
           {
@@ -72,8 +72,13 @@ export default class GrabTool implements Tool {
 
       let dx = e.clientX - this.lastMouseMove.x;
       let dy = e.clientY - this.lastMouseMove.y;
-      this.shapeManager.shapes.forEach((shape) =>
-        shape.moveEnclosingRectangle(dx, dy),
+      Object.keys(this.shapeManager.shapes).forEach((shapeId) =>
+        this.shapeManager.handleShapeUpdateEvent({
+          _id: crypto.randomUUID(),
+          eventType: "updateEnclosingRectangle",
+          shapeId: shapeId,
+          payload: { toUpdate: "moveFull", delX: dx, delY: dy },
+        }),
       );
 
       this.lastMouseMove.x = e.clientX;

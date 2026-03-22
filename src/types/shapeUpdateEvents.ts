@@ -15,17 +15,7 @@ import type {
 } from "../store/Tools.store";
 
 type updateEnclosingRectangleSchema = {
-  toUpdate:
-    | "updateFull"
-    | "moveFull"
-    | "topBoundary"
-    | "bottomBoundary"
-    | "leftBoundary"
-    | "rightBoundary"
-    | "topLeftCorner"
-    | "topRightCorner"
-    | "bottomLeftCorner"
-    | "bottomRightCorner";
+  toUpdate: "updateFull" | "moveFull";
 
   delX?: number;
   delY?: number;
@@ -66,27 +56,27 @@ type eventType =
   | "updateProperty"
   | "deleteShape"
   | "addShape";
-
+type shapeUpdateEventId = string;
 type shapeUpdateEvent =
   | {
-      _id: string;
+      _id: shapeUpdateEventId;
       eventType: "updateEnclosingRectangle";
       shapeId: shapeId;
       payload: updateEnclosingRectangleSchema;
     }
   | {
-      _id: string;
+      _id: shapeUpdateEventId;
       eventType: "updateProperty";
       shapeId: shapeId;
       payload: updatePropertySchema;
     }
   | {
-      _id: string;
+      _id: shapeUpdateEventId;
       eventType: "addShape";
       payload: addShapeSchema;
     }
   | {
-      _id: string;
+      _id: shapeUpdateEventId;
       eventType: "deleteShape";
       shapeId: shapeId;
     };
@@ -96,4 +86,5 @@ export type {
   updateEnclosingRectangleSchema,
   updatePropertySchema,
   eventType,
+  shapeUpdateEventId,
 };

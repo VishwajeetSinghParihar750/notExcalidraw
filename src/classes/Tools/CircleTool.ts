@@ -45,7 +45,6 @@ export default class CircleTool implements Tool {
       payload: { shape: this.currentCircle },
     });
   }
-
   onCanvasMouseMove(e: MouseEvent) {
     document.body.style.cursor = "crosshair";
     if (this.curState == "drawing") {
@@ -54,7 +53,9 @@ export default class CircleTool implements Tool {
         eventType: "updateEnclosingRectangle",
         shapeId: this.currentCircle!.shapeId,
         payload: {
-          toUpdate: "bottomRightCorner",
+          toUpdate: "updateFull",
+          x1: this.currentCircle!.startX,
+          y1: this.currentCircle!.startY,
           x2: e.clientX,
           y2: e.clientY,
         },

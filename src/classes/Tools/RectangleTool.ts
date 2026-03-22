@@ -41,7 +41,6 @@ export default class RectangleTool implements Tool {
       e.clientX,
       e.clientY,
     );
-    // this.shapeManager.addShape(this.currentRectangle);
     this.shapeManager.handleShapeUpdateEvent({
       _id: crypto.randomUUID(),
       eventType: "addShape",
@@ -52,14 +51,14 @@ export default class RectangleTool implements Tool {
   onCanvasMouseMove(e: MouseEvent) {
     document.body.style.cursor = "crosshair";
     if (this.curState == "drawing") {
-      // this.currentRectangle!.setEndX(e.clientX);
-      // this.currentRectangle!.setEndY(e.clientY);
       this.shapeManager.handleShapeUpdateEvent({
         _id: crypto.randomUUID(),
         eventType: "updateEnclosingRectangle",
         shapeId: this.currentRectangle!.shapeId,
         payload: {
-          toUpdate: "bottomRightCorner",
+          toUpdate: "updateFull",
+          x1: this.currentRectangle!.startX,
+          y1: this.currentRectangle!.startY,
           x2: e.clientX,
           y2: e.clientY,
         },

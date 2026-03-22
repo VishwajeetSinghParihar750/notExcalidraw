@@ -295,6 +295,7 @@ export class Rectangle extends Shape {
     opacity: this.setOpacity.bind(this),
     fillStyle: this.setFillStyle.bind(this),
   };
+
   applyUpdateEvent(shapeUpdateEvent: shapeUpdateEvent) {
     //
     switch (shapeUpdateEvent.eventType) {
@@ -310,13 +311,20 @@ export class Rectangle extends Shape {
       case "updateEnclosingRectangle":
         {
           switch (shapeUpdateEvent.payload.toUpdate) {
-            case "bottomRightCorner":
+            case "updateFull":
               {
-                this.setEndX(shapeUpdateEvent.payload.x2!);
-                this.setEndY(shapeUpdateEvent.payload.y2!);
+                let { x1, y1, x2, y2 } = shapeUpdateEvent.payload;
+                this.updateEnclosingRectangle(x1!, y1!, x2!, y2!);
               }
               break;
-
+            case "moveFull":
+              {
+                this.moveEnclosingRectangle(
+                  shapeUpdateEvent.payload.delX!,
+                  shapeUpdateEvent.payload.delY!,
+                );
+              }
+              break;
             default:
               break;
           }

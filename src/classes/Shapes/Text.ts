@@ -298,6 +298,7 @@ export class Text implements Shape {
     text: this.setText.bind(this),
     curState: this.setCurState.bind(this),
   };
+
   applyUpdateEvent(shapeUpdateEvent: shapeUpdateEvent) {
     //
     switch (shapeUpdateEvent.eventType) {
@@ -313,6 +314,20 @@ export class Text implements Shape {
       case "updateEnclosingRectangle":
         {
           switch (shapeUpdateEvent.payload.toUpdate) {
+            case "updateFull":
+              {
+                let { x1, y1, x2, y2 } = shapeUpdateEvent.payload;
+                this.updateEnclosingRectangle(x1!, y1!, x2!, y2!);
+              }
+              break;
+            case "moveFull":
+              {
+                this.moveEnclosingRectangle(
+                  shapeUpdateEvent.payload.delX!,
+                  shapeUpdateEvent.payload.delY!,
+                );
+              }
+              break;
             default:
               break;
           }

@@ -18,7 +18,7 @@ import {
 } from "../../utils/Theme";
 import type { shapeUpdateEvent } from "../../types/shapeUpdateEvents";
 
-export class Rectangle extends Shape {
+export class Rectangle implements Shape {
   readonly shapeId: shapeId = crypto.randomUUID();
   readonly shapeType: ShapeType = "rect";
 
@@ -140,8 +140,6 @@ export class Rectangle extends Shape {
   }
 
   constructor(startX: number, startY: number, endX: number, endY: number) {
-    super();
-
     this._startX = startX;
     this._startY = startY;
     this._endX = endX;

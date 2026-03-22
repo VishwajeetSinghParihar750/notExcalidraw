@@ -124,6 +124,7 @@ export class Circle implements Shape {
   }
 
   constructor(startX: number, startY: number, endX: number, endY: number) {
+    console.log("callled circle constructor ");
     this._startX = startX;
     this._startY = startY;
     this._endX = endX;

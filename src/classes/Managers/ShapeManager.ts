@@ -92,6 +92,7 @@ export default class ShapeManager {
   //   }
   // }
   unsubscribeToShapeUpdateEvent() {}
+  destructor() {}
 
   handleShapeUpdateEvent(op: shapeUpdateEvent) {
     switch (op.eventType) {
@@ -108,6 +109,7 @@ export default class ShapeManager {
         break;
 
       default:
+        console.log(op.shapeId, this.shapes[op.shapeId]);
         this.shapes[op.shapeId].applyUpdateEvent(op);
         break;
     }

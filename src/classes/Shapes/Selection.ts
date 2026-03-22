@@ -2,6 +2,7 @@ import type { Shape, ShapeType, shapeId } from "./Shape";
 
 import { isSamePoint } from "./Point";
 import type { Point } from "./Point";
+import type { shapeUpdateEvent } from "../../types/shapeUpdateEvents";
 
 export class Selection implements Shape {
   readonly shapeType: ShapeType = "selection";
@@ -9,7 +10,7 @@ export class Selection implements Shape {
 
   private _selectionArea: [Point, Point];
   private _selectedShapes: Shape[] = [];
-  private _drawSelectionArea: boolean = true;
+  private _drawSelectionArea: boolean = false;
 
   private _enclosingRectanglePadding = 5;
   private _shapeResizeThreshold = 5;
@@ -18,8 +19,8 @@ export class Selection implements Shape {
     return [{ ...this._selectionArea[0] }, { ...this._selectionArea[1] }];
   }
 
-  setSelectionArea(point1: Point, point2: Point) {
-    this._selectionArea = [{ ...point1 }, { ...point2 }];
+  setSelectionArea(points: [Point, Point]) {
+    this._selectionArea = [{ ...points[0] }, { ...points[1] }];
   }
 
   get selectedShapes(): Shape[] {
@@ -181,12 +182,6 @@ export class Selection implements Shape {
     return [x1, y1, x2, y2];
   }
 
-  moveEnclosingRectangle(delX: number, delY: number) {
-    this._selectedShapes.forEach((shape) =>
-      shape.moveEnclosingRectangle(delX, delY),
-    );
-  }
-
   containsPoint(x: number, y: number) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
     return x >= sx && x <= ex && y >= sy && y <= ey;
@@ -260,210 +255,8 @@ export class Selection implements Shape {
     return y >= sy && y <= ey && Math.abs(x - ex) <= 4;
   }
 
-  updateEnclosingRectangle(nsx: number, nsy: number, nex: number, ney: number) {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
-
-    if (Math.min(ney - nsy, nex - nsx) < this._shapeResizeThreshold) return;
-
-    this._selectedShapes.forEach((shape) => {
-      let [x1, y1, x2, y2] = shape.getEnclosingRectangle();
-
-      x1 = nsx + ((x1 - sx) * (nex - nsx)) / (ex - sx);
-      y1 = nsy + ((y1 - sy) * (ney - nsy)) / (ey - sy);
-
-      x2 = nsx + ((x2 - sx) * (nex - nsx)) / (ex - sx);
-      y2 = nsy + ((y2 - sy) * (ney - nsy)) / (ey - sy);
-
-      shape.updateEnclosingRectangle(x1, y1, x2, y2);
-    });
-  }
-
-  scaleTopLeftCorner(
-    sx: number,
-    sy: number,
-    ex: number,
-    ey: number,
-    delY: number,
-  ) {
-    let nsy = sy + delY;
-    let nex = ex;
-    let ney = ey;
-
-    let nsx = nex - ((ex - sx) * (ney - nsy)) / (ey - sy);
-
-    this.updateEnclosingRectangle(nsx, nsy, nex, ney);
-  }
-  scaleTopLeftCornerX(
-    sx: number,
-    sy: number,
-    ex: number,
-    ey: number,
-    delX: number,
-  ) {
-    let nsx = sx + delX;
-    let nex = ex;
-    let ney = ey;
-
-    let nsy = ney - ((nex - nsx) * (ey - sy)) / (ex - sx);
-
-    this.updateEnclosingRectangle(nsx, nsy, nex, ney);
-  }
-  scaleTopRightCorner(
-    sx: number,
-    sy: number,
-    ex: number,
-    ey: number,
-    delY: number,
-  ) {
-    let nsy = sy + delY;
-    let nsx = sx;
-    let ney = ey;
-
-    let nex = nsx + ((ex - sx) * (ney - nsy)) / (ey - sy);
-    this.updateEnclosingRectangle(nsx, nsy, nex, ney);
-  }
-  scaleBottomRightCorner(
-    sx: number,
-    sy: number,
-    ex: number,
-    ey: number,
-    delY: number,
-  ) {
-    let nsx = sx;
-    let nsy = sy;
-    let ney = ey + delY;
-    let nex = nsx + ((ex - sx) * (ney - nsy)) / (ey - sy);
-
-    this.updateEnclosingRectangle(nsx, nsy, nex, ney);
-  }
-  scaleBottomRightCornerX(
-    sx: number,
-    sy: number,
-    ex: number,
-    ey: number,
-    delX: number,
-  ) {
-    let nsx = sx;
-    let nsy = sy;
-
-    let nex = ex + delX;
-    let ney = nsy + ((nex - nsx) * (ey - sy)) / (ex - sx);
-
-    this.updateEnclosingRectangle(nsx, nsy, nex, ney);
-  }
-  scaleBottomLeftCorner(
-    sx: number,
-    sy: number,
-    ex: number,
-    ey: number,
-    delY: number,
-  ) {
-    let nex = ex;
-    let nsy = sy;
-
-    let ney = ey + delY;
-    let nsx = nex - ((ex - sx) * (ney - nsy)) / (ey - sy);
-
-    this.updateEnclosingRectangle(nsx, nsy, nex, ney);
-  }
-
-  moveTopLeftCorner(delX: number, delY: number) {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
-
-    let nsx = sx + delX;
-    let nsy = sy + delY;
-    let nex = ex;
-    let ney = ey;
-
-    if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
-      this.scaleTopLeftCorner(sx, sy, ex, ey, delY);
-    else this.updateEnclosingRectangle(nsx, nsy, nex, ney);
-  }
-  moveTopRightCorner(delX: number, delY: number) {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
-
-    let nsx = sx;
-    let nsy = sy + delY;
-    let nex = ex + delX;
-    let ney = ey;
-
-    if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
-      this.scaleTopRightCorner(sx, sy, ex, ey, delY);
-    else this.updateEnclosingRectangle(nsx, nsy, nex, ney);
-  }
-  moveBottomLeftCorner(delX: number, delY: number) {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
-
-    let nsx = sx + delX;
-    let nsy = sy;
-    let nex = ex;
-    let ney = ey + delY;
-
-    if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
-      this.scaleBottomLeftCorner(sx, sy, ex, ey, delY);
-    else this.updateEnclosingRectangle(nsx, nsy, nex, ney);
-  }
-  moveBottomRightCorner(delX: number, delY: number) {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
-
-    let nsx = sx;
-    let nsy = sy;
-    let nex = ex + delX;
-    let ney = ey + delY;
-
-    if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
-      this.scaleBottomRightCorner(sx, sy, ex, ey, delY);
-    else this.updateEnclosingRectangle(nsx, nsy, nex, ney);
-  }
-
-  moveTopBoundary(delY: number) {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
-
-    let nsx = sx;
-    let nsy = sy + delY;
-    let nex = ex;
-    let ney = ey;
-
-    if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
-      this.scaleTopLeftCorner(sx, sy, ex, ey, delY);
-    else this.updateEnclosingRectangle(nsx, nsy, nex, ney);
-  }
-  moveLeftBoundary(delX: number) {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
-
-    let nsx = sx + delX;
-    let nsy = sy;
-    let nex = ex;
-    let ney = ey;
-
-    if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
-      this.scaleTopLeftCornerX(sx, sy, ex, ey, delX);
-    else this.updateEnclosingRectangle(nsx, nsy, nex, ney);
-  }
-  moveRightBoundary(delX: number) {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
-
-    let nsx = sx;
-    let nsy = sy;
-    let nex = ex + delX;
-    let ney = ey;
-
-    if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
-      this.scaleBottomRightCornerX(sx, sy, ex, ey, delX);
-    else this.updateEnclosingRectangle(nsx, nsy, nex, ney);
-  }
-  moveBottomBoundary(delY: number) {
-    let [sx, sy, ex, ey] = this.getEnclosingRectangle();
-
-    let nsx = sx;
-    let nsy = sy;
-    let nex = ex;
-    let ney = ey + delY;
-
-    if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
-      this.scaleBottomRightCorner(sx, sy, ex, ey, delY);
-    else this.updateEnclosingRectangle(nsx, nsy, nex, ney);
-  }
+  moveEnclosingRectangle() {}
+  updateEnclosingRectangle() {}
 
   liesInside(point1: Point, point2: Point) {
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
@@ -473,5 +266,28 @@ export class Selection implements Shape {
     let maxy = Math.max(point1.y, point2.y);
 
     return sx >= minx && ex <= maxx && sy >= miny && ey <= maxy;
+  }
+
+  propertySetters = {
+    selectionArea: this.setSelectionArea.bind(this),
+    selectedShapes: this.setSelectedShapes.bind(this),
+    drawSelectionArea: this.setDrawSelectionArea.bind(this),
+  };
+  applyUpdateEvent(shapeUpdateEvent: shapeUpdateEvent) {
+    //
+    switch (shapeUpdateEvent.eventType) {
+      case "updateProperty":
+        {
+          Object.entries(shapeUpdateEvent.payload).forEach(([key, val]) => {
+            let typedProp = key as keyof typeof this.propertySetters;
+            let typedFn = this.propertySetters[typedProp] as (val: any) => void;
+            typedFn?.(val);
+          });
+        }
+        break;
+
+      default:
+        break;
+    }
   }
 }

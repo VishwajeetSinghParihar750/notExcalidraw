@@ -9,7 +9,7 @@ import {
 } from "../../store/Tools.store";
 import { useCursorToolActions } from "../../store/UiActions.store";
 import { isSamePoint, type Point } from "../Shapes/Point";
-import type { Shape } from "../Shapes/Shape";
+import type { Shape, shapeId } from "../Shapes/Shape";
 import { Selection } from "../Shapes/Selection";
 import { Text } from "../Shapes/Text";
 import { getStrokeColorString } from "../../utils/Theme";
@@ -40,7 +40,8 @@ type textEditingInitializeInfo = {
   lastWasEmtpyArea: boolean;
   reset: () => void;
 };
-export default class CursorTool implements Tool {
+
+export default class SelectionTool implements Tool {
   toolType: ToolType = "arrow";
 
   shapeManager: ShapeManager;
@@ -50,10 +51,377 @@ export default class CursorTool implements Tool {
   selectionEnd: Point = { x: -1e18, y: -1e18 };
 
   selectedShapes: Shape[] = [];
+  updateSelectionArea(point1: Point, point2: Point) {
+    this.selectionStart = point1;
+    this.selectionEnd = point2;
+    this.#setShapePropertyHelper(this.curSelection.shapeId, {
+      selectionArea: [{ ...point1 }, { ...point2 }],
+    });
+  }
   updateSelectedShapes(shapes: Shape[]) {
     this.selectedShapes.length = 0;
     this.selectedShapes.push(...shapes);
+
+    this.#setShapePropertyHelper(this.curSelection.shapeId, {
+      selectedShapes: shapes,
+    });
   }
+
+  curSelectionPositionUpdaters = {
+    moveEnclosingRectangle: (delX: number, delY: number) => {
+      this.selectedShapes.forEach((shape) => {
+        this.shapeManager.handleShapeUpdateEvent({
+          _id: crypto.randomUUID(),
+          eventType: "updateEnclosingRectangle",
+          shapeId: shape.shapeId,
+          payload: { toUpdate: "moveFull", delX, delY },
+        });
+      });
+    },
+    updateEnclosingRectangle: (
+      nsx: number,
+      nsy: number,
+      nex: number,
+      ney: number,
+    ) => {
+      let [sx, sy, ex, ey] = this.curSelection!.getEnclosingRectangle();
+
+      if (
+        Math.min(ney - nsy, nex - nsx) < this.curSelection!.shapeResizeThreshold
+      )
+        return;
+
+      this!.selectedShapes.forEach((shape) => {
+        let [x1, y1, x2, y2] = shape.getEnclosingRectangle();
+
+        x1 = nsx + ((x1 - sx) * (nex - nsx)) / (ex - sx);
+        y1 = nsy + ((y1 - sy) * (ney - nsy)) / (ey - sy);
+
+        x2 = nsx + ((x2 - sx) * (nex - nsx)) / (ex - sx);
+        y2 = nsy + ((y2 - sy) * (ney - nsy)) / (ey - sy);
+
+        this.shapeManager.handleShapeUpdateEvent({
+          _id: crypto.randomUUID(),
+          eventType: "updateEnclosingRectangle",
+          shapeId: shape.shapeId,
+          payload: { toUpdate: "updateFull", x1, y1, x2, y2 },
+        });
+      });
+    },
+
+    scaleTopLeftCorner: (
+      sx: number,
+      sy: number,
+      ex: number,
+      ey: number,
+      delY: number,
+    ) => {
+      let nsy = sy + delY;
+      let nex = ex;
+      let ney = ey;
+
+      let nsx = nex - ((ex - sx) * (ney - nsy)) / (ey - sy);
+
+      this.curSelectionPositionUpdaters.updateEnclosingRectangle(
+        nsx,
+        nsy,
+        nex,
+        ney,
+      );
+    },
+    scaleTopLeftCornerX: (
+      sx: number,
+      sy: number,
+      ex: number,
+      ey: number,
+      delX: number,
+    ) => {
+      let nsx = sx + delX;
+      let nex = ex;
+      let ney = ey;
+
+      let nsy = ney - ((nex - nsx) * (ey - sy)) / (ex - sx);
+
+      this.curSelectionPositionUpdaters.updateEnclosingRectangle(
+        nsx,
+        nsy,
+        nex,
+        ney,
+      );
+    },
+    scaleTopRightCorner: (
+      sx: number,
+      sy: number,
+      ex: number,
+      ey: number,
+      delY: number,
+    ) => {
+      let nsy = sy + delY;
+      let nsx = sx;
+      let ney = ey;
+
+      let nex = nsx + ((ex - sx) * (ney - nsy)) / (ey - sy);
+      this.curSelectionPositionUpdaters.updateEnclosingRectangle(
+        nsx,
+        nsy,
+        nex,
+        ney,
+      );
+    },
+    scaleBottomRightCorner: (
+      sx: number,
+      sy: number,
+      ex: number,
+      ey: number,
+      delY: number,
+    ) => {
+      let nsx = sx;
+      let nsy = sy;
+      let ney = ey + delY;
+      let nex = nsx + ((ex - sx) * (ney - nsy)) / (ey - sy);
+
+      this.curSelectionPositionUpdaters.updateEnclosingRectangle(
+        nsx,
+        nsy,
+        nex,
+        ney,
+      );
+    },
+    scaleBottomRightCornerX: (
+      sx: number,
+      sy: number,
+      ex: number,
+      ey: number,
+      delX: number,
+    ) => {
+      let nsx = sx;
+      let nsy = sy;
+
+      let nex = ex + delX;
+      let ney = nsy + ((nex - nsx) * (ey - sy)) / (ex - sx);
+
+      this.curSelectionPositionUpdaters.updateEnclosingRectangle(
+        nsx,
+        nsy,
+        nex,
+        ney,
+      );
+    },
+    scaleBottomLeftCorner: (
+      sx: number,
+      sy: number,
+      ex: number,
+      ey: number,
+      delY: number,
+    ) => {
+      let nex = ex;
+      let nsy = sy;
+
+      let ney = ey + delY;
+      let nsx = nex - ((ex - sx) * (ney - nsy)) / (ey - sy);
+
+      this.curSelectionPositionUpdaters.updateEnclosingRectangle(
+        nsx,
+        nsy,
+        nex,
+        ney,
+      );
+    },
+
+    moveTopLeftCorner: (delX: number, delY: number) => {
+      let [sx, sy, ex, ey] = this.curSelection!.getEnclosingRectangle();
+
+      let nsx = sx + delX;
+      let nsy = sy + delY;
+      let nex = ex;
+      let ney = ey;
+
+      if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
+        this.curSelectionPositionUpdaters.scaleTopLeftCorner(
+          sx,
+          sy,
+          ex,
+          ey,
+          delY,
+        );
+      else
+        this.curSelectionPositionUpdaters.updateEnclosingRectangle(
+          nsx,
+          nsy,
+          nex,
+          ney,
+        );
+    },
+    moveTopRightCorner: (delX: number, delY: number) => {
+      let [sx, sy, ex, ey] = this.curSelection!.getEnclosingRectangle();
+
+      let nsx = sx;
+      let nsy = sy + delY;
+      let nex = ex + delX;
+      let ney = ey;
+
+      if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
+        this.curSelectionPositionUpdaters.scaleTopRightCorner(
+          sx,
+          sy,
+          ex,
+          ey,
+          delY,
+        );
+      else
+        this.curSelectionPositionUpdaters.updateEnclosingRectangle(
+          nsx,
+          nsy,
+          nex,
+          ney,
+        );
+    },
+    moveBottomLeftCorner: (delX: number, delY: number) => {
+      let [sx, sy, ex, ey] = this.curSelection!.getEnclosingRectangle();
+
+      let nsx = sx + delX;
+      let nsy = sy;
+      let nex = ex;
+      let ney = ey + delY;
+
+      if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
+        this.curSelectionPositionUpdaters.scaleBottomLeftCorner(
+          sx,
+          sy,
+          ex,
+          ey,
+          delY,
+        );
+      else
+        this.curSelectionPositionUpdaters.updateEnclosingRectangle(
+          nsx,
+          nsy,
+          nex,
+          ney,
+        );
+    },
+    moveBottomRightCorner: (delX: number, delY: number) => {
+      let [sx, sy, ex, ey] = this.curSelection!.getEnclosingRectangle();
+
+      let nsx = sx;
+      let nsy = sy;
+      let nex = ex + delX;
+      let ney = ey + delY;
+
+      if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
+        this.curSelectionPositionUpdaters.scaleBottomRightCorner(
+          sx,
+          sy,
+          ex,
+          ey,
+          delY,
+        );
+      else
+        this.curSelectionPositionUpdaters.updateEnclosingRectangle(
+          nsx,
+          nsy,
+          nex,
+          ney,
+        );
+    },
+
+    moveTopBoundary: (delY: number) => {
+      let [sx, sy, ex, ey] = this.curSelection!.getEnclosingRectangle();
+
+      let nsx = sx;
+      let nsy = sy + delY;
+      let nex = ex;
+      let ney = ey;
+
+      if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
+        this.curSelectionPositionUpdaters.scaleTopLeftCorner(
+          sx,
+          sy,
+          ex,
+          ey,
+          delY,
+        );
+      else
+        this.curSelectionPositionUpdaters.updateEnclosingRectangle(
+          nsx,
+          nsy,
+          nex,
+          ney,
+        );
+    },
+    moveLeftBoundary: (delX: number) => {
+      let [sx, sy, ex, ey] = this.curSelection!.getEnclosingRectangle();
+
+      let nsx = sx + delX;
+      let nsy = sy;
+      let nex = ex;
+      let ney = ey;
+
+      if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
+        this.curSelectionPositionUpdaters.scaleTopLeftCornerX(
+          sx,
+          sy,
+          ex,
+          ey,
+          delX,
+        );
+      else
+        this.curSelectionPositionUpdaters.updateEnclosingRectangle(
+          nsx,
+          nsy,
+          nex,
+          ney,
+        );
+    },
+    moveRightBoundary: (delX: number) => {
+      let [sx, sy, ex, ey] = this.curSelection!.getEnclosingRectangle();
+
+      let nsx = sx;
+      let nsy = sy;
+      let nex = ex + delX;
+      let ney = ey;
+
+      if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
+        this.curSelectionPositionUpdaters.scaleBottomRightCornerX(
+          sx,
+          sy,
+          ex,
+          ey,
+          delX,
+        );
+      else
+        this.curSelectionPositionUpdaters.updateEnclosingRectangle(
+          nsx,
+          nsy,
+          nex,
+          ney,
+        );
+    },
+    moveBottomBoundary: (delY: number) => {
+      let [sx, sy, ex, ey] = this.curSelection!.getEnclosingRectangle();
+
+      let nsx = sx;
+      let nsy = sy;
+      let nex = ex;
+      let ney = ey + delY;
+
+      if (this.selectedShapes.find((shape) => shape.shapeType == "text"))
+        this.curSelectionPositionUpdaters.scaleBottomRightCorner(
+          sx,
+          sy,
+          ex,
+          ey,
+          delY,
+        );
+      else
+        this.curSelectionPositionUpdaters.updateEnclosingRectangle(
+          nsx,
+          nsy,
+          nex,
+          ney,
+        );
+    },
+  };
 
   curSelection: Selection;
 
@@ -83,14 +451,29 @@ export default class CursorTool implements Tool {
   editableTextContainer: React.RefObject<HTMLDivElement | null>;
   currentInputElement: HTMLTextAreaElement;
 
+  #setShapePropertyHelper(shapeId: shapeId, payload: any) {
+    this.shapeManager.handleShapeUpdateEvent({
+      _id: crypto.randomUUID(),
+      eventType: "updateProperty",
+      shapeId: shapeId,
+      payload,
+    });
+  }
+
   updateCurrentTextEnclosingRectangle() {
     let rect = this.currentInputElement.getBoundingClientRect();
-    this.curText!.setEnclosingRectangleCoordinates(
-      rect.x,
-      rect.y,
-      rect.x + rect.width,
-      rect.y + rect.height,
-    );
+    this.shapeManager.handleShapeUpdateEvent({
+      _id: crypto.randomUUID(),
+      eventType: "updateEnclosingRectangle",
+      shapeId: this.curText!.shapeId,
+      payload: {
+        toUpdate: "updateFull",
+        x1: rect.x,
+        y1: rect.y,
+        x2: rect.x + rect.width,
+        y2: rect.y + rect.height,
+      },
+    });
   }
 
   reset(): void {
@@ -103,11 +486,10 @@ export default class CursorTool implements Tool {
     this.curState = "idle";
     this.curPoint.x = -1e18;
     this.curPoint.y = -1e18;
-    this.selectionStart.x = -1e18;
-    this.selectionStart.y = -1e18;
-    this.selectionEnd.x = -1e18;
-    this.selectionEnd.y = -1e18;
+
+    this.updateSelectionArea({ ...this.curPoint }, { ...this.curPoint });
     this.updateSelectedShapes([]);
+
     this.curState = "idle";
     document.body.style.cursor = "default";
   }
@@ -119,7 +501,8 @@ export default class CursorTool implements Tool {
       (state) => state.arrowType,
       (newval) => {
         this.selectedShapes.forEach((shape) => {
-          shape.setArrowType?.(newval);
+          if ((shape as any).setArrowType)
+            this.#setShapePropertyHelper(shape.shapeId, { arrowType: newval });
         });
       },
     );
@@ -127,7 +510,8 @@ export default class CursorTool implements Tool {
       (state) => state.edgeRadius,
       (newval) => {
         this.selectedShapes.forEach((shape) => {
-          shape.setEdgeRadius?.(newval);
+          if ((shape as any).setEdgeRadius)
+            this.#setShapePropertyHelper(shape.shapeId, { edgeRadius: newval });
         });
       },
     );
@@ -135,7 +519,8 @@ export default class CursorTool implements Tool {
       (state) => state.fontSize,
       (newval) => {
         this.selectedShapes.forEach((shape) => {
-          shape.setFontSize?.(newval);
+          if ((shape as any).setFontSize)
+            this.#setShapePropertyHelper(shape.shapeId, { fontSize: newval });
         });
       },
     );
@@ -143,7 +528,8 @@ export default class CursorTool implements Tool {
       (state) => state.fontFamily,
       (newval) => {
         this.selectedShapes.forEach((shape) => {
-          shape.setFontFamily?.(newval);
+          if ((shape as any).setFontFamily)
+            this.#setShapePropertyHelper(shape.shapeId, { fontFamily: newval });
         });
       },
     );
@@ -151,7 +537,8 @@ export default class CursorTool implements Tool {
       (state) => state.fillStyle,
       (newval) => {
         this.selectedShapes.forEach((shape) => {
-          shape.setFillStyle?.(newval);
+          if ((shape as any).setFillStyle)
+            this.#setShapePropertyHelper(shape.shapeId, { fillStyle: newval });
         });
       },
     );
@@ -159,7 +546,10 @@ export default class CursorTool implements Tool {
       (state) => state.backgroundColor,
       (newval) => {
         this.selectedShapes.forEach((shape) => {
-          shape.setBackgroundColor?.(newval);
+          if ((shape as any).setBackgroundColor)
+            this.#setShapePropertyHelper(shape.shapeId, {
+              backgroundColor: newval,
+            });
         });
       },
     );
@@ -167,7 +557,8 @@ export default class CursorTool implements Tool {
       (state) => state.opacity,
       (newval) => {
         this.selectedShapes.forEach((shape) => {
-          shape.setOpacity?.(newval);
+          if ((shape as any).setOpacity)
+            this.#setShapePropertyHelper(shape.shapeId, { opacity: newval });
         });
       },
     );
@@ -175,7 +566,10 @@ export default class CursorTool implements Tool {
       (state) => state.strokeStyle,
       (newval) => {
         this.selectedShapes.forEach((shape) => {
-          shape.setStrokeStyle?.(newval);
+          if ((shape as any).setStrokeStyle)
+            this.#setShapePropertyHelper(shape.shapeId, {
+              strokeStyle: newval,
+            });
         });
       },
     );
@@ -183,7 +577,10 @@ export default class CursorTool implements Tool {
       (state) => state.strokeWidth,
       (newval) => {
         this.selectedShapes.forEach((shape) => {
-          shape.setStrokeWidth?.(newval);
+          if ((shape as any).setStrokeWidth)
+            this.#setShapePropertyHelper(shape.shapeId, {
+              strokeWidth: newval,
+            });
         });
       },
     );
@@ -191,7 +588,10 @@ export default class CursorTool implements Tool {
       (state) => state.strokeColor,
       (newval) => {
         this.selectedShapes.forEach((shape) => {
-          shape.setStrokeColor?.(newval);
+          if ((shape as any).setStrokeColor)
+            this.#setShapePropertyHelper(shape.shapeId, {
+              strokeColor: newval,
+            });
         });
       },
     );
@@ -202,7 +602,10 @@ export default class CursorTool implements Tool {
       (state) => state.fontFamily,
       (state) => {
         if (this.curText) {
-          this.curText.setFontFamily(state);
+          this.#setShapePropertyHelper(this.curText.shapeId, {
+            fontFamily: state,
+          });
+
           switch (this.curText.fontFamily) {
             case "code":
               this.currentInputElement.style.fontFamily = "Code";
@@ -235,7 +638,9 @@ export default class CursorTool implements Tool {
       (state) => state.fontSize,
       (state) => {
         if (this.curText) {
-          this.curText.setFontSize(state);
+          this.#setShapePropertyHelper(this.curText.shapeId, {
+            fontSize: state,
+          });
 
           switch (this.curText.fontSize) {
             case "small":
@@ -276,7 +681,9 @@ export default class CursorTool implements Tool {
       (state) => {
         if (this.curText) {
           this.currentInputElement.style.opacity = (state / 100).toString();
-          this.curText.setOpacity(state);
+          this.#setShapePropertyHelper(this.curText.shapeId, {
+            opacity: state,
+          });
         }
       },
     );
@@ -285,7 +692,9 @@ export default class CursorTool implements Tool {
       (state) => {
         if (this.curText) {
           this.currentInputElement.style.color = getStrokeColorString(state);
-          this.curText.setStrokeColor(state);
+          this.#setShapePropertyHelper(this.curText.shapeId, {
+            strokeColor: state,
+          });
         }
       },
     );
@@ -330,10 +739,17 @@ export default class CursorTool implements Tool {
     editableTextContainer: React.RefObject<HTMLDivElement | null>,
     eventCallback: (tool: ToolType, event: EventType) => void,
   ) {
+    //
     this.curSelection = new Selection(
       [this.selectionStart, this.selectionEnd],
       this.selectedShapes,
     );
+
+    shapeManager.handleShapeUpdateEvent({
+      _id: crypto.randomUUID(),
+      eventType: "addShape",
+      payload: { shape: this.curSelection },
+    });
 
     this.zustandSubscribe();
     this.shapeManager = shapeManager;
@@ -376,28 +792,52 @@ export default class CursorTool implements Tool {
       this.editableTextContainer.current?.removeChild?.(
         this.currentInputElement,
       );
+    this.shapeManager.handleShapeUpdateEvent({
+      _id: crypto.randomUUID(),
+      eventType: "deleteShape",
+      shapeId: this.curSelection.shapeId,
+    });
     document.body.style.cursor = "default";
   }
 
   handleDeleteAction() {
     if (this.curState == "selected") {
       this.selectedShapes.forEach((shape) =>
-        this.shapeManager.removeShape(shape.shapeId),
+        this.shapeManager.handleShapeUpdateEvent({
+          _id: crypto.randomUUID(),
+          eventType: "deleteShape",
+          shapeId: shape.shapeId,
+        }),
       );
       this.updateSelectedShapes([]);
       useSelectedShapes.setState({ selectedShapes: new Set() });
 
-      this.shapeManager.removeShape(this.curSelection.shapeId);
       this.curState = "idle";
     }
   }
   handleDuplicateAction() {
     if (this.curState == "selected") {
-      let newSelection = this.curSelection.clone();
-      this.curSelection.moveEnclosingRectangle(10, 10);
+      let newSelection = this.curSelection!.clone();
+
+      this.selectedShapes.forEach((shape) =>
+        this.shapeManager.handleShapeUpdateEvent({
+          _id: crypto.randomUUID(),
+          shapeId: shape.shapeId,
+          eventType: "updateEnclosingRectangle",
+          payload: {
+            toUpdate: "moveFull",
+            delX: 10,
+            delY: 10,
+          },
+        }),
+      );
 
       newSelection.selectedShapes.forEach((shape) =>
-        this.shapeManager.addShape(shape),
+        this.shapeManager.handleShapeUpdateEvent({
+          _id: crypto.randomUUID(),
+          eventType: "addShape",
+          payload: { shape },
+        }),
       );
     }
   }
@@ -411,15 +851,28 @@ export default class CursorTool implements Tool {
         });
 
         if (this.curState == "selecting" || this.curState == "selected") {
-          this.shapeManager.removeShape(this.curSelection.shapeId);
+          //
+          this.updateSelectedShapes([]);
+          this.updateSelectionArea({ x: 0, y: 0 }, { x: 0, y: 0 });
+          this.#setShapePropertyHelper(this.curSelection.shapeId, {
+            drawSelectionArea: false,
+          });
         } else if (this.curState == "editingText") {
           this.updateCurrentTextEnclosingRectangle();
 
-          this.curText?.setText(this.currentInputElement.value);
-          this.curText?.setCurState("render");
+          this.#setShapePropertyHelper(this.curText!.shapeId, {
+            text: this.currentInputElement.value,
+            curState: "render",
+          });
+
           this.currentInputElement.value = "";
           if (this.curText!.text.length == 0)
-            this.shapeManager.removeShape(this.curText!.shapeId);
+            this.shapeManager.handleShapeUpdateEvent({
+              _id: crypto.randomUUID(),
+              eventType: "deleteShape",
+              shapeId: this.curText!.shapeId,
+            });
+
           this.editableTextContainer.current?.removeChild(
             this.currentInputElement,
           );
@@ -453,45 +906,51 @@ export default class CursorTool implements Tool {
         {
           //
           if (
-            this.curSelection.isTopLeftCorner(this.curPoint.x, this.curPoint.y)
+            this.curSelection!.isTopLeftCorner(this.curPoint.x, this.curPoint.y)
           ) {
             document.body.style.cursor = "nwse-resize";
           } else if (
-            this.curSelection.isTopRightCorner(this.curPoint.x, this.curPoint.y)
-          ) {
-            document.body.style.cursor = "nesw-resize";
-          } else if (
-            this.curSelection.isBottomLeftCorner(
+            this.curSelection!.isTopRightCorner(
               this.curPoint.x,
               this.curPoint.y,
             )
           ) {
             document.body.style.cursor = "nesw-resize";
           } else if (
-            this.curSelection.isBottomRightCorner(
+            this.curSelection!.isBottomLeftCorner(
+              this.curPoint.x,
+              this.curPoint.y,
+            )
+          ) {
+            document.body.style.cursor = "nesw-resize";
+          } else if (
+            this.curSelection!.isBottomRightCorner(
               this.curPoint.x,
               this.curPoint.y,
             )
           ) {
             document.body.style.cursor = "nwse-resize";
           } else if (
-            this.curSelection.isBottomBoundary(this.curPoint.x, this.curPoint.y)
+            this.curSelection!.isBottomBoundary(
+              this.curPoint.x,
+              this.curPoint.y,
+            )
           ) {
             document.body.style.cursor = "ns-resize";
           } else if (
-            this.curSelection.isLeftBoundary(this.curPoint.x, this.curPoint.y)
+            this.curSelection!.isLeftBoundary(this.curPoint.x, this.curPoint.y)
           ) {
             document.body.style.cursor = "ew-resize";
           } else if (
-            this.curSelection.isRightBoundary(this.curPoint.x, this.curPoint.y)
+            this.curSelection!.isRightBoundary(this.curPoint.x, this.curPoint.y)
           ) {
             document.body.style.cursor = "ew-resize";
           } else if (
-            this.curSelection.isTopBoundary(this.curPoint.x, this.curPoint.y)
+            this.curSelection!.isTopBoundary(this.curPoint.x, this.curPoint.y)
           ) {
             document.body.style.cursor = "ns-resize";
           } else if (
-            this.curSelection.containsPoint(this.curPoint.x, this.curPoint.y)
+            this.curSelection!.containsPoint(this.curPoint.x, this.curPoint.y)
           ) {
             document.body.style.cursor = "move";
           } else {
@@ -501,15 +960,15 @@ export default class CursorTool implements Tool {
         break;
       case "selecting":
         {
-          this.selectionEnd.x = this.curPoint.x;
-          this.selectionEnd.y = this.curPoint.y;
+          this.updateSelectionArea(this.selectionStart, { ...this.curPoint });
 
-          if (!isSamePoint(this.curPoint, this.selectionStart)) {
+          if (!isSamePoint(this.selectionEnd, this.selectionStart)) {
             this.updateSelectedShapes(
               this.shapeManager
                 .getShapesInside(this.selectionStart, this.selectionEnd)
                 .filter((shape) => shape.shapeType != "selection"),
             );
+
             useSelectedShapes.setState({
               selectedShapes: new Set(
                 this.selectedShapes.map((shape) => shape.shapeType),
@@ -524,7 +983,8 @@ export default class CursorTool implements Tool {
             this.curPoint.x - this.curSelectionMovementInfo.lastPoint.x;
           let dely =
             this.curPoint.y - this.curSelectionMovementInfo.lastPoint.y;
-          this.curSelection.moveEnclosingRectangle(delx, dely);
+
+          this.curSelectionPositionUpdaters.moveEnclosingRectangle(delx, dely);
 
           this.curSelectionMovementInfo.lastPoint = { ...this.curPoint };
         }
@@ -533,7 +993,7 @@ export default class CursorTool implements Tool {
         {
           let dely =
             this.curPoint.y - this.curSelectionMovementInfo.lastPoint.y;
-          this.curSelection.moveTopBoundary(dely);
+          this.curSelectionPositionUpdaters.moveTopBoundary(dely);
 
           this.curSelectionMovementInfo.lastPoint = { ...this.curPoint };
         }
@@ -542,7 +1002,7 @@ export default class CursorTool implements Tool {
         {
           let dely =
             this.curPoint.y - this.curSelectionMovementInfo.lastPoint.y;
-          this.curSelection.moveBottomBoundary(dely);
+          this.curSelectionPositionUpdaters.moveBottomBoundary(dely);
 
           this.curSelectionMovementInfo.lastPoint = { ...this.curPoint };
         }
@@ -551,7 +1011,7 @@ export default class CursorTool implements Tool {
         {
           let delx =
             this.curPoint.x - this.curSelectionMovementInfo.lastPoint.x;
-          this.curSelection.moveRightBoundary(delx);
+          this.curSelectionPositionUpdaters.moveRightBoundary(delx);
 
           this.curSelectionMovementInfo.lastPoint = { ...this.curPoint };
         }
@@ -560,7 +1020,7 @@ export default class CursorTool implements Tool {
         {
           let delx =
             this.curPoint.x - this.curSelectionMovementInfo.lastPoint.x;
-          this.curSelection.moveLeftBoundary(delx);
+          this.curSelectionPositionUpdaters.moveLeftBoundary(delx);
 
           this.curSelectionMovementInfo.lastPoint = { ...this.curPoint };
         }
@@ -571,7 +1031,7 @@ export default class CursorTool implements Tool {
             this.curPoint.x - this.curSelectionMovementInfo.lastPoint.x;
           let dely =
             this.curPoint.y - this.curSelectionMovementInfo.lastPoint.y;
-          this.curSelection.moveTopLeftCorner(delx, dely);
+          this.curSelectionPositionUpdaters.moveTopLeftCorner(delx, dely);
 
           this.curSelectionMovementInfo.lastPoint = { ...this.curPoint };
         }
@@ -582,7 +1042,7 @@ export default class CursorTool implements Tool {
             this.curPoint.x - this.curSelectionMovementInfo.lastPoint.x;
           let dely =
             this.curPoint.y - this.curSelectionMovementInfo.lastPoint.y;
-          this.curSelection.moveBottomRightCorner(delx, dely);
+          this.curSelectionPositionUpdaters.moveBottomRightCorner(delx, dely);
 
           this.curSelectionMovementInfo.lastPoint = { ...this.curPoint };
         }
@@ -593,7 +1053,7 @@ export default class CursorTool implements Tool {
             this.curPoint.x - this.curSelectionMovementInfo.lastPoint.x;
           let dely =
             this.curPoint.y - this.curSelectionMovementInfo.lastPoint.y;
-          this.curSelection.moveTopRightCorner(delx, dely);
+          this.curSelectionPositionUpdaters.moveTopRightCorner(delx, dely);
 
           this.curSelectionMovementInfo.lastPoint = { ...this.curPoint };
         }
@@ -604,7 +1064,7 @@ export default class CursorTool implements Tool {
             this.curPoint.x - this.curSelectionMovementInfo.lastPoint.x;
           let dely =
             this.curPoint.y - this.curSelectionMovementInfo.lastPoint.y;
-          this.curSelection.moveBottomLeftCorner(delx, dely);
+          this.curSelectionPositionUpdaters.moveBottomLeftCorner(delx, dely);
 
           this.curSelectionMovementInfo.lastPoint = { ...this.curPoint };
         }
@@ -621,7 +1081,6 @@ export default class CursorTool implements Tool {
     switch (this.curState) {
       case "idle":
         {
-          //
           let shapesAtCurPoint = this.shapeManager.getShapesAt(
             this.curPoint.x,
             this.curPoint.y,
@@ -640,21 +1099,24 @@ export default class CursorTool implements Tool {
 
             this.curSelectionMovementInfo.lastPoint = { ...this.curPoint };
 
-            this.curSelection.setDrawSelectionArea(false);
+            this.#setShapePropertyHelper(this.curSelection.shapeId, {
+              drawSelectionArea: false,
+            });
           } else {
             this.curState = "selecting";
 
-            this.selectionStart.x = this.curPoint.x;
-            this.selectionStart.y = this.curPoint.y;
-            this.selectionEnd.x = this.curPoint.x;
-            this.selectionEnd.y = this.curPoint.y;
+            this.updateSelectionArea(
+              { ...this.curPoint },
+              { ...this.curPoint },
+            );
 
+            this.updateSelectedShapes([]);
             useSelectedShapes.setState({ selectedShapes: new Set() });
 
-            this.curSelection.setDrawSelectionArea(true);
+            this.#setShapePropertyHelper(this.curSelection.shapeId, {
+              drawSelectionArea: true,
+            });
           }
-
-          this.shapeManager.addShape(this.curSelection);
         }
         break;
       case "selected":
@@ -713,14 +1175,17 @@ export default class CursorTool implements Tool {
           } else {
             this.curState = "selecting";
 
-            this.selectionStart.x = this.curPoint.x;
-            this.selectionStart.y = this.curPoint.y;
-            this.selectionEnd.x = this.curPoint.x;
-            this.selectionEnd.y = this.curPoint.y;
+            this.updateSelectionArea(
+              { ...this.curPoint },
+              { ...this.curPoint },
+            );
 
             this.updateSelectedShapes([]);
             useSelectedShapes.setState({ selectedShapes: new Set() });
-            this.curSelection.setDrawSelectionArea(true);
+
+            this.#setShapePropertyHelper(this.curSelection.shapeId, {
+              drawSelectionArea: true,
+            });
           }
         }
         break;
@@ -740,11 +1205,19 @@ export default class CursorTool implements Tool {
 
           this.updateCurrentTextEnclosingRectangle();
 
-          this.curText?.setText(this.currentInputElement.value);
-          this.curText?.setCurState("render");
+          this.#setShapePropertyHelper(this.curText!.shapeId, {
+            text: this.currentInputElement.value,
+            curState: "render",
+          });
+
           this.currentInputElement.value = "";
           if (this.curText!.text.length == 0)
-            this.shapeManager.removeShape(this.curText!.shapeId);
+            this.shapeManager.handleShapeUpdateEvent({
+              _id: crypto.randomUUID(),
+              eventType: "deleteShape",
+              shapeId: this.curText!.shapeId,
+            });
+
           this.editableTextContainer.current?.removeChild(
             this.currentInputElement,
           );
@@ -753,9 +1226,12 @@ export default class CursorTool implements Tool {
         break;
       case "selecting":
         {
+          this.#setShapePropertyHelper(this.curSelection.shapeId, {
+            drawSelectionArea: false,
+          });
+
           if (this.selectedShapes.length > 0) {
             this.curState = "selected";
-            this.curSelection.setDrawSelectionArea(false);
           } else {
             //ch3ecking double click
             if (
@@ -784,7 +1260,12 @@ export default class CursorTool implements Tool {
                 { x: curPoint.x, y: curPoint.y },
                 { x: curPoint.x, y: curPoint.y },
               ]);
-              this.shapeManager.addShape(this.curText);
+
+              this.shapeManager.handleShapeUpdateEvent({
+                _id: crypto.randomUUID(),
+                eventType: "addShape",
+                payload: { shape: this.curText },
+              });
 
               this.currentInputElement.value = this.curText.text;
 
@@ -851,7 +1332,9 @@ export default class CursorTool implements Tool {
               this.currentInputElement.style.width =
                 this.currentInputElement.scrollWidth + "px";
 
-              this.curText.setCurState("edit");
+              this.#setShapePropertyHelper(this.curText.shapeId, {
+                curState: "edit",
+              });
 
               this.currentInputElement.select();
               this.curtextEditingInitiliazeInfo.reset();
@@ -862,8 +1345,6 @@ export default class CursorTool implements Tool {
               this.curtextEditingInitiliazeInfo.lastTime = new Date();
               this.curtextEditingInitiliazeInfo.lastWasEmtpyArea = true;
             }
-
-            this.shapeManager.removeShape(this.curSelection.shapeId);
           }
         }
         break;
@@ -962,8 +1443,6 @@ export default class CursorTool implements Tool {
 
               this.currentInputElement.select();
               this.curtextEditingInitiliazeInfo.reset();
-
-              this.shapeManager.removeShape(this.curSelection.shapeId);
             } else {
               this.curState = "selected";
               this.curSelectionMovementInfo.reset();

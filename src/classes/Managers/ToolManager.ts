@@ -14,7 +14,7 @@ import PenTool from "../Tools/PenTool";
 import EraserTool from "../Tools/EraserTool";
 import TextTool from "../Tools/TextTool";
 import GrabTool from "../Tools/GrabTool.ts";
-import CursorTool from "../Tools/CursorTool.ts";
+import SelectionTool from "../Tools/SelectionTool.ts";
 import ShapeManager from "./ShapeManager";
 import type React from "react";
 import type { RefObject } from "react";
@@ -68,9 +68,15 @@ export default class ToolManager {
 
   resetCanvas() {
     useToolStyle.getState().reset();
+
     Object.values(this.tools).forEach((tool) => tool.reset());
-    this.shapeManager.shapes.forEach((sh) =>
-      this.shapeManager.removeShape(sh.shapeId),
+
+    Object.keys(this.shapeManager.shapes).forEach((shapeId) =>
+      this.shapeManager.handleShapeUpdateEvent({
+        _id: crypto.randomUUID(),
+        eventType: "deleteShape",
+        shapeId: shapeId,
+      }),
     );
   }
 
@@ -100,7 +106,7 @@ export default class ToolManager {
         editableTextContainer,
         this.toolEventsCallback,
       ),
-      cursor: new CursorTool(
+      cursor: new SelectionTool(
         shapeManager,
         editableTextContainer,
         this.toolEventsCallback,
@@ -134,6 +140,6 @@ export default class ToolManager {
     if (this.activeTool != "cursor") return;
 
     if (e.key == "Delete" || e.key == "Backspace")
-      (this.tools["cursor"] as CursorTool).handleDeleteAction();
+      (this.tools["cursor"] as SelectionTool).handleDeleteAction();
   }
 }

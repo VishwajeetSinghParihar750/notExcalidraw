@@ -39,14 +39,26 @@ export default class CircleTool implements Tool {
   onCanvasMouseDown(e: MouseEvent) {
     this.curState = "drawing";
     this.currentCircle = new Circle(e.clientX, e.clientY, e.clientX, e.clientY);
-    this.shapeManager.addShape(this.currentCircle);
+    this.shapeManager.handleShapeUpdateEvent({
+      _id: crypto.randomUUID(),
+      eventType: "addShape",
+      payload: { shape: this.currentCircle },
+    });
   }
 
   onCanvasMouseMove(e: MouseEvent) {
     document.body.style.cursor = "crosshair";
     if (this.curState == "drawing") {
-      this.currentCircle!.setEndX(e.clientX);
-      this.currentCircle!.setEndY(e.clientY);
+      this.shapeManager.handleShapeUpdateEvent({
+        _id: crypto.randomUUID(),
+        eventType: "updateEnclosingRectangle",
+        shapeId: this.currentCircle!.shapeId,
+        payload: {
+          toUpdate: "bottomRightCorner",
+          x2: e.clientX,
+          y2: e.clientY,
+        },
+      });
     }
   }
 
@@ -60,7 +72,11 @@ export default class CircleTool implements Tool {
         Math.floor(this.currentCircle!.startY) ==
           Math.floor(this.currentCircle!.endY)
       )
-        this.shapeManager.removeShape(this.currentCircle!.shapeId);
+        this.shapeManager.handleShapeUpdateEvent({
+          _id: crypto.randomUUID(),
+          eventType: "deleteShape",
+          shapeId: this.currentCircle!.shapeId,
+        });
       else this.emit(this.toolType, "taskComplete");
 
       this.currentCircle = null;

@@ -11,6 +11,7 @@ import { Line } from "../classes/Shapes/Line";
 import { Pen } from "../classes/Shapes/Pen";
 import { Selection } from "../classes/Shapes/Selection";
 import { Text } from "../classes/Shapes/Text";
+import Collab from "../classes/feature/Collab";
 
 type useCanvasProps = {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -33,6 +34,11 @@ export default function useCanvas(props: useCanvasProps) {
     if (!props.canvasRef.current) return;
 
     let shapeManager = new ShapeManager();
+
+    const params = new URLSearchParams(window.location.search);
+    const roomId = params.get("roomId");
+    let collab: Collab | null;
+    if (roomId) collab = new Collab(shapeManager, roomId);
 
     let shapeManagerShapes = window.localStorage.getItem("shapeManagerShapes");
 
@@ -80,6 +86,7 @@ export default function useCanvas(props: useCanvasProps) {
     //   persistShapeManagerShapes();
     // }, 5000);
 
+    //u need to wait for collab to join Room before u init this
     let toolManager = new ToolMangager(
       shapeManager,
       props.canvasRef,
@@ -155,6 +162,7 @@ export default function useCanvas(props: useCanvasProps) {
       // window.removeEventListener("pagehide", persistShapeManagerShapes);
 
       // clearInterval(shapeManagerShapesPersistenceInterval);
+      if (collab) collab.destructor();
     };
   }, []);
 }

@@ -45,6 +45,7 @@ export default class RotatedRectangleTool implements Tool {
     this.shapeManager.handleShapeUpdateEvent({
       _id: crypto.randomUUID(),
       eventType: "addShape",
+      shapeId: this.currentRectangle.shapeId,
       payload: { shape: this.currentRectangle },
     });
   }

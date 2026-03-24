@@ -72,6 +72,7 @@ type shapeUpdateEvent =
     }
   | {
       _id: shapeUpdateEventId;
+      shapeId: shapeId;
       eventType: "addShape";
       payload: addShapeSchema;
     }

@@ -748,6 +748,7 @@ export default class SelectionTool implements Tool {
     shapeManager.handleShapeUpdateEvent({
       _id: crypto.randomUUID(),
       eventType: "addShape",
+      shapeId: this.curSelection.shapeId,
       payload: { shape: this.curSelection },
     });
 
@@ -836,6 +837,7 @@ export default class SelectionTool implements Tool {
         this.shapeManager.handleShapeUpdateEvent({
           _id: crypto.randomUUID(),
           eventType: "addShape",
+          shapeId: shape.shapeId,
           payload: { shape },
         }),
       );
@@ -1264,6 +1266,7 @@ export default class SelectionTool implements Tool {
               this.shapeManager.handleShapeUpdateEvent({
                 _id: crypto.randomUUID(),
                 eventType: "addShape",
+                shapeId: this.curText.shapeId,
                 payload: { shape: this.curText },
               });
 

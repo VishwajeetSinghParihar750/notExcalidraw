@@ -65,6 +65,7 @@ export default class ArrowTool implements Tool {
 
           this.shapeManager.handleShapeUpdateEvent({
             _id: crypto.randomUUID(),
+            shapeId: this.currentLine!.shapeId,
             eventType: "addShape",
             payload: { shape: this.currentLine! },
           });

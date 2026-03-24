@@ -42,6 +42,7 @@ export default class CircleTool implements Tool {
     this.shapeManager.handleShapeUpdateEvent({
       _id: crypto.randomUUID(),
       eventType: "addShape",
+      shapeId: this.currentCircle.shapeId,
       payload: { shape: this.currentCircle },
     });
   }

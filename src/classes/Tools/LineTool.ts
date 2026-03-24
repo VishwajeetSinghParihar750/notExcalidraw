@@ -65,6 +65,7 @@ export default class LineTool implements Tool {
           this.shapeManager.handleShapeUpdateEvent({
             _id: crypto.randomUUID(),
             eventType: "addShape",
+            shapeId: this.currentLine.shapeId,
             payload: { shape: this.currentLine },
           });
         }

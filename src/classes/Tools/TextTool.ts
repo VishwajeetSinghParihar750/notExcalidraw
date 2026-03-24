@@ -294,6 +294,7 @@ export default class TextTool implements Tool {
         this.shapeManager.handleShapeUpdateEvent({
           _id: crypto.randomUUID(),
           eventType: "addShape",
+          shapeId: this.curText.shapeId,
           payload: { shape: this.curText },
         });
       }

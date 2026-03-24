@@ -40,6 +40,7 @@ export default class PenTool implements Tool {
     this.shapeManager.handleShapeUpdateEvent({
       _id: crypto.randomUUID(),
       eventType: "addShape",
+      shapeId: this.currentPen.shapeId,
       payload: { shape: this.currentPen },
     });
   }

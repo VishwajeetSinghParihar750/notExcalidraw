@@ -6,7 +6,7 @@ import type { shapeUpdateEvent } from "../../types/shapeUpdateEvents";
 
 export class Selection implements Shape {
   readonly shapeType: ShapeType = "selection";
-  readonly shapeId: shapeId = crypto.randomUUID();
+  readonly shapeId: shapeId;
 
   private _selectionArea: [Point, Point];
   private _selectedShapes: Shape[] = [];
@@ -57,7 +57,12 @@ export class Selection implements Shape {
     );
   }
 
-  constructor(selectionArea: [Point, Point], selectedShapes: Shape[]) {
+  constructor(
+    selectionArea: [Point, Point],
+    selectedShapes: Shape[],
+    shapeId: string = crypto.randomUUID(),
+  ) {
+    this.shapeId = shapeId;
     this._selectedShapes = selectedShapes;
     this._selectionArea = selectionArea;
   }
@@ -290,5 +295,30 @@ export class Selection implements Shape {
       default:
         break;
     }
+  }
+
+  serialize(): any {
+    const [p1, p2] = this._selectionArea;
+    return {
+      shapeType: "selection",
+      shapeId: this.shapeId,
+
+      selectionArea: [
+        { x: p1.x, y: p1.y },
+        { x: p2.x, y: p2.y },
+      ],
+      selectedShapes: this._selectedShapes.map((shape) => shape.serialize()),
+      drawSelectionArea: this._drawSelectionArea,
+    };
+  }
+
+  static deserialize(serializedShape: any): Shape {
+    const { shapeId, selectionArea, selectedShapes, drawSelectionArea } =
+      serializedShape;
+
+    let newShape = new Selection(selectionArea, selectedShapes, shapeId);
+    newShape._drawSelectionArea = drawSelectionArea;
+
+    return newShape;
   }
 }

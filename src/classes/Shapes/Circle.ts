@@ -18,7 +18,7 @@ import type { shapeUpdateEvent } from "../../types/shapeUpdateEvents";
 
 export class Circle implements Shape {
   readonly shapeType: ShapeType = "circle";
-  readonly shapeId: shapeId = crypto.randomUUID();
+  readonly shapeId: shapeId;
 
   private _backgroundColor: backgroundColor;
   private _strokeColor: strokeColor;
@@ -123,8 +123,15 @@ export class Circle implements Shape {
     return circle;
   }
 
-  constructor(startX: number, startY: number, endX: number, endY: number) {
-    console.log("callled circle constructor ");
+  constructor(
+    startX: number,
+    startY: number,
+    endX: number,
+    endY: number,
+    shapeId: string = crypto.randomUUID(),
+  ) {
+    this.shapeId = shapeId;
+
     this._startX = startX;
     this._startY = startY;
     this._endX = endX;
@@ -319,5 +326,55 @@ export class Circle implements Shape {
       default:
         break;
     }
+  }
+  serialize(): any {
+    return {
+      shapeType: "circle",
+      shapeId: this.shapeId,
+
+      startX: this.startX,
+      startY: this.startY,
+      endX: this.endX,
+      endY: this.endY,
+
+      strokeColor: this.strokeColor,
+      strokeWidth: this.strokeWidth,
+      strokeStyle: this.strokeStyle,
+
+      backgroundColor: this.backgroundColor,
+      fillStyle: this.fillStyle,
+
+      opacity: this.opacity,
+    };
+  }
+  static deserialize(serializedShape: any): Shape {
+    const {
+      shapeId,
+
+      startX,
+      startY,
+      endX,
+      endY,
+
+      strokeColor,
+      strokeWidth,
+      strokeStyle,
+
+      backgroundColor,
+      fillStyle,
+
+      opacity,
+    } = serializedShape;
+
+    let newShape = new Circle(startX, startY, endX, endY, shapeId);
+
+    newShape._strokeColor = strokeColor;
+    newShape._strokeWidth = strokeWidth;
+    newShape._strokeStyle = strokeStyle;
+    newShape._opacity = opacity;
+    newShape._backgroundColor = backgroundColor;
+    newShape._fillStyle = fillStyle;
+
+    return newShape;
   }
 }

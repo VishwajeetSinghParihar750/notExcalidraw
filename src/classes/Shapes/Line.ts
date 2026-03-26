@@ -19,7 +19,7 @@ import {
 import type { shapeUpdateEvent } from "../../types/shapeUpdateEvents";
 
 export class Line implements Shape {
-  readonly shapeId: shapeId = crypto.randomUUID();
+  readonly shapeId: shapeId;
   readonly shapeType: ShapeType = "line";
 
   private _backgroundColor: backgroundColor;
@@ -108,7 +108,8 @@ export class Line implements Shape {
     return line;
   }
 
-  constructor(points: Point[]) {
+  constructor(points: Point[], shapeId: string = crypto.randomUUID()) {
+    this.shapeId = shapeId;
     this._points = points;
 
     let {
@@ -351,5 +352,54 @@ export class Line implements Shape {
       default:
         break;
     }
+  }
+
+  serialize(): any {
+    return {
+      shapeType: "line",
+      shapeId: this.shapeId,
+
+      points: this._points,
+
+      strokeColor: this.strokeColor,
+      strokeWidth: this.strokeWidth,
+      strokeStyle: this.strokeStyle,
+
+      backgroundColor: this.backgroundColor,
+      fillStyle: this.fillStyle,
+      edgeRadius: this.edgeRadius,
+
+      opacity: this.opacity,
+    };
+  }
+
+  static deserialize(serializedShape: any): Shape {
+    const {
+      shapeId,
+
+      points,
+
+      strokeColor,
+      strokeWidth,
+      strokeStyle,
+
+      backgroundColor,
+      fillStyle,
+      edgeRadius,
+
+      opacity,
+    } = (serializedShape);
+
+    let newShape = new Line(points, shapeId);
+
+    newShape._strokeColor = strokeColor;
+    newShape._strokeWidth = strokeWidth;
+    newShape._strokeStyle = strokeStyle;
+    newShape._opacity = opacity;
+    newShape._backgroundColor = backgroundColor;
+    newShape._fillStyle = fillStyle;
+    newShape._edgeRadius = edgeRadius;
+
+    return newShape;
   }
 }

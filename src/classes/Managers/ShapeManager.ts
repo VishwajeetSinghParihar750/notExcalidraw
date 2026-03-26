@@ -5,8 +5,6 @@ import type {
   shapeUpdateEvent,
   shapeUpdateEventId,
 } from "../../types/shapeUpdateEvents";
-import type z from "zod";
-import { shapeUpdateEvent as shapeUpdateEventZod } from "../../types/wsZodSchemas";
 
 type shapeUpdateSubId = string;
 type shapeUpdateSubCallback = (event: shapeUpdateEvent) => void;
@@ -100,64 +98,60 @@ export default class ShapeManager {
       );
     }
   }
-  handleShapeUpdateEvent(op: shapeUpdateEvent, isRevert: boolean = false) {
+  handleShapeUpdateEvent(op: shapeUpdateEvent) {
+    console.log(this.shapes);
+    console.log(op);
     switch (op.eventType) {
       case "addShape":
         {
-          if (!isRevert)
-            this.shapeUpdateEventsInverse[op._id] = {
-              _id: crypto.randomUUID(),
-              eventType: "deleteShape",
-              shapeId: op.shapeId,
-            };
-          this.shapes[op.payload.shape.shapeId] = op.payload.shape;
+          this.shapeUpdateEventsInverse[op._id] = {
+            _id: crypto.randomUUID(),
+            eventType: "deleteShape",
+            shapeId: op.shapeId,
+          };
+          this.shapes[op.shapeId] = op.payload.shape;
         }
         break;
 
       case "deleteShape":
         {
-          if (!isRevert)
-            this.shapeUpdateEventsInverse[op._id] = {
-              _id: crypto.randomUUID(),
-              eventType: "addShape",
-              shapeId: op.shapeId,
-              payload: { shape: this.shapes[op.shapeId] },
-            };
+          this.shapeUpdateEventsInverse[op._id] = {
+            _id: crypto.randomUUID(),
+            eventType: "addShape",
+            shapeId: op.shapeId,
+            payload: { shape: this.shapes[op.shapeId] },
+          };
           delete this.shapes[op.shapeId];
         }
         break;
       case "updateEnclosingRectangle":
         {
-          if (!isRevert) {
-            let [x1, y1, x2, y2] =
-              this.shapes[op.shapeId].getEnclosingRectangle();
+          let [x1, y1, x2, y2] =
+            this.shapes[op.shapeId].getEnclosingRectangle();
 
-            this.shapeUpdateEventsInverse[op._id] = {
-              _id: crypto.randomUUID(),
-              eventType: "updateEnclosingRectangle",
-              shapeId: op.shapeId,
-              payload: { toUpdate: "updateFull", x1, y1, x2, y2 },
-            };
-          }
+          this.shapeUpdateEventsInverse[op._id] = {
+            _id: crypto.randomUUID(),
+            eventType: "updateEnclosingRectangle",
+            shapeId: op.shapeId,
+            payload: { toUpdate: "updateFull", x1, y1, x2, y2 },
+          };
           this.shapes[op.shapeId].applyUpdateEvent(op);
         }
         break;
       case "updateProperty":
         {
-          if (!isRevert) {
-            let curShape = this.shapes[op.shapeId];
-            this.shapeUpdateEventsInverse[op._id] = {
-              _id: crypto.randomUUID(),
-              eventType: "updateProperty",
-              shapeId: op.shapeId,
-              payload: Object.keys(op.payload).reduce((prevVal, key) => {
-                return {
-                  key: curShape[key as keyof typeof curShape],
-                  ...prevVal,
-                };
-              }, {}),
-            };
-          }
+          let curShape = this.shapes[op.shapeId];
+          this.shapeUpdateEventsInverse[op._id] = {
+            _id: crypto.randomUUID(),
+            eventType: "updateProperty",
+            shapeId: op.shapeId,
+            payload: Object.keys(op.payload).reduce((prevVal, key) => {
+              return {
+                key: curShape[key as keyof typeof curShape],
+                ...prevVal,
+              };
+            }, {}),
+          };
 
           this.shapes[op.shapeId].applyUpdateEvent(op);
         }
@@ -166,7 +160,7 @@ export default class ShapeManager {
         return;
     }
 
-    if (!isRevert) this.shapeUpdateEvents.push(op);
+    this.shapeUpdateEvents.push(op);
 
     this.passEventToSubscribers(op);
   }
@@ -181,25 +175,5 @@ export default class ShapeManager {
     return Object.values(this.shapes).filter((shape) =>
       shape.liesInside(point1, point2),
     );
-  }
-
-  loadRemoteEvents(events: z.infer<typeof shapeUpdateEventZod>[]) {
-    // ur responsibility to keep these types the same [maybe shoudl have use zod types everywhere to begin with ] for later maybe
-    // and shapemnager is supposed to be all clean rn
-    events.forEach((ev) => this.handleShapeUpdateEvent(ev as any));
-  }
-
-  revertShapeUpdateEvent(eventId: shapeUpdateEventId) {
-    if (!this.shapeUpdateEvents.find((ev) => ev._id == eventId)) return; // callers responsibilty to make sure this doesnt fail
-
-    let len = this.subsribeShapeUpdateEvents.length;
-    for (let i = len - 1; i >= 0; i--) {
-      let ev = this.shapeUpdateEvents[i];
-      //
-      this.handleShapeUpdateEvent(this.shapeUpdateEventsInverse[ev._id], true);
-      this.shapeUpdateEvents.pop();
-
-      if (ev._id == eventId) break;
-    }
   }
 }

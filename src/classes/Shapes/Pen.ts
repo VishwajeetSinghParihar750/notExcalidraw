@@ -18,7 +18,7 @@ import type { shapeUpdateEvent } from "../../types/shapeUpdateEvents";
 
 export class Pen implements Shape {
   readonly shapeType: ShapeType = "pen";
-  readonly shapeId: shapeId = crypto.randomUUID();
+  readonly shapeId: shapeId;
 
   private _backgroundColor: backgroundColor;
   private _strokeColor: strokeColor;
@@ -86,7 +86,8 @@ export class Pen implements Shape {
     return pen;
   }
 
-  constructor(points: Point[]) {
+  constructor(points: Point[], shapeId: string = crypto.randomUUID()) {
+    this.shapeId = shapeId;
     this._points = points;
 
     let { backgroundColor, strokeColor, strokeWidth, opacity, fillStyle } =
@@ -290,5 +291,48 @@ export class Pen implements Shape {
       default:
         break;
     }
+  }
+
+  serialize(): any {
+    return {
+      shapeType: "pen",
+      shapeId: this.shapeId,
+
+      points: this._points,
+
+      strokeColor: this.strokeColor,
+      strokeWidth: this.strokeWidth,
+
+      backgroundColor: this.backgroundColor,
+      fillStyle: this.fillStyle,
+
+      opacity: this.opacity,
+    };
+  }
+
+  static deserialize(serializedShape: any): Shape {
+    const {
+      shapeId,
+
+      points,
+
+      strokeColor,
+      strokeWidth,
+
+      backgroundColor,
+      fillStyle,
+
+      opacity,
+    } = (serializedShape);
+
+    let newShape = new Pen(points, shapeId);
+
+    newShape._strokeColor = strokeColor;
+    newShape._strokeWidth = strokeWidth;
+    newShape._opacity = opacity;
+    newShape._backgroundColor = backgroundColor;
+    newShape._fillStyle = fillStyle;
+
+    return newShape;
   }
 }

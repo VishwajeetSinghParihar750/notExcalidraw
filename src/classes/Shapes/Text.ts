@@ -15,7 +15,7 @@ export type TextShapeState = "render" | "edit";
 
 export class Text implements Shape {
   readonly shapeType: ShapeType = "text";
-  readonly shapeId: shapeId = crypto.randomUUID();
+  readonly shapeId: shapeId;
 
   private _strokeColor: strokeColor;
   private _opacity: opacity;
@@ -110,7 +110,9 @@ export class Text implements Shape {
     curState: TextShapeState,
     text: string,
     enclosingRectangle: [Point, Point],
+    shapeId: string = crypto.randomUUID(),
   ) {
+    this.shapeId = shapeId;
     let { strokeColor, opacity, fontFamily, fontSize } =
       useToolStyle.getState();
 
@@ -337,5 +339,49 @@ export class Text implements Shape {
       default:
         break;
     }
+  }
+
+  serialize(): any {
+    const [p1, p2] = this._enclosingRectangle;
+    return {
+      shapeType: "text",
+      shapeId: this.shapeId,
+
+      curState: this._curState,
+      text: this._text,
+      enclosingRectangle: [
+        { x: p1.x, y: p1.y },
+        { x: p2.x, y: p2.y },
+      ],
+
+      strokeColor: this.strokeColor,
+      opacity: this.opacity,
+      fontFamily: this.fontFamily,
+      fontSize: this.fontSize,
+    };
+  }
+
+  static deserialize(serializedShape: any): Shape {
+    const {
+      shapeId,
+
+      curState,
+      text,
+      enclosingRectangle,
+
+      strokeColor,
+      opacity,
+      fontFamily,
+      fontSize,
+    } = serializedShape;
+
+    let newShape = new Text(curState, text, enclosingRectangle, shapeId);
+
+    newShape._strokeColor = strokeColor;
+    newShape._opacity = opacity;
+    newShape._fontFamily = fontFamily;
+    newShape._fontSize = fontSize;
+
+    return newShape;
   }
 }

@@ -16,7 +16,7 @@ import type { shapeUpdateEvent } from "../../types/shapeUpdateEvents";
 
 export class Arrow implements Shape {
   readonly shapeType: ShapeType = "arrow";
-  readonly shapeId: shapeId = crypto.randomUUID();
+  readonly shapeId: shapeId;
 
   private _strokeColor: strokeColor;
   private _strokeWidth: strokeWidth;
@@ -84,8 +84,9 @@ export class Arrow implements Shape {
     return line;
   }
 
-  constructor(points: Point[]) {
+  constructor(points: Point[], shapeId: shapeId = crypto.randomUUID()) {
     this._points = points;
+    this.shapeId = shapeId;
 
     let { strokeColor, strokeWidth, strokeStyle, opacity, arrowType } =
       useToolStyle.getState();
@@ -298,5 +299,34 @@ export class Arrow implements Shape {
       default:
         break;
     }
+  }
+
+  serialize(): any {
+    return {
+      shapeType: "arrow",
+      shapeId: this.shapeId,
+
+      points: this.points,
+
+      arrowType: this.arrowType,
+
+      strokeColor: this.strokeColor,
+      strokeWidth: this.strokeWidth,
+      strokeStyle: this.strokeStyle,
+
+      opacity: this.opacity,
+    };
+  }
+  static deserialize(serializedShape: any): Shape {
+    const { shapeId, points, strokeColor, strokeWidth, strokeStyle, opacity } =
+      serializedShape;
+
+    let newShape = new Arrow(points, shapeId);
+    newShape._strokeColor = strokeColor;
+    newShape._strokeWidth = strokeWidth;
+    newShape._strokeStyle = strokeStyle;
+    newShape._opacity = opacity;
+
+    return newShape;
   }
 }

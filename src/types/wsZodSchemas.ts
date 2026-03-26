@@ -81,11 +81,49 @@ const updatePropertyPayload = z.object({
   curState: TextShapeState.optional(),
 });
 
-const addShapePayload = z.object({
-  shape: z.string(),
-});
-const shapeUpdateEventId = z.string();
 const shapeId = z.string();
+const point = z.object({ x: z.number(), y: z.number() });
+const shapeType = z.enum([
+  "arrow",
+  "line",
+  "rect",
+  "rotrect",
+  "pen",
+  "text",
+  "circle",
+]);
+
+const addShapePayload = z.object({
+  shape: z.object({
+    shapeId: shapeId,
+    shapeType: shapeType,
+
+    // startX: z.number().optional(),
+    // startY: z.number().optional(),
+    // endX: z.number().optional(),
+    // endY: z.number().optional(),
+    // shouldUpdateRectangleBasedOnText: z.boolean().optional(),
+    // enclosingRectangle: z.tuple([point, point]).optional(),
+    // //styles
+    // fillStyle: fillStyle.optional(),
+    // strokeStyle: strokeStyle.optional(),
+    // arrowType: arrowType.optional(),
+    // strokeWidth: strokeWidth.optional(),
+    // edgeRadius: edgeRadius.optional(),
+    // opacity: opacity.optional(),
+    // backgroundColor: backgroundColor.optional(),
+    // strokeColor: strokeColor.optional(),
+    // fontFamily: fontFamily.optional(),
+    // fontSize: fontSize.optional(),
+
+    // //properties
+    // points: z.array(z.unknown()).optional(),
+    // text: z.string().optional(),
+    // curState: TextShapeState.optional(),
+  }),
+});
+
+const shapeUpdateEventId = z.string();
 
 const shapeUpdateEvent = z.union([
   z.object({
@@ -121,7 +159,7 @@ const eventAddedSchema = z.object({
   type: z.literal("eventAdded"),
   payload: z.object({
     addedEvent: shapeUpdateEvent,
-    prevEventId: shapeUpdateEventId,
+    prevEventId: z.union([shapeUpdateEventId, z.literal(null)]),
   }),
 });
 const addEventFailedSchema = z.object({
@@ -132,7 +170,7 @@ const addEventFailedSchema = z.object({
 });
 
 const setCurrentStateSchema = z.object({
-  type: z.literal("setCurrentSchema"),
+  type: z.literal("setCurrentState"),
   payload: z.object({
     events: z.array(shapeUpdateEvent),
   }),

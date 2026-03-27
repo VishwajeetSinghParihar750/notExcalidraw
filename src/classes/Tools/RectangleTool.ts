@@ -12,6 +12,7 @@ export default class RectangleTool implements Tool {
   shapeManager: ShapeManager;
   curState: state = "idle";
   currentRectangle: Rectangle | null = null;
+  currentRectangleDeleteSubscriptionId: string | null = null;
 
   emit: (tool: ToolType, event: EventType) => void;
 
@@ -33,6 +34,16 @@ export default class RectangleTool implements Tool {
     document.body.style.cursor = "default";
   }
 
+  handleCurrentRectangleDeleted() {
+    if (this.curState == "drawing") {
+      this.curState = "idle";
+      this.currentRectangle = null;
+      this.shapeManager.unsubsribeShapeUpdateEvents(
+        this.currentRectangleDeleteSubscriptionId!,
+      );
+      this.currentRectangleDeleteSubscriptionId = null;
+    }
+  }
   onCanvasMouseDown(e: MouseEvent) {
     this.curState = "drawing";
     this.currentRectangle = new Rectangle(
@@ -47,6 +58,12 @@ export default class RectangleTool implements Tool {
       shapeId: this.currentRectangle.shapeId,
       payload: { shape: this.currentRectangle },
     });
+    this.currentRectangleDeleteSubscriptionId =
+      this.shapeManager.subsribeShapeUpdateEvents(
+        this.currentRectangle.shapeId,
+        "deleteShape",
+        this.handleCurrentRectangleDeleted.bind(this),
+      );
   }
 
   onCanvasMouseMove(e: MouseEvent) {
@@ -85,7 +102,7 @@ export default class RectangleTool implements Tool {
         });
       else this.emit(this.toolType, "taskComplete");
 
-      this.currentRectangle = null;
+      this.handleCurrentRectangleDeleted();
     }
   }
 

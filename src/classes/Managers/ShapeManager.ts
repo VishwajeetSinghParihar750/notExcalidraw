@@ -100,6 +100,7 @@ export default class ShapeManager {
   }
   handleShapeUpdateEvent(op: shapeUpdateEvent) {
     console.log(this.shapes);
+    let shapetype = this.shapes[op.shapeId]?.shapeType;
     console.log(op);
     switch (op.eventType) {
       case "addShape":
@@ -162,7 +163,8 @@ export default class ShapeManager {
 
     this.shapeUpdateEvents.push(op);
 
-    this.passEventToSubscribers(op);
+    if (!shapetype) shapetype = this.shapes[op.shapeId]?.shapeType;
+    if (shapetype != "selection") this.passEventToSubscribers(op);
   }
   destructor() {}
 

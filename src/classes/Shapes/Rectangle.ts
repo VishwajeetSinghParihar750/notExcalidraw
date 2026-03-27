@@ -342,7 +342,7 @@ export class Rectangle implements Shape {
   }
   serialize(): any {
     return {
-      shapeType: "circle",
+      shapeType: "rect",
       shapeId: this.shapeId,
 
       startX: this.startX,
@@ -377,7 +377,7 @@ export class Rectangle implements Shape {
       fillStyle,
 
       opacity,
-    } = (serializedShape);
+    } = serializedShape;
 
     let newShape = new Rectangle(startX, startY, endX, endY, shapeId);
 

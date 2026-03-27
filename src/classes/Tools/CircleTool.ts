@@ -12,6 +12,7 @@ export default class CircleTool implements Tool {
   shapeManager: ShapeManager;
   curState: state = "idle";
   currentCircle: Circle | null = null;
+  currentCircleDeleteSubscriptionId: string | null = null;
 
   emit: (tool: ToolType, event: EventType) => void;
 
@@ -36,6 +37,17 @@ export default class CircleTool implements Tool {
     document.body.style.cursor = "default";
   }
 
+  handleCurrentCircleDeleted() {
+    if (this.curState == "drawing") {
+      this.curState = "idle";
+      this.currentCircle = null;
+      this.shapeManager.unsubsribeShapeUpdateEvents(
+        this.currentCircleDeleteSubscriptionId!,
+      );
+      this.currentCircleDeleteSubscriptionId = null;
+    }
+  }
+
   onCanvasMouseDown(e: MouseEvent) {
     this.curState = "drawing";
     this.currentCircle = new Circle(e.clientX, e.clientY, e.clientX, e.clientY);
@@ -45,6 +57,12 @@ export default class CircleTool implements Tool {
       shapeId: this.currentCircle.shapeId,
       payload: { shape: this.currentCircle },
     });
+    this.currentCircleDeleteSubscriptionId =
+      this.shapeManager.subsribeShapeUpdateEvents(
+        this.currentCircle.shapeId,
+        "deleteShape",
+        this.handleCurrentCircleDeleted.bind(this),
+      );
   }
   onCanvasMouseMove(e: MouseEvent) {
     document.body.style.cursor = "crosshair";
@@ -81,7 +99,7 @@ export default class CircleTool implements Tool {
         });
       else this.emit(this.toolType, "taskComplete");
 
-      this.currentCircle = null;
+      this.handleCurrentCircleDeleted();
     }
   }
 

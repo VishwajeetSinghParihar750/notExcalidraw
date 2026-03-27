@@ -16,6 +16,7 @@ export default class ArrowTool implements Tool {
   curState: state = "idle";
 
   currentLine: Arrow | null = null;
+  currentLineDeleteSubscriptionId: string | null = null;
   lastPointInLine: Point = { x: -1e18, y: -1e18 };
 
   #setCurrentLinePointsHelper(points: Point[]) {
@@ -50,6 +51,18 @@ export default class ArrowTool implements Tool {
     this.emit = eventCallback;
   }
 
+  handleCurrentLineDeleted() {
+    if (this.curState == "drawingLine" || this.curState == "drawingPath") {
+      this.curState = "idle";
+      this.currentLine = null;
+      this.lastPointInLine.x = -1e18;
+      this.lastPointInLine.y = -1e18;
+      this.shapeManager.unsubsribeShapeUpdateEvents(
+        this.currentLineDeleteSubscriptionId!,
+      );
+      this.currentLineDeleteSubscriptionId = null;
+    }
+  }
   onCanvasMouseDown(e: MouseEvent) {
     let curPoint: Point = {
       x: Math.floor(e.clientX),
@@ -69,6 +82,12 @@ export default class ArrowTool implements Tool {
             eventType: "addShape",
             payload: { shape: this.currentLine! },
           });
+          this.currentLineDeleteSubscriptionId =
+            this.shapeManager.subsribeShapeUpdateEvents(
+              this.currentLine!.shapeId,
+              "deleteShape",
+              this.handleCurrentLineDeleted.bind(this),
+            );
         }
         break;
 
@@ -151,9 +170,7 @@ export default class ArrowTool implements Tool {
                 eventType: "deleteShape",
                 shapeId: this.currentLine!.shapeId,
               });
-              this.currentLine = null;
-              this.lastPointInLine.x = -1e18;
-              this.lastPointInLine.y = -1e18;
+              this.handleCurrentLineDeleted();
             }
           } else {
             let startPoint = pts[0];
@@ -193,6 +210,7 @@ export default class ArrowTool implements Tool {
 
             this.curState = "idle";
             this.emit(this.toolType, "taskComplete");
+            this.handleCurrentLineDeleted();
           }
         }
         break;
@@ -222,9 +240,7 @@ export default class ArrowTool implements Tool {
             this.curState = "idle";
             this.emit(this.toolType, "taskComplete");
 
-            this.currentLine = null;
-            this.lastPointInLine.x = -1e18;
-            this.lastPointInLine.y = -1e18;
+            this.handleCurrentLineDeleted();
           } else {
             pts.push(curPoint);
             this.#setCurrentLinePointsHelper(pts);

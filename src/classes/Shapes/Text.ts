@@ -68,6 +68,7 @@ export class Text implements Shape {
   }
 
   setCurState(curState: TextShapeState) {
+    console.log("someone called setcurstate", curState);
     this._curState = curState;
   }
 
@@ -118,7 +119,9 @@ export class Text implements Shape {
 
     this._enclosingRectangle = enclosingRectangle;
 
+    console.log("curState in constructor", curState);
     this._curState = curState;
+    console.log(this.curState);
     this._text = text;
 
     this._strokeColor = strokeColor;
@@ -362,6 +365,7 @@ export class Text implements Shape {
   }
 
   static deserialize(serializedShape: any): Shape {
+    console.log("serializedShape", serializedShape);
     const {
       shapeId,
 
@@ -377,10 +381,13 @@ export class Text implements Shape {
 
     let newShape = new Text(curState, text, enclosingRectangle, shapeId);
 
+    console.log("made shape first ", newShape);
     newShape._strokeColor = strokeColor;
     newShape._opacity = opacity;
     newShape._fontFamily = fontFamily;
     newShape._fontSize = fontSize;
+
+    console.log("made shape", newShape);
 
     return newShape;
   }

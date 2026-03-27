@@ -51,6 +51,7 @@ export default class SelectionTool implements Tool {
   selectionEnd: Point = { x: -1e18, y: -1e18 };
 
   selectedShapes: Shape[] = [];
+  selectedShapeDeleteSubscriptions: Map<string, string> = new Map();
   updateSelectionArea(point1: Point, point2: Point) {
     this.selectionStart = point1;
     this.selectionEnd = point2;
@@ -59,12 +60,48 @@ export default class SelectionTool implements Tool {
     });
   }
   updateSelectedShapes(shapes: Shape[]) {
+    this.selectedShapes.forEach((shape) => {
+      const subscriptionId = this.selectedShapeDeleteSubscriptions.get(
+        shape.shapeId,
+      );
+      if (subscriptionId) {
+        this.shapeManager.unsubsribeShapeUpdateEvents(subscriptionId);
+        this.selectedShapeDeleteSubscriptions.delete(shape.shapeId);
+      }
+    });
+
     this.selectedShapes.length = 0;
     this.selectedShapes.push(...shapes);
+
+    shapes.forEach((shape) => {
+      const subscriptionId = this.shapeManager.subsribeShapeUpdateEvents(
+        shape.shapeId,
+        "deleteShape",
+        () => this.handleSelectedShapeDeleted(shape.shapeId),
+      );
+      this.selectedShapeDeleteSubscriptions.set(shape.shapeId, subscriptionId);
+    });
 
     this.#setShapePropertyHelper(this.curSelection.shapeId, {
       selectedShapes: this.selectedShapes,
     });
+  }
+
+  handleSelectedShapeDeleted(shapeId: shapeId) {
+    const index = this.selectedShapes.findIndex(
+      (shape) => shape.shapeId === shapeId,
+    );
+    if (index !== -1) {
+      this.selectedShapes.splice(index, 1);
+      this.shapeManager.unsubsribeShapeUpdateEvents(
+        this.selectedShapeDeleteSubscriptions.get(shapeId)!,
+      );
+      this.selectedShapeDeleteSubscriptions.delete(shapeId);
+
+      this.#setShapePropertyHelper(this.curSelection.shapeId, {
+        selectedShapes: this.selectedShapes,
+      });
+    }
   }
 
   curSelectionPositionUpdaters = {
@@ -448,6 +485,7 @@ export default class SelectionTool implements Tool {
 
   // for text editing
   curText: Text | null = null;
+  currentTextDeleteSubscriptionId: string | null = null;
   editableTextContainer: React.RefObject<HTMLDivElement | null>;
   currentInputElement: HTMLTextAreaElement;
 
@@ -476,12 +514,36 @@ export default class SelectionTool implements Tool {
     });
   }
 
+  handleCurrentTextDeleted() {
+    if (this.curState == "editingText") {
+      this.curState = "idle";
+      this.curText = null;
+      this.currentInputElement.value = "";
+      this.editableTextContainer.current?.removeChild?.(
+        this.currentInputElement,
+      );
+      this.currentTextDeleteSubscriptionId = null;
+    }
+  }
+
   reset(): void {
     if (this.curText)
       this.editableTextContainer.current?.removeChild?.(
         this.currentInputElement,
       );
     this.curText = null;
+
+    if (this.currentTextDeleteSubscriptionId) {
+      this.shapeManager.unsubsribeShapeUpdateEvents(
+        this.currentTextDeleteSubscriptionId,
+      );
+      this.currentTextDeleteSubscriptionId = null;
+    }
+
+    this.selectedShapeDeleteSubscriptions.forEach((subscriptionId) => {
+      this.shapeManager.unsubsribeShapeUpdateEvents(subscriptionId);
+    });
+    this.selectedShapeDeleteSubscriptions.clear();
 
     this.curState = "idle";
     this.curPoint.x = -1e18;
@@ -779,6 +841,11 @@ export default class SelectionTool implements Tool {
     this.currentInputElement.style.outline = "none";
 
     this.currentInputElement.addEventListener("input", () => {
+      if (this.curText)
+        this.#setShapePropertyHelper(this.curText.shapeId, {
+          text: this.currentInputElement.value,
+        });
+
       this.currentInputElement.style.height = "auto";
       this.currentInputElement.style.height =
         this.currentInputElement.scrollHeight + "px";
@@ -789,6 +856,19 @@ export default class SelectionTool implements Tool {
   }
   destructor(): void {
     this.zustandSubscriptions.forEach((unsub) => unsub());
+
+    if (this.currentTextDeleteSubscriptionId) {
+      this.shapeManager.unsubsribeShapeUpdateEvents(
+        this.currentTextDeleteSubscriptionId,
+      );
+      this.currentTextDeleteSubscriptionId = null;
+    }
+
+    this.selectedShapeDeleteSubscriptions.forEach((subscriptionId) => {
+      this.shapeManager.unsubsribeShapeUpdateEvents(subscriptionId);
+    });
+    this.selectedShapeDeleteSubscriptions.clear();
+
     if (this.curText)
       this.editableTextContainer.current?.removeChild?.(
         this.currentInputElement,
@@ -847,6 +927,13 @@ export default class SelectionTool implements Tool {
   onSwitchTool(oldTool: ToolType): void {
     {
       if (oldTool == "cursor") {
+        if (this.currentTextDeleteSubscriptionId) {
+          this.shapeManager.unsubsribeShapeUpdateEvents(
+            this.currentTextDeleteSubscriptionId,
+          );
+          this.currentTextDeleteSubscriptionId = null;
+        }
+
         this.updateSelectedShapes([]);
         useSelectedShapes.setState({
           selectedShapes: new Set(),
@@ -878,8 +965,14 @@ export default class SelectionTool implements Tool {
           this.editableTextContainer.current?.removeChild(
             this.currentInputElement,
           );
+
           this.curText = null;
-          this.curText = null;
+          if (this.currentTextDeleteSubscriptionId) {
+            this.shapeManager.unsubsribeShapeUpdateEvents(
+              this.currentTextDeleteSubscriptionId,
+            );
+            this.currentTextDeleteSubscriptionId = null;
+          }
         }
 
         this.curState = "idle";
@@ -1223,6 +1316,14 @@ export default class SelectionTool implements Tool {
           this.editableTextContainer.current?.removeChild(
             this.currentInputElement,
           );
+
+          if (this.currentTextDeleteSubscriptionId) {
+            this.shapeManager.unsubsribeShapeUpdateEvents(
+              this.currentTextDeleteSubscriptionId,
+            );
+            this.currentTextDeleteSubscriptionId = null;
+          }
+
           this.curText = null;
         }
         break;
@@ -1269,6 +1370,13 @@ export default class SelectionTool implements Tool {
                 shapeId: this.curText.shapeId,
                 payload: { shape: this.curText },
               });
+
+              this.currentTextDeleteSubscriptionId =
+                this.shapeManager.subsribeShapeUpdateEvents(
+                  this.curText.shapeId,
+                  "deleteShape",
+                  this.handleCurrentTextDeleted.bind(this),
+                );
 
               this.currentInputElement.value = this.curText.text;
 
@@ -1374,6 +1482,13 @@ export default class SelectionTool implements Tool {
 
               this.curText = this.selectedShapes[0] as Text;
 
+              this.currentTextDeleteSubscriptionId =
+                this.shapeManager.subsribeShapeUpdateEvents(
+                  this.curText.shapeId,
+                  "deleteShape",
+                  this.handleCurrentTextDeleted.bind(this),
+                );
+
               this.updateSelectedShapes([]);
               useSelectedShapes.setState({ selectedShapes: new Set(["text"]) });
 
@@ -1442,7 +1557,9 @@ export default class SelectionTool implements Tool {
               this.currentInputElement.style.width =
                 this.currentInputElement.scrollWidth + "px";
 
-              this.curText.setCurState("edit");
+              this.#setShapePropertyHelper(this.curText.shapeId, {
+                curState: "edit",
+              });
 
               this.currentInputElement.select();
               this.curtextEditingInitiliazeInfo.reset();

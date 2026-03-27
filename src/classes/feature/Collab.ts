@@ -12,6 +12,8 @@ import type z from "zod";
 import { deserializeShape } from "../../utils/Deserialization";
 
 // you wait for collab to join room before you start tool manager
+// need some form of global management , whihc doesnt exist rn
+
 type collabState = "closed" | "joiningRoom" | "active";
 export default class Collab {
   //
@@ -32,10 +34,6 @@ export default class Collab {
 
   handleLocalShapeUpdateEvent(event: shapeUpdateEvent) {
     // we dont want seleciton events, so handle that
-    let curShape = this.shapeManager.shapes[event.shapeId];
-    console.log(event);
-
-    if (curShape?.shapeType == "selection") return;
 
     if (this.eventsToIgnore.has(event._id)) {
       this.eventsToIgnore.delete(event._id);
@@ -60,113 +58,101 @@ export default class Collab {
     } else this.sendMessage({ type: "addEvent", payload: event });
   }
 
+  isEventLocalAndOrdered(
+    prevEventId: z.infer<typeof shapeUpdateEventIdZod> | null,
+    event: z.infer<typeof shapeUpdateEventZod>,
+  ): boolean {
+    if (!this.perShapeEvents[event.shapeId]) return false;
+
+    if (event.eventType == "addShape") {
+      //
+      let curEventIndex = this.addShapeEvents.findLastIndex(
+        (ev) => ev._id == event._id,
+      );
+
+      return (
+        (curEventIndex == 0 && prevEventId == null) ||
+        (curEventIndex > 0 &&
+          this.addShapeEvents[curEventIndex - 1]._id == prevEventId)
+      );
+    } else {
+      let curEventIndex = this.perShapeEvents[event.shapeId].findLastIndex(
+        (ev) => ev._id == event._id,
+      );
+      return !(
+        curEventIndex < 1 ||
+        this.perShapeEvents[event.shapeId][curEventIndex - 1]._id != prevEventId
+      );
+    }
+  }
+  revertNecessaryEvents(
+    prevEventId: z.infer<typeof shapeUpdateEventIdZod> | null,
+    event: z.infer<typeof shapeUpdateEventZod>,
+  ) {
+    if (event.eventType == "addShape") {
+      let len = this.addShapeEvents.length;
+      for (let i = len - 1; i >= 0; i--) {
+        if (this.addShapeEvents[i]._id == prevEventId) break;
+
+        let curshapeEvents = this.perShapeEvents[this.addShapeEvents[i]._id];
+        while (curshapeEvents.length > 0) {
+          let lastEvent = curshapeEvents.pop();
+          let inverseEvent =
+            this.shapeManager.shapeUpdateEventsInverse[lastEvent!._id];
+
+          this.eventsToIgnore.add(inverseEvent._id);
+          this.shapeManager.handleShapeUpdateEvent(inverseEvent);
+        }
+
+        this.addShapeEvents.pop();
+      }
+    } else {
+      let curshapeEvents = this.perShapeEvents[event.shapeId];
+      for (let i = curshapeEvents.length - 1; i >= 0; i--) {
+        if (curshapeEvents[i]._id == prevEventId) break;
+
+        let lastEvent = curshapeEvents.pop();
+        let inverseEvent =
+          this.shapeManager.shapeUpdateEventsInverse[lastEvent!._id];
+
+        this.eventsToIgnore.add(inverseEvent._id);
+        this.shapeManager.handleShapeUpdateEvent(inverseEvent);
+      }
+    }
+  }
+
   handleRemoteShapeUpdateEvent(
     event: z.infer<typeof shapeUpdateEventZod>,
     prevEventId: z.infer<typeof shapeUpdateEventIdZod> | null,
   ) {
-    //
-    if (this.curState != "active") return; // this should not happen
+    if (this.isEventLocalAndOrdered(prevEventId, event)) return;
 
-    console.log(this.addShapeEvents, this.perShapeEvents);
-    console.log(event);
+    this.revertNecessaryEvents(prevEventId, event);
 
     if (event.eventType == "addShape") {
-      let prevEventIndex =
-        prevEventId == null
-          ? undefined
-          : this.addShapeEvents.findLastIndex((ev) => ev._id == prevEventId);
+      console.log(event.payload.shape);
+      let newShape = deserializeShape(event.payload.shape);
 
-      if (
-        (prevEventId != null && prevEventIndex == undefined) ||
-        (prevEventIndex != undefined &&
-          prevEventIndex + 1 > this.addShapeEvents.length)
-      ) {
-        // REDZONE - THIS SHOULD NOT HAPPEN , SOMETHING GOT FUCKED UP RELOAD WHOLE STATE
-        console.log("REDZONE 1");
-      } else {
-        if (
-          prevEventIndex != undefined &&
-          this.addShapeEvents[prevEventIndex + 1]._id == event._id
-        ) {
-          // done its ur local thing
-          return;
-        }
+      this.eventsToIgnore.add(event._id);
+      this.shapeManager.handleShapeUpdateEvent({
+        ...event,
+        payload: { shape: newShape! },
+      });
 
-        let newShape = deserializeShape(event.payload.shape);
-        if (newShape == undefined) {
-          // REDZONE - THIS SHOULD NOT HAPPEN , SOMETHING GOT FUCKED UP
-          console.log("REDZONE 2");
-          return;
-        }
+      let toSaveEvent = {
+        ...event,
+        payload: { shape: newShape! },
+      };
 
-        while (
-          this.addShapeEvents.length > 0 &&
-          this.addShapeEvents[this.addShapeEvents.length - 1]._id != prevEventId
-        ) {
-          let curLastEvent = this.addShapeEvents.pop();
+      this.eventsToIgnore.add(toSaveEvent._id);
+      this.addShapeEvents.push(toSaveEvent);
 
-          while (this.perShapeEvents[curLastEvent!.shapeId].length > 0) {
-            let curShapeLastEvent =
-              this.perShapeEvents[curLastEvent!.shapeId].pop();
-
-            let revertEvent =
-              this.shapeManager.shapeUpdateEventsInverse[
-                curShapeLastEvent!._id
-              ];
-
-            this.eventsToIgnore.add(revertEvent._id);
-            this.shapeManager.handleShapeUpdateEvent(revertEvent);
-          }
-        }
-
-        this.eventsToIgnore.add(event._id);
-        this.shapeManager.handleShapeUpdateEvent({
-          ...event,
-          payload: { shape: newShape },
-        });
-
-        let toSaveEvent = {
-          ...event,
-          payload: { shape: newShape },
-        };
-        this.addShapeEvents.push(toSaveEvent);
-
-        this.perShapeEvents[event.shapeId] = [toSaveEvent];
-      }
+      this.perShapeEvents[event.shapeId] = [toSaveEvent];
     } else {
-      //
-      let prevEventIndex = this.perShapeEvents[event.shapeId].findLastIndex(
-        (ev) => ev._id == prevEventId,
-      );
+      this.eventsToIgnore.add(event._id);
+      this.shapeManager.handleShapeUpdateEvent(event as any);
 
-      if (
-        prevEventIndex == undefined ||
-        (prevEventIndex != undefined &&
-          prevEventIndex + 1 > this.perShapeEvents[event.shapeId].length)
-      ) {
-        // REDZONE - THIS SHOULD NOT HAPPEN , SOMETHING GOT FUCKED UP RELOAD WHOLE STATE
-        console.log("REDZONE 3");
-      } else {
-        //
-        if (
-          this.perShapeEvents[event.shapeId][prevEventIndex + 1]._id ==
-          event._id
-        ) {
-          // done its ur local thing
-          return;
-        }
-
-        while (prevEventIndex + 1 < this.perShapeEvents[event.shapeId].length) {
-          let curLastEvent = this.perShapeEvents[event.shapeId].pop();
-          let revertEvent =
-            this.shapeManager.shapeUpdateEventsInverse[curLastEvent!._id];
-
-          this.eventsToIgnore.add(revertEvent._id);
-          this.shapeManager.handleShapeUpdateEvent(revertEvent);
-        }
-
-        this.shapeManager.handleShapeUpdateEvent(event as any);
-      }
+      this.perShapeEvents[event.shapeId].push(event as any);
     }
   }
 
@@ -224,14 +210,32 @@ export default class Collab {
 
   handleSetCurrentState(events: z.infer<typeof shapeUpdateEventZod>[]) {
     events.forEach((ev, ind) => {
-      this.handleRemoteShapeUpdateEvent(
-        ev,
-        ind == 0 ? null : events[ind - 1]._id,
-      );
+      //
+
+      if (ev.eventType == "addShape") {
+        let curEvent = ev;
+        let newShape = deserializeShape(curEvent.payload.shape);
+        if (newShape) {
+          curEvent = {
+            ...curEvent,
+            payload: { shape: newShape as any },
+          };
+
+          this.addShapeEvents.push(curEvent as any);
+          this.perShapeEvents[ev.shapeId] = [curEvent as any];
+
+          this.eventsToIgnore.add(ev._id);
+          this.shapeManager.handleShapeUpdateEvent(curEvent as any);
+        } else console.error("deserializeShape gives undefined");
+      } else {
+        this.perShapeEvents[ev.shapeId].push(ev as any);
+        this.eventsToIgnore.add(ev._id);
+        this.shapeManager.handleShapeUpdateEvent(ev as any);
+      }
     });
   }
 
-  setupEvents() {
+  setupSubscriptions() {
     // need to get events from shape manager, but keeping emppty for now
     this.shapeManager.subsribeShapeUpdateEvents(
       "all",
@@ -240,28 +244,35 @@ export default class Collab {
     );
   }
 
+  onWebsocketOpen() {
+    this.sendMessage({
+      type: "joinRoom",
+      payload: {
+        roomId: this.roomId,
+      },
+    });
+    this.curState = "joiningRoom";
+  }
+  onWebsocketMessage(ev: MessageEvent<any>) {
+    const parsedData = JSON.parse(ev.data);
+
+    try {
+      const data = webSocketMessageSchema.parse(parsedData);
+
+      this.handleIncomingMessage(data);
+    } catch (error) {
+      // REDZONE - THIS SHOULD NOT HAPPEN , SOMETHING GOT FUCKED UP RELOAD WHOLE STATE
+      console.error("REDZONE 4 : wrong request format Zod", error);
+    }
+  }
+
   setupWebSocket() {
     this.ws.onopen = (ev) => {
-      this.sendMessage({
-        type: "joinRoom",
-        payload: {
-          roomId: this.roomId,
-        },
-      });
-      this.curState = "joiningRoom";
+      this.onWebsocketOpen();
     };
 
     this.ws.onmessage = (ev) => {
-      const parsedData = JSON.parse(ev.data);
-      console.log("received", parsedData);
-
-      try {
-        const data = webSocketMessageSchema.parse(parsedData);
-        this.handleIncomingMessage(data);
-      } catch (error) {
-        // REDZONE - THIS SHOULD NOT HAPPEN , SOMETHING GOT FUCKED UP RELOAD WHOLE STATE
-        console.log("REDZONE 4", error);
-      }
+      this.onWebsocketMessage(ev);
     };
 
     this.ws.onerror = (ev) => {};
@@ -272,7 +283,7 @@ export default class Collab {
     this.roomId = roomId;
 
     this.shapeManager = shapeManager;
-    this.setupEvents();
+    this.setupSubscriptions();
 
     this.ws = new WebSocket(import.meta.env.VITE_BACKEND_WEBSOCKET_URL);
     this.setupWebSocket();

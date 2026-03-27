@@ -13,6 +13,7 @@ export default class PenTool implements Tool {
   shapeManager: ShapeManager;
   curState: state = "idle";
   currentPen: Pen | null = null;
+  currentPenDeleteSubscriptionId: string | null = null;
 
   emit: (tool: ToolType, event: EventType) => void;
 
@@ -34,6 +35,17 @@ export default class PenTool implements Tool {
     document.body.style.cursor = "default";
   }
 
+  handleCurrentPenDeleted() {
+    if (this.curState == "drawing") {
+      this.curState = "idle";
+      this.currentPen = null;
+      this.shapeManager.unsubsribeShapeUpdateEvents(
+        this.currentPenDeleteSubscriptionId!,
+      );
+      this.currentPenDeleteSubscriptionId = null;
+    }
+  }
+
   onCanvasMouseDown(e: MouseEvent) {
     this.curState = "drawing";
     this.currentPen = new Pen([{ x: e.clientX, y: e.clientY }]);
@@ -43,6 +55,12 @@ export default class PenTool implements Tool {
       shapeId: this.currentPen.shapeId,
       payload: { shape: this.currentPen },
     });
+    this.currentPenDeleteSubscriptionId =
+      this.shapeManager.subsribeShapeUpdateEvents(
+        this.currentPen.shapeId,
+        "deleteShape",
+        this.handleCurrentPenDeleted.bind(this),
+      );
   }
 
   onCanvasMouseMove(e: MouseEvent) {
@@ -77,7 +95,7 @@ export default class PenTool implements Tool {
   onCanvasMouseUp() {
     if (this.curState == "drawing") {
       this.curState = "idle";
-      this.currentPen = null;
+      this.handleCurrentPenDeleted();
     }
   }
 

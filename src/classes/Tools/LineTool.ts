@@ -14,6 +14,7 @@ export default class LineTool implements Tool {
   curState: state = "idle";
 
   currentLine: Line | null = null;
+  currentLineDeleteSubscriptionId: string | null = null;
   #setCurrentLinePointsHelper(points: Point[]) {
     this.shapeManager.handleShapeUpdateEvent({
       _id: crypto.randomUUID(),
@@ -49,6 +50,19 @@ export default class LineTool implements Tool {
     document.body.style.cursor = "default";
   }
 
+  handleCurrentLineDeleted() {
+    if (this.curState == "drawingLine" || this.curState == "drawingPath") {
+      this.curState = "idle";
+      this.currentLine = null;
+      this.lastPointInLine.x = -1e18;
+      this.lastPointInLine.y = -1e18;
+      this.shapeManager.unsubsribeShapeUpdateEvents(
+        this.currentLineDeleteSubscriptionId!,
+      );
+      this.currentLineDeleteSubscriptionId = null;
+    }
+  }
+
   onCanvasMouseDown(e: MouseEvent) {
     let curPoint: Point = {
       x: Math.floor(e.clientX),
@@ -68,6 +82,12 @@ export default class LineTool implements Tool {
             shapeId: this.currentLine.shapeId,
             payload: { shape: this.currentLine },
           });
+          this.currentLineDeleteSubscriptionId =
+            this.shapeManager.subsribeShapeUpdateEvents(
+              this.currentLine.shapeId,
+              "deleteShape",
+              this.handleCurrentLineDeleted.bind(this),
+            );
         }
         break;
 
@@ -130,6 +150,7 @@ export default class LineTool implements Tool {
 
             this.curState = "idle";
             this.emit(this.toolType, "taskComplete");
+            this.handleCurrentLineDeleted();
           }
         }
         break;
@@ -159,6 +180,8 @@ export default class LineTool implements Tool {
             this.currentLine = null;
             this.lastPointInLine.x = -1e18;
             this.lastPointInLine.y = -1e18;
+
+            this.handleCurrentLineDeleted();
 
             this.emit(this.toolType, "taskComplete");
           } else {

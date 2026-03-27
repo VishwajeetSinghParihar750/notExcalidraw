@@ -387,7 +387,7 @@ export class RotatedRecangle implements Shape {
   }
   serialize(): any {
     return {
-      shapeType: "circle",
+      shapeType: "rotrect",
       shapeId: this.shapeId,
 
       startX: this.startX,

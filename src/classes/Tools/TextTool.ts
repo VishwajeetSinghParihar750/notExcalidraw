@@ -17,6 +17,7 @@ export default class TextTool implements Tool {
   curState: state = "idle";
 
   curText: Text | null = null;
+  currentTextDeleteSubscriptionId: string | null = null;
   editableTextContainer: React.RefObject<HTMLDivElement | null>;
   currentInputElement: HTMLTextAreaElement;
 
@@ -149,6 +150,12 @@ export default class TextTool implements Tool {
       this.editableTextContainer.current?.removeChild(this.currentInputElement);
 
     this.curText = null;
+    if (this.currentTextDeleteSubscriptionId) {
+      this.shapeManager.unsubsribeShapeUpdateEvents(
+        this.currentTextDeleteSubscriptionId,
+      );
+      this.currentTextDeleteSubscriptionId = null;
+    }
 
     this.lastMouseDown.x = -1e18;
     this.lastMouseDown.y = -1e18;
@@ -191,6 +198,11 @@ export default class TextTool implements Tool {
     this.currentInputElement.style.outline = "none";
 
     this.currentInputElement.addEventListener("input", () => {
+      if (this.curText) {
+        this.#setCurrentTextPropertyHelper({
+          text: this.currentInputElement.value,
+        });
+      }
       this.currentInputElement.style.height = "auto";
       this.currentInputElement.style.height =
         this.currentInputElement.scrollHeight + "px";
@@ -209,7 +221,26 @@ export default class TextTool implements Tool {
         this.currentInputElement,
       );
 
+    if (this.currentTextDeleteSubscriptionId) {
+      this.shapeManager.unsubsribeShapeUpdateEvents(
+        this.currentTextDeleteSubscriptionId,
+      );
+      this.currentTextDeleteSubscriptionId = null;
+    }
+
     document.body.style.cursor = "default";
+  }
+
+  handleCurrentTextDeleted() {
+    if (this.curState == "editing") {
+      this.curState = "idle";
+      this.curText = null;
+      this.currentInputElement.value = "";
+      this.editableTextContainer.current?.removeChild?.(
+        this.currentInputElement,
+      );
+      this.currentTextDeleteSubscriptionId = null;
+    }
   }
 
   onCanvasMouseDown(e: MouseEvent) {
@@ -236,6 +267,13 @@ export default class TextTool implements Tool {
       this.editableTextContainer.current?.removeChild?.(
         this.currentInputElement,
       );
+
+      if (this.currentTextDeleteSubscriptionId) {
+        this.shapeManager.unsubsribeShapeUpdateEvents(
+          this.currentTextDeleteSubscriptionId,
+        );
+        this.currentTextDeleteSubscriptionId = null;
+      }
 
       this.curText = null;
 
@@ -297,6 +335,12 @@ export default class TextTool implements Tool {
           shapeId: this.curText.shapeId,
           payload: { shape: this.curText },
         });
+        this.currentTextDeleteSubscriptionId =
+          this.shapeManager.subsribeShapeUpdateEvents(
+            this.curText.shapeId,
+            "deleteShape",
+            this.handleCurrentTextDeleted.bind(this),
+          );
       }
 
       this.currentInputElement.value = this.curText.text;
@@ -395,6 +439,13 @@ export default class TextTool implements Tool {
         });
 
       this.editableTextContainer.current?.removeChild(this.currentInputElement);
+
+      if (this.currentTextDeleteSubscriptionId) {
+        this.shapeManager.unsubsribeShapeUpdateEvents(
+          this.currentTextDeleteSubscriptionId,
+        );
+        this.currentTextDeleteSubscriptionId = null;
+      }
 
       this.curText = null;
 

@@ -4,6 +4,7 @@ import { Pen } from "../Shapes/Pen";
 import { isSamePoint, type Point } from "../Shapes/Point";
 import type Tool from "./Tool";
 import type { Tool as ToolType } from "../../store/Tools.store";
+import type { globalMouseEvent } from "../../utils/GlobalMouseEvents";
 
 type state = "idle" | "drawing";
 
@@ -46,7 +47,7 @@ export default class PenTool implements Tool {
     }
   }
 
-  onCanvasMouseDown(e: MouseEvent) {
+  onCanvasMouseDown(e: globalMouseEvent) {
     this.curState = "drawing";
     this.currentPen = new Pen([{ x: e.clientX, y: e.clientY }]);
     this.shapeManager.handleShapeUpdateEvent({
@@ -63,7 +64,7 @@ export default class PenTool implements Tool {
       );
   }
 
-  onCanvasMouseMove(e: MouseEvent) {
+  onCanvasMouseMove(e: globalMouseEvent) {
     document.body.style.cursor = "crosshair";
 
     if (this.curState == "drawing") {
@@ -101,7 +102,7 @@ export default class PenTool implements Tool {
 
   onOtherMouseDown(): void {}
 
-  onOtherMouseMove(e: MouseEvent): void {
+  onOtherMouseMove(e: globalMouseEvent): void {
     this.onCanvasMouseMove(e);
     document.body.style.cursor = "default";
   }

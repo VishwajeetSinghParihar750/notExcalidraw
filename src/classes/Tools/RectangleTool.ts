@@ -3,6 +3,7 @@ import type ShapeManager from "../Managers/ShapeManager";
 import type Tool from "./Tool";
 import type { EventType } from "../Managers/ToolManager";
 import type { Tool as ToolType } from "../../store/Tools.store";
+import type { globalMouseEvent } from "../../utils/GlobalMouseEvents";
 
 type state = "idle" | "drawing";
 
@@ -44,7 +45,7 @@ export default class RectangleTool implements Tool {
       this.currentRectangleDeleteSubscriptionId = null;
     }
   }
-  onCanvasMouseDown(e: MouseEvent) {
+  onCanvasMouseDown(e: globalMouseEvent) {
     this.curState = "drawing";
     this.currentRectangle = new Rectangle(
       e.clientX,
@@ -66,7 +67,7 @@ export default class RectangleTool implements Tool {
       );
   }
 
-  onCanvasMouseMove(e: MouseEvent) {
+  onCanvasMouseMove(e: globalMouseEvent) {
     document.body.style.cursor = "crosshair";
     if (this.curState == "drawing") {
       this.shapeManager.handleShapeUpdateEvent({
@@ -108,7 +109,7 @@ export default class RectangleTool implements Tool {
 
   onOtherMouseDown(): void {}
 
-  onOtherMouseMove(e: MouseEvent): void {
+  onOtherMouseMove(e: globalMouseEvent): void {
     this.onCanvasMouseMove(e);
     document.body.style.cursor = "default";
   }

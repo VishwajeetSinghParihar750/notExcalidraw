@@ -3,6 +3,7 @@ import { isSamePoint } from "./Point";
 import type { Point } from "./Point";
 
 import {
+  useGrabToolPosition,
   useToolStyle,
   type arrowType,
   type opacity,
@@ -99,6 +100,8 @@ export class Arrow implements Shape {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
+    const { x: offsetX, y: offsetY } = useGrabToolPosition.getState();
+
     if (
       this._points.length < 2 ||
       (this._points.length == 2 &&
@@ -123,15 +126,14 @@ export class Arrow implements Shape {
     ctx.beginPath();
 
     if (this._arrowType == "straight") {
-      ctx.moveTo(this._points[0].x, this._points[0].y);
+      ctx.moveTo(this._points[0].x + offsetX, this._points[0].y + offsetY);
       let len = this._points.length;
 
       for (let i = 1; i < len; i++) {
-        ctx.moveTo(this._points[i - 1].x, this._points[i - 1].y);
-        ctx.lineTo(this._points[i].x, this._points[i].y);
+        ctx.lineTo(this._points[i].x + offsetX, this._points[i].y + offsetY);
       }
     } else if (this._arrowType == "curve") {
-      ctx.moveTo(this._points[0].x, this._points[0].y);
+      ctx.moveTo(this._points[0].x + offsetX, this._points[0].y + offsetY);
 
       let points = [
         this._points[0],
@@ -146,11 +148,18 @@ export class Arrow implements Shape {
         let p3 = points[i + 2];
 
         let [_, b1, b2, b3] = catmullRomToBezier(p0, p1, p2, p3);
-        ctx.bezierCurveTo(b1.x, b1.y, b2.x, b2.y, b3.x, b3.y);
+        ctx.bezierCurveTo(
+          b1.x + offsetX,
+          b1.y + offsetY,
+          b2.x + offsetX,
+          b2.y + offsetY,
+          b3.x + offsetX,
+          b3.y + offsetY,
+        );
       }
     } else if (this._arrowType == "snake") {
       let a = this._points[0];
-      ctx.moveTo(a.x, a.y);
+      ctx.moveTo(a.x + offsetX, a.y + offsetY);
 
       for (let i = 0; i < this._points.length - 2; i++) {
         let b = this._points[i + 1];
@@ -160,11 +169,20 @@ export class Arrow implements Shape {
           Math.min(Math.abs(a.x - c.x), Math.abs(a.y - c.y)),
         );
 
-        ctx.arcTo(b.x, b.y, c.x, c.y, check < 20 ? 0 : 10);
+        ctx.arcTo(
+          b.x + offsetX,
+          b.y + offsetY,
+          c.x + offsetX,
+          c.y + offsetY,
+          check < 20 ? 0 : 10,
+        );
       }
 
       let len = this._points.length;
-      ctx.lineTo(this._points[len - 1].x, this._points[len - 1].y);
+      ctx.lineTo(
+        this._points[len - 1].x + offsetX,
+        this._points[len - 1].y + offsetY,
+      );
     }
 
     ctx.stroke();
@@ -188,10 +206,10 @@ export class Arrow implements Shape {
     let dy2 = dis * Math.sin(beta);
 
     ctx.beginPath();
-    ctx.moveTo(b.x, b.y);
-    ctx.lineTo(b.x - dx1, b.y - dy1);
-    ctx.moveTo(b.x, b.y);
-    ctx.lineTo(b.x - dx2, b.y - dy2);
+    ctx.moveTo(b.x + offsetX, b.y + offsetY);
+    ctx.lineTo(b.x + offsetX - dx1, b.y - dy1 + offsetY);
+    ctx.moveTo(b.x + offsetX, b.y + offsetY);
+    ctx.lineTo(b.x + offsetX - dx2, b.y - dy2 + offsetY);
     ctx.stroke();
 
     ctx.restore();

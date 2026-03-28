@@ -31,6 +31,20 @@ const useTool = create<toolState>()(
     reset: () => set(() => ({ selectedTool: "cursor" })),
   })),
 );
+
+interface grabToolPosition {
+  x: number;
+  y: number;
+  setPosition: (x: number, y: number) => void;
+}
+const useGrabToolPosition = create<grabToolPosition>()(
+  subscribeWithSelector((set) => ({
+    x: 0,
+    y: 0,
+    setPosition: (xarg, yarg) => set(() => ({ x: xarg, y: yarg })),
+  })),
+);
+
 interface lockedState {
   lockTool: boolean;
   setLockTool: (locktool: boolean) => void;
@@ -169,7 +183,13 @@ const useToolStyle = create<toolStyleState & toolStyleActions>()(
   })),
 );
 
-export { useTool, useLock, useToolStyle, useSelectedShapes };
+export {
+  useTool,
+  useLock,
+  useToolStyle,
+  useSelectedShapes,
+  useGrabToolPosition,
+};
 export type {
   Tool,
   fillStyle,

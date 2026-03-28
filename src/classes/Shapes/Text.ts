@@ -2,6 +2,7 @@ import type { Shape, shapeId, ShapeType } from "./Shape";
 
 import {
   useToolStyle,
+  useGrabToolPosition,
   type opacity,
   type strokeColor,
   type fontFamily,
@@ -198,6 +199,7 @@ export class Text implements Shape {
   draw(ctx: CanvasRenderingContext2D) {
     if (this._curState != "render") return;
 
+    const { x: offsetX, y: offsetY } = useGrabToolPosition.getState();
     ctx.save();
 
     if (this._shouldUpdateRectangleBasedOnText)
@@ -253,8 +255,8 @@ export class Text implements Shape {
       ctx.fillStyle = getStrokeColorString(this._strokeColor);
 
       let startPoint = {
-        x: this._enclosingRectangle[0].x,
-        y: this._enclosingRectangle[0].y,
+        x: this._enclosingRectangle[0].x + offsetX,
+        y: this._enclosingRectangle[0].y + offsetY,
       };
       lines.forEach((line, ind) => {
         ctx.fillText(line, startPoint.x, startPoint.y + ind * lineHeight);

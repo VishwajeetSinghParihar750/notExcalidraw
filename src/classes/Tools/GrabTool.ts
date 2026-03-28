@@ -1,8 +1,12 @@
 import type ShapeManager from "../Managers/ShapeManager";
 import type { EventType } from "../Managers/ToolManager";
 import type Tool from "./Tool";
-import type { Tool as ToolType } from "../../store/Tools.store";
+import {
+  useGrabToolPosition,
+  type Tool as ToolType,
+} from "../../store/Tools.store";
 import type { Point } from "../Shapes/Point";
+import type { globalMouseEvent } from "../../utils/GlobalMouseEvents";
 
 type state = "idle" | "moving";
 export default class GrabTool implements Tool {
@@ -31,6 +35,8 @@ export default class GrabTool implements Tool {
     this.lastMouseMove.y = -1e18;
     this.totalMovementX = 0;
     this.totalMovementY = 0;
+    useGrabToolPosition.setState({ x: 0, y: 0 });
+
     this.curState = "idle";
 
     document.body.style.cursor = "default";
@@ -55,7 +61,7 @@ export default class GrabTool implements Tool {
     } else this.isScreenEmpty = true;
   }
 
-  onCanvasMouseDown(e: MouseEvent) {
+  onCanvasMouseDown(e: globalMouseEvent) {
     if (this.curState == "idle") {
       this.curState = "moving";
 
@@ -66,26 +72,22 @@ export default class GrabTool implements Tool {
     }
   }
 
-  onCanvasMouseMove(e: MouseEvent) {
+  onCanvasMouseMove(e: globalMouseEvent) {
     if (this.curState == "moving") {
       document.body.style.cursor = "grabbing";
 
       let dx = e.clientX - this.lastMouseMove.x;
       let dy = e.clientY - this.lastMouseMove.y;
-      Object.keys(this.shapeManager.shapes).forEach((shapeId) =>
-        this.shapeManager.handleShapeUpdateEvent({
-          _id: crypto.randomUUID(),
-          eventType: "updateEnclosingRectangle",
-          shapeId: shapeId,
-          payload: { toUpdate: "moveFull", delX: dx, delY: dy },
-        }),
-      );
 
       this.lastMouseMove.x = e.clientX;
       this.lastMouseMove.y = e.clientY;
 
       this.totalMovementX += dx;
       this.totalMovementY += dy;
+      useGrabToolPosition.setState({
+        x: this.totalMovementX,
+        y: this.totalMovementY,
+      });
 
       this.updateScreenEmpty();
     } else document.body.style.cursor = "grab";

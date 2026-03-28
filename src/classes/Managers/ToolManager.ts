@@ -1,4 +1,5 @@
 import {
+  useGrabToolPosition,
   useLock,
   useTool,
   useToolStyle,
@@ -20,6 +21,7 @@ import type React from "react";
 import type { RefObject } from "react";
 import type { Tool as ToolType } from "../../store/Tools.store";
 import { useResetCanvas } from "../../store/UiActions.store.ts";
+import { getGlobalMouseEvent } from "../../utils/GlobalMouseEvents.ts";
 
 type Tools = Record<Tool, BaseTool>;
 
@@ -121,19 +123,22 @@ export default class ToolManager {
   }
 
   onMouseMove(e: MouseEvent) {
+    let modifiedEvent = getGlobalMouseEvent(e);
     if (e.target == this.canvas.current) {
-      this.tools[this.activeTool].onCanvasMouseMove(e);
-    } else this.tools[this.activeTool].onOtherMouseMove(e);
+      this.tools[this.activeTool].onCanvasMouseMove(modifiedEvent);
+    } else this.tools[this.activeTool].onOtherMouseMove(modifiedEvent);
   }
   onMouseDown(e: MouseEvent) {
+    let modifiedEvent = getGlobalMouseEvent(e);
     if (e.target == this.canvas.current) {
-      this.tools[this.activeTool].onCanvasMouseDown(e);
-    } else this.tools[this.activeTool].onOtherMouseDown(e);
+      this.tools[this.activeTool].onCanvasMouseDown(modifiedEvent);
+    } else this.tools[this.activeTool].onOtherMouseDown(modifiedEvent);
   }
   onMouseUp(e: MouseEvent) {
+    let modifiedEvent = getGlobalMouseEvent(e);
     if (e.target == this.canvas.current)
-      this.tools[this.activeTool].onCanvasMouseUp(e);
-    else this.tools[this.activeTool].onOtherMouseUp(e);
+      this.tools[this.activeTool].onCanvasMouseUp(modifiedEvent);
+    else this.tools[this.activeTool].onOtherMouseUp(modifiedEvent);
   }
 
   onKeyPress(e: KeyboardEvent) {

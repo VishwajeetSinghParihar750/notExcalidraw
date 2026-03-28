@@ -6,6 +6,7 @@ import { useToolStyle } from "../../store/Tools.store";
 import type Tool from "./Tool";
 import type { EventType } from "../Managers/ToolManager";
 import type { Tool as ToolType } from "../../store/Tools.store";
+import type { globalMouseEvent } from "../../utils/GlobalMouseEvents";
 
 type state = "idle" | "drawingLine" | "drawingPath";
 
@@ -63,7 +64,7 @@ export default class ArrowTool implements Tool {
       this.currentLineDeleteSubscriptionId = null;
     }
   }
-  onCanvasMouseDown(e: MouseEvent) {
+  onCanvasMouseDown(e: globalMouseEvent) {
     let curPoint: Point = {
       x: Math.floor(e.clientX),
       y: Math.floor(e.clientY),
@@ -96,7 +97,7 @@ export default class ArrowTool implements Tool {
     }
   }
 
-  onCanvasMouseMove(e: MouseEvent) {
+  onCanvasMouseMove(e: globalMouseEvent) {
     document.body.style.cursor = "crosshair";
 
     let curPoint: Point = {
@@ -146,7 +147,7 @@ export default class ArrowTool implements Tool {
     }
   }
 
-  onCanvasMouseUp(e: MouseEvent) {
+  onCanvasMouseUp(e: globalMouseEvent) {
     let curPoint: Point = {
       x: Math.floor(e.clientX),
       y: Math.floor(e.clientY),
@@ -256,12 +257,12 @@ export default class ArrowTool implements Tool {
 
   onOtherMouseDown(): void {}
 
-  onOtherMouseMove(e: MouseEvent): void {
+  onOtherMouseMove(e: globalMouseEvent): void {
     this.onCanvasMouseMove(e);
     document.body.style.cursor = "default";
   }
 
-  onOtherMouseUp(e: MouseEvent): void {
+  onOtherMouseUp(e: globalMouseEvent): void {
     this.onCanvasMouseUp(e);
   }
 

@@ -201,6 +201,7 @@ export class Text implements Shape {
 
     const { x: offsetX, y: offsetY } = useGrabToolPosition.getState();
     ctx.save();
+    ctx.transform(1, 0, 0, 1, offsetX, offsetY);
 
     if (this._shouldUpdateRectangleBasedOnText)
       this.updateRectangleFromText(ctx);
@@ -255,8 +256,8 @@ export class Text implements Shape {
       ctx.fillStyle = getStrokeColorString(this._strokeColor);
 
       let startPoint = {
-        x: this._enclosingRectangle[0].x + offsetX,
-        y: this._enclosingRectangle[0].y + offsetY,
+        x: this._enclosingRectangle[0].x,
+        y: this._enclosingRectangle[0].y,
       };
       lines.forEach((line, ind) => {
         ctx.fillText(line, startPoint.x, startPoint.y + ind * lineHeight);

@@ -5,13 +5,13 @@ import { useEffect } from "react";
 import { Rectangle } from "../classes/Shapes/Rectangle";
 import { RotatedRecangle } from "../classes/Shapes/RotatedRectangle";
 import { Circle } from "../classes/Shapes/Circle";
-import type { Shape, ShapeData, ShapeType } from "../classes/Shapes/Shape";
+import type { Shape, ShapeType } from "../classes/Shapes/Shape";
 import { Arrow } from "../classes/Shapes/Arrow";
 import { Line } from "../classes/Shapes/Line";
 import { Pen } from "../classes/Shapes/Pen";
 import { Selection } from "../classes/Shapes/Selection";
 import { Text } from "../classes/Shapes/Text";
-import Collab from "../classes/feature/Collab";
+import Collab from "../classes/feature/Collab/Collab";
 
 type useCanvasProps = {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -107,12 +107,15 @@ export default function useCanvas(props: useCanvasProps) {
 
     const handleMouseDown = (e: MouseEvent) => {
       toolManager.onMouseDown(e);
+      collab?.onMouseDown(e);
     };
     const handleMouseup = (e: MouseEvent) => {
       toolManager.onMouseUp(e);
+      collab?.onMouseUp(e);
     };
     const handleMouseMove = (e: MouseEvent) => {
       toolManager.onMouseMove(e);
+      collab?.onMouseMove(e);
     };
     const handleKeyDown = (e: KeyboardEvent) => {
       toolManager.onKeyPress(e);
@@ -139,6 +142,7 @@ export default function useCanvas(props: useCanvasProps) {
       for (let shape of Object.values(shapeManager.shapes)) {
         shape.draw(ctx);
       }
+      collab?.draw(ctx);
     };
 
     let work = () => {

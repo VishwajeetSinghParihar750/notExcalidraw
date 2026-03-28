@@ -99,9 +99,9 @@ export default class ShapeManager {
     }
   }
   handleShapeUpdateEvent(op: shapeUpdateEvent) {
-    console.log(this.shapes);
+    // console.log(this.shapes);
     let shapetype = this.shapes[op.shapeId]?.shapeType;
-    console.log(op);
+    // console.log(op);
     switch (op.eventType) {
       case "addShape":
         {

@@ -1,22 +1,27 @@
 import {
   type shapeUpdateEvent,
   type shapeUpdateEventId,
-} from "../../types/shapeUpdateEvents";
-import type ShapeManager from "../Managers/ShapeManager";
+} from "../../../types/shapeUpdateEvents";
+import type ShapeManager from "../../Managers/ShapeManager";
 import {
+  playerName,
+  playerPositionUpdatePayload,
   shapeUpdateEventId as shapeUpdateEventIdZod,
   shapeUpdateEvent as shapeUpdateEventZod,
   webSocketMessageSchema,
-} from "../../types/wsZodSchemas";
+} from "../../../types/wsZodSchemas";
 import type z from "zod";
-import { deserializeShape } from "../../utils/Deserialization";
-
+import { deserializeShape } from "../../../utils/Deserialization";
+import CollabCursorManager from "./CollabCursorManager";
+import { getGlobalMouseEvent } from "../../../utils/GlobalMouseEvents";
 // you wait for collab to join room before you start tool manager
 // need some form of global management , whihc doesnt exist rn
 
 type collabState = "closed" | "joiningRoom" | "active";
+type playerName = z.infer<typeof playerName>;
 export default class Collab {
   //
+  playerName: playerName | null = null;
   curState: collabState = "closed";
   roomId: string;
   ws: WebSocket;
@@ -24,6 +29,8 @@ export default class Collab {
 
   addShapeEvents: shapeUpdateEvent[] = [];
   perShapeEvents: Record<string, shapeUpdateEvent[]> = {};
+
+  collabCursors = new CollabCursorManager([]);
 
   sendMessage(payload: any) {
     this.ws.send(JSON.stringify({ roomId: this.roomId, payload }));
@@ -161,6 +168,7 @@ export default class Collab {
       case "roomJoined":
         {
           this.curState = "active";
+          this.playerName = message.payload.playerName;
         }
         break;
       case "eventAdded":
@@ -199,17 +207,38 @@ export default class Collab {
           // ur responsibility to keep these types the same [maybe shoudl have use zod types everywhere to begin with ] for later maybe
           // and shapemnager is supposed to be all clean rn
 
-          this.handleSetCurrentState(message.payload.events);
+          this.handleSetCurrentState(
+            message.payload.events,
+            message.payload.players,
+          );
         }
         break;
 
+      case "playerPositionUpdate":
+        {
+          this.collabCursors.handlePlayerPositionUpdate(
+            message.payload.playerName,
+            message.payload.playerPosition,
+          );
+        }
+        break;
+      case "playerDisconnected":
+        {
+          this.collabCursors.handlePlayerDisconnected(
+            message.payload.playerName,
+          );
+        }
+        break;
       default:
         break;
     }
   }
 
-  handleSetCurrentState(events: z.infer<typeof shapeUpdateEventZod>[]) {
-    events.forEach((ev, ind) => {
+  handleSetCurrentState(
+    events: z.infer<typeof shapeUpdateEventZod>[],
+    players: z.infer<typeof playerPositionUpdatePayload>[],
+  ) {
+    events.forEach((ev) => {
       //
 
       if (ev.eventType == "addShape") {
@@ -233,6 +262,10 @@ export default class Collab {
         this.shapeManager.handleShapeUpdateEvent(ev as any);
       }
     });
+
+    players.forEach((player) =>
+      this.collabCursors.addNewPlayer(player.playerName, player.playerPosition),
+    );
   }
 
   setupSubscriptions() {
@@ -247,9 +280,6 @@ export default class Collab {
   onWebsocketOpen() {
     this.sendMessage({
       type: "joinRoom",
-      payload: {
-        roomId: this.roomId,
-      },
     });
     this.curState = "joiningRoom";
   }
@@ -258,6 +288,7 @@ export default class Collab {
 
     try {
       const data = webSocketMessageSchema.parse(parsedData);
+      console.log("recieved", parsedData);
 
       this.handleIncomingMessage(data);
     } catch (error) {
@@ -290,5 +321,30 @@ export default class Collab {
   }
   destructor() {
     this.ws.close();
+    this.collabCursors.players = {};
   }
+
+  draw(ctx: CanvasRenderingContext2D) {
+    Object.values(this.collabCursors.players).forEach((shape) =>
+      shape.draw(ctx),
+    );
+  }
+
+  onMouseDown(e: MouseEvent) {}
+  onMouseMove(e: MouseEvent) {
+    if (this.curState != "active") return;
+
+    const { x, y } = getGlobalMouseEvent(e);
+
+    this.sendMessage({
+      type: "playerPositionUpdate",
+      payload: {
+        playerPosition: {
+          x,
+          y,
+        },
+      },
+    });
+  }
+  onMouseUp(e: MouseEvent) {}
 }

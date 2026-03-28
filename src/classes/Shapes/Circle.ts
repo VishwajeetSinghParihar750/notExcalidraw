@@ -2,6 +2,7 @@ import type { Shape, shapeId, ShapeType } from "./Shape";
 
 import {
   useToolStyle,
+  useGrabToolPosition,
   type backgroundColor,
   type fillStyle,
   type opacity,
@@ -162,10 +163,11 @@ export class Circle implements Shape {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
+    const { x: offsetX, y: offsetY } = useGrabToolPosition.getState();
     let [x1, y1, x2, y2] = this.getEnclosingRectangle();
 
-    let cx = (x1 + x2) / 2;
-    let cy = (y1 + y2) / 2;
+    let cx = (x1 + x2) / 2 + offsetX;
+    let cy = (y1 + y2) / 2 + offsetY;
     let rx = (x2 - x1) / 2;
     let ry = (y2 - y1) / 2;
 
@@ -211,8 +213,8 @@ export class Circle implements Shape {
 
         let gap = this._strokeWidth * 5;
         for (let pos = gap; pos < d * 2; pos += gap) {
-          ctx.moveTo(x1 + pos, y1);
-          ctx.lineTo(x1, y1 + pos);
+          ctx.moveTo(x1 + offsetX + pos, y1 + offsetY);
+          ctx.lineTo(x1 + offsetX, y1 + offsetY + pos);
         }
         ctx.stroke();
       } else if (this._fillStyle == "crosslines") {
@@ -227,12 +229,12 @@ export class Circle implements Shape {
 
         let gap = this._strokeWidth * 5;
         for (let pos = gap; pos < d * 2; pos += gap) {
-          ctx.moveTo(x1 + pos, y1);
-          ctx.lineTo(x1, y1 + pos);
+          ctx.moveTo(x1 + offsetX + pos, y1 + offsetY);
+          ctx.lineTo(x1 + offsetX, y1 + offsetY + pos);
         }
         for (let pos = gap; pos < d * 2; pos += gap) {
-          ctx.moveTo(x2, y1 + pos);
-          ctx.lineTo(x2 - pos, y1);
+          ctx.moveTo(x2 + offsetX, y1 + offsetY + pos);
+          ctx.lineTo(x2 + offsetX - pos, y1 + offsetY);
         }
         ctx.stroke();
       }

@@ -3,6 +3,7 @@ import { isSamePoint } from "./Point";
 import type { Point } from "./Point";
 import {
   useToolStyle,
+  useGrabToolPosition,
   type backgroundColor,
   type edgeRadius,
   type fillStyle,
@@ -132,6 +133,7 @@ export class Line implements Shape {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
+    const { x: offsetX, y: offsetY } = useGrabToolPosition.getState();
     if (
       this._points.length < 2 ||
       (this._points.length == 2 &&
@@ -156,15 +158,15 @@ export class Line implements Shape {
         ctx.beginPath();
 
         if (this._edgeRadius == 0) {
-          ctx.moveTo(this._points[0].x, this._points[0].y);
+          ctx.moveTo(this._points[0].x + offsetX, this._points[0].y + offsetY);
           let len = this._points.length;
 
           for (let i = 1; i < len; i++) {
-            ctx.lineTo(this._points[i].x, this._points[i].y);
+            ctx.lineTo(this._points[i].x + offsetX, this._points[i].y + offsetY);
           }
           ctx.stroke();
         } else {
-          ctx.moveTo(this._points[0].x, this._points[0].y);
+          ctx.moveTo(this._points[0].x + offsetX, this._points[0].y + offsetY);
 
           let points = [
             this._points[0],
@@ -178,7 +180,7 @@ export class Line implements Shape {
             let p3 = points[i + 2];
 
             let [_, b1, b2, b3] = catmullRomToBezier(p0, p1, p2, p3);
-            ctx.bezierCurveTo(b1.x, b1.y, b2.x, b2.y, b3.x, b3.y);
+            ctx.bezierCurveTo(b1.x + offsetX, b1.y + offsetY, b2.x + offsetX, b2.y + offsetY, b3.x + offsetX, b3.y + offsetY);
           }
           ctx.stroke();
         }
@@ -214,8 +216,8 @@ export class Line implements Shape {
 
           let gap = this._strokeWidth * 5;
           for (let pos = gap; pos < d * 2; pos += gap) {
-            ctx.moveTo(x1 + pos, y1);
-            ctx.lineTo(x1, y1 + pos);
+            ctx.moveTo(x1 + offsetX + pos, y1 + offsetY);
+            ctx.lineTo(x1 + offsetX, y1 + offsetY + pos);
           }
           ctx.stroke();
         } else if (this._fillStyle == "crosslines") {
@@ -235,12 +237,12 @@ export class Line implements Shape {
 
           let gap = this._strokeWidth * 5;
           for (let pos = gap; pos < d * 2; pos += gap) {
-            ctx.moveTo(x1 + pos, y1);
-            ctx.lineTo(x1, y1 + pos);
+            ctx.moveTo(x1 + offsetX + pos, y1 + offsetY);
+            ctx.lineTo(x1 + offsetX, y1 + offsetY + pos);
           }
           for (let pos = gap; pos < d * 2; pos += gap) {
-            ctx.moveTo(x2, y1 + pos);
-            ctx.lineTo(x2 - pos, y1);
+            ctx.moveTo(x2 + offsetX, y1 + offsetY + pos);
+            ctx.lineTo(x2 + offsetX - pos, y1 + offsetY);
           }
           ctx.stroke();
         }

@@ -3,6 +3,7 @@ import { Shape } from "./Shape";
 
 import {
   useToolStyle,
+  useGrabToolPosition,
   type backgroundColor,
   type edgeRadius,
   type fillStyle,
@@ -172,6 +173,7 @@ export class Rectangle implements Shape {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
+    const { x: offsetX, y: offsetY } = useGrabToolPosition.getState();
     let [x1, y1, x2, y2] = this.getEnclosingRectangle();
 
     if (x2 - x1 > this._edgeRadius && y2 - y1 > this._edgeRadius) {
@@ -183,16 +185,16 @@ export class Rectangle implements Shape {
         ctx.save();
 
         ctx.beginPath();
-        ctx.moveTo(x1, y1);
+        ctx.moveTo(x1 + offsetX, y1 + offsetY);
 
         ctx.lineWidth = this._strokeWidth;
         ctx.strokeStyle = getStrokeColorString(this._strokeColor);
 
-        ctx.moveTo(x1, y1 + this._edgeRadius);
-        ctx.arcTo(x1, y2, x1 + this._edgeRadius, y2, this._edgeRadius);
-        ctx.arcTo(x2, y2, x2, y2 - this._edgeRadius, this._edgeRadius);
-        ctx.arcTo(x2, y1, x2 - this._edgeRadius, y1, this._edgeRadius);
-        ctx.arcTo(x1, y1, x1, y1 + this._edgeRadius, this._edgeRadius);
+        ctx.moveTo(x1 + offsetX, y1 + this._edgeRadius + offsetY);
+        ctx.arcTo(x1 + offsetX, y2 + offsetY, x1 + this._edgeRadius + offsetX, y2 + offsetY, this._edgeRadius);
+        ctx.arcTo(x2 + offsetX, y2 + offsetY, x2 + offsetX, y2 - this._edgeRadius + offsetY, this._edgeRadius);
+        ctx.arcTo(x2 + offsetX, y1 + offsetY, x2 - this._edgeRadius + offsetX, y1 + offsetY, this._edgeRadius);
+        ctx.arcTo(x1 + offsetX, y1 + offsetY, x1 + offsetX, y1 + this._edgeRadius + offsetY, this._edgeRadius);
 
         if (this._strokeStyle == "smalldotted") {
           ctx.setLineDash([4, 8]);
@@ -221,8 +223,8 @@ export class Rectangle implements Shape {
 
           let gap = this._strokeWidth * 5;
           for (let pos = gap; pos < d * 2; pos += gap) {
-            ctx.moveTo(x1 + pos, y1);
-            ctx.lineTo(x1, y1 + pos);
+            ctx.moveTo(x1 + offsetX + pos, y1 + offsetY);
+            ctx.lineTo(x1 + offsetX, y1 + offsetY + pos);
           }
           ctx.stroke();
         } else if (this._fillStyle == "crosslines") {
@@ -237,12 +239,12 @@ export class Rectangle implements Shape {
 
           let gap = this._strokeWidth * 5;
           for (let pos = gap; pos < d * 2; pos += gap) {
-            ctx.moveTo(x1 + pos, y1);
-            ctx.lineTo(x1, y1 + pos);
+            ctx.moveTo(x1 + offsetX + pos, y1 + offsetY);
+            ctx.lineTo(x1 + offsetX, y1 + offsetY + pos);
           }
           for (let pos = gap; pos < d * 2; pos += gap) {
-            ctx.moveTo(x2, y1 + pos);
-            ctx.lineTo(x2 - pos, y1);
+            ctx.moveTo(x2 + offsetX, y1 + offsetY + pos);
+            ctx.lineTo(x2 + offsetX - pos, y1 + offsetY);
           }
           ctx.stroke();
         }

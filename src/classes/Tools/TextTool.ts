@@ -7,6 +7,7 @@ import type Tool from "./Tool";
 import type { EventType } from "../Managers/ToolManager";
 import type { Tool as ToolType } from "../../store/Tools.store";
 import { getStrokeColorString } from "../../utils/Theme";
+import type { globalMouseEvent } from "../../utils/GlobalMouseEvents";
 
 type state = "idle" | "editing";
 
@@ -243,7 +244,7 @@ export default class TextTool implements Tool {
     }
   }
 
-  onCanvasMouseDown(e: MouseEvent) {
+  onCanvasMouseDown(e: globalMouseEvent) {
     if (this.curState == "idle") this.curState = "editing";
     else if (this.curState == "editing") {
       this.curState = "idle";
@@ -284,7 +285,7 @@ export default class TextTool implements Tool {
     this.lastMouseDown.y = e.clientY;
   }
 
-  onCanvasMouseMove(e: MouseEvent) {
+  onCanvasMouseMove(e: globalMouseEvent) {
     const containerRect =
       this.editableTextContainer.current!.getBoundingClientRect();
 
@@ -303,7 +304,7 @@ export default class TextTool implements Tool {
     else document.body.style.cursor = "crosshair";
   }
 
-  onCanvasMouseUp(e: MouseEvent) {
+  onCanvasMouseUp(e: globalMouseEvent) {
     if (!this.editableTextContainer.current) return;
 
     if (this.curState == "editing") {

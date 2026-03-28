@@ -4,6 +4,7 @@ import type { EventType } from "../Managers/ToolManager";
 import type { Shape } from "../Shapes/Shape";
 import type Tool from "./Tool";
 import type { Tool as ToolType } from "../../store/Tools.store";
+import type { globalMouseEvent } from "../../utils/GlobalMouseEvents";
 
 type state = "idle" | "erasing";
 export default class EraserTool implements Tool {
@@ -35,7 +36,7 @@ export default class EraserTool implements Tool {
     this.curState = "erasing";
   }
 
-  onCanvasMouseMove(e: MouseEvent) {
+  onCanvasMouseMove(e: globalMouseEvent) {
     if (this.curState == "erasing") {
       document.body.style.cursor = "grab";
 

@@ -13,6 +13,7 @@ import type { Shape, shapeId } from "../Shapes/Shape";
 import { Selection } from "../Shapes/Selection";
 import { Text } from "../Shapes/Text";
 import { getStrokeColorString } from "../../utils/Theme";
+import type { globalMouseEvent } from "../../utils/GlobalMouseEvents";
 
 type state =
   | "idle"
@@ -980,7 +981,7 @@ export default class SelectionTool implements Tool {
     }
   }
 
-  onCanvasMouseMove(e: MouseEvent) {
+  onCanvasMouseMove(e: globalMouseEvent) {
     this.curPoint.x = Math.floor(e.x);
     this.curPoint.y = Math.floor(e.y);
 
@@ -1169,7 +1170,7 @@ export default class SelectionTool implements Tool {
         break;
     }
   }
-  onCanvasMouseDown(e: MouseEvent) {
+  onCanvasMouseDown(e: globalMouseEvent) {
     this.curPoint.x = Math.floor(e.x);
     this.curPoint.y = Math.floor(e.y);
 
@@ -1288,7 +1289,7 @@ export default class SelectionTool implements Tool {
         break;
     }
   }
-  onCanvasMouseUp(e: MouseEvent) {
+  onCanvasMouseUp(e: globalMouseEvent) {
     this.curPoint.x = Math.floor(e.x);
     this.curPoint.y = Math.floor(e.y);
 
@@ -1633,10 +1634,10 @@ export default class SelectionTool implements Tool {
   }
 
   onOtherMouseDown(): void {}
-  onOtherMouseMove(e: MouseEvent): void {
+  onOtherMouseMove(e: globalMouseEvent): void {
     if (this.curState != "editingText") this.onCanvasMouseMove(e);
   }
-  onOtherMouseUp(e: MouseEvent): void {
+  onOtherMouseUp(e: globalMouseEvent): void {
     if (this.curState != "editingText") this.onCanvasMouseUp(e);
   }
 }

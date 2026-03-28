@@ -4,6 +4,7 @@ import { Line } from "../Shapes/Line";
 import { isSamePoint, type Point } from "../Shapes/Point";
 import type Tool from "./Tool";
 import type { Tool as ToolType } from "../../store/Tools.store";
+import type { globalMouseEvent } from "../../utils/GlobalMouseEvents";
 
 type state = "idle" | "drawingLine" | "drawingPath";
 
@@ -63,7 +64,7 @@ export default class LineTool implements Tool {
     }
   }
 
-  onCanvasMouseDown(e: MouseEvent) {
+  onCanvasMouseDown(e: globalMouseEvent) {
     let curPoint: Point = {
       x: Math.floor(e.clientX),
       y: Math.floor(e.clientY),
@@ -96,7 +97,7 @@ export default class LineTool implements Tool {
     }
   }
 
-  onCanvasMouseMove(e: MouseEvent) {
+  onCanvasMouseMove(e: globalMouseEvent) {
     document.body.style.cursor = "crosshair";
 
     let curPoint: Point = {
@@ -121,7 +122,7 @@ export default class LineTool implements Tool {
     }
   }
 
-  onCanvasMouseUp(e: MouseEvent) {
+  onCanvasMouseUp(e: globalMouseEvent) {
     let curPoint: Point = {
       x: Math.floor(e.clientX),
       y: Math.floor(e.clientY),
@@ -200,12 +201,12 @@ export default class LineTool implements Tool {
 
   onOtherMouseDown(): void {}
 
-  onOtherMouseMove(e: MouseEvent): void {
+  onOtherMouseMove(e: globalMouseEvent): void {
     this.onCanvasMouseMove(e);
     document.body.style.cursor = "default";
   }
 
-  onOtherMouseUp(e: MouseEvent): void {
+  onOtherMouseUp(e: globalMouseEvent): void {
     this.onCanvasMouseUp(e);
   }
 

@@ -3,6 +3,7 @@ import type { Shape, ShapeType, shapeId } from "./Shape";
 import { isSamePoint } from "./Point";
 import type { Point } from "./Point";
 import type { shapeUpdateEvent } from "../../types/shapeUpdateEvents";
+import { useGrabToolPosition } from "../../store/Tools.store";
 
 export class Selection implements Shape {
   readonly shapeType: ShapeType = "selection";
@@ -101,6 +102,7 @@ export class Selection implements Shape {
   draw(ctx: CanvasRenderingContext2D) {
     ctx.save();
 
+    const { x: offsetX, y: offsetY } = useGrabToolPosition.getState();
     let [sx, sy, ex, ey] = this.getEnclosingRectangle();
 
     {
@@ -119,8 +121,8 @@ export class Selection implements Shape {
           ctx.beginPath();
 
           ctx.rect(
-            this._selectionArea[0].x,
-            this._selectionArea[0].y,
+            this._selectionArea[0].x + offsetX,
+            this._selectionArea[0].y + offsetY,
             this._selectionArea[1].x - this._selectionArea[0].x,
             this._selectionArea[1].y - this._selectionArea[0].y,
           );
@@ -144,10 +146,16 @@ export class Selection implements Shape {
           ey += this._enclosingRectanglePadding;
 
           ctx.beginPath();
-          ctx.rect(sx, sy, ex - sx, ey - sy);
+          ctx.rect(sx + offsetX, sy + offsetY, ex - sx, ey - sy);
           ctx.stroke();
 
-          this.#drawControlPoints(ctx, sx, sy, ex, ey);
+          this.#drawControlPoints(
+            ctx,
+            sx + offsetX,
+            sy + offsetY,
+            ex + offsetX,
+            ey + offsetY,
+          );
 
           ctx.restore();
         }
@@ -161,7 +169,7 @@ export class Selection implements Shape {
           ey += this._enclosingRectanglePadding;
 
           ctx.beginPath();
-          ctx.rect(sx, sy, ex - sx, ey - sy);
+          ctx.rect(sx + offsetX, sy + offsetY, ex - sx, ey - sy);
           ctx.stroke();
         });
       }

@@ -2,6 +2,7 @@ import type { Shape, ShapeType, shapeId } from "./Shape";
 
 import {
   useToolStyle,
+  useGrabToolPosition,
   type backgroundColor,
   type edgeRadius,
   type fillStyle,
@@ -180,6 +181,7 @@ export class RotatedRecangle implements Shape {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
+    const { x: offsetX, y: offsetY } = useGrabToolPosition.getState();
     let [x1, y1, x2, y2] = this.getEnclosingRectangle();
 
     ctx.save();
@@ -190,7 +192,7 @@ export class RotatedRecangle implements Shape {
       ctx.save();
 
       ctx.beginPath();
-      ctx.moveTo(x1, y1);
+      ctx.moveTo(x1 + offsetX, y1 + offsetY);
 
       ctx.lineWidth = this._strokeWidth;
       ctx.strokeStyle = getStrokeColorString(this._strokeColor);
@@ -216,13 +218,13 @@ export class RotatedRecangle implements Shape {
             beginy = y2 - uy * this._edgeRadius;
           }
 
-          ctx.moveTo(beginx, beginy);
+          ctx.moveTo(beginx + offsetX, beginy + offsetY);
 
-          ctx.arcTo(x2, y2, x3, y3, this._edgeRadius);
-          ctx.arcTo(x3, y3, x4, y4, this._edgeRadius);
-          ctx.arcTo(x4, y4, x1, y1, this._edgeRadius);
-          ctx.arcTo(x1, y1, x2, y2, this._edgeRadius);
-          ctx.lineTo(beginx, beginy);
+          ctx.arcTo(x2 + offsetX, y2 + offsetY, x3 + offsetX, y3 + offsetY, this._edgeRadius);
+          ctx.arcTo(x3 + offsetX, y3 + offsetY, x4 + offsetX, y4 + offsetY, this._edgeRadius);
+          ctx.arcTo(x4 + offsetX, y4 + offsetY, x1 + offsetX, y1 + offsetY, this._edgeRadius);
+          ctx.arcTo(x1 + offsetX, y1 + offsetY, x2 + offsetX, y2 + offsetY, this._edgeRadius);
+          ctx.lineTo(beginx + offsetX, beginy + offsetY);
         }
       }
 
@@ -254,8 +256,8 @@ export class RotatedRecangle implements Shape {
 
         let gap = this._strokeWidth * 5;
         for (let pos = gap; pos < d * 2; pos += gap) {
-          ctx.moveTo(x1 + pos, y1);
-          ctx.lineTo(x1, y1 + pos);
+          ctx.moveTo(x1 + offsetX + pos, y1 + offsetY);
+          ctx.lineTo(x1 + offsetX, y1 + offsetY + pos);
         }
         ctx.stroke();
       } else if (this._fillStyle == "crosslines") {
@@ -270,12 +272,12 @@ export class RotatedRecangle implements Shape {
 
         let gap = this._strokeWidth * 5;
         for (let pos = gap; pos < d * 2; pos += gap) {
-          ctx.moveTo(x1 + pos, y1);
-          ctx.lineTo(x1, y1 + pos);
+          ctx.moveTo(x1 + offsetX + pos, y1 + offsetY);
+          ctx.lineTo(x1 + offsetX, y1 + offsetY + pos);
         }
         for (let pos = gap; pos < d * 2; pos += gap) {
-          ctx.moveTo(x2, y1 + pos);
-          ctx.lineTo(x2 - pos, y1);
+          ctx.moveTo(x2 + offsetX, y1 + offsetY + pos);
+          ctx.lineTo(x2 + offsetX - pos, y1 + offsetY);
         }
         ctx.stroke();
       }

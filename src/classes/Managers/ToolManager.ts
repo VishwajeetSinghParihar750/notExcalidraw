@@ -122,27 +122,27 @@ export default class ToolManager {
     this.zustandSubscriptions.forEach((unsub) => unsub());
   }
 
-  onMouseMove(e: MouseEvent) {
+  getModifiedEvent(e: MouseEvent) {
     let modifiedEvent;
     if (this.activeTool == "grab") modifiedEvent = e;
     else modifiedEvent = getGlobalMouseEvent(e);
+    return modifiedEvent;
+  }
+  onMouseMove(e: MouseEvent) {
+    let modifiedEvent = this.getModifiedEvent(e);
 
     if (e.target == this.canvas.current) {
       this.tools[this.activeTool].onCanvasMouseMove(modifiedEvent);
     } else this.tools[this.activeTool].onOtherMouseMove(modifiedEvent);
   }
   onMouseDown(e: MouseEvent) {
-    let modifiedEvent;
-    if (this.activeTool == "grab") modifiedEvent = e;
-    else modifiedEvent = getGlobalMouseEvent(e);
+    let modifiedEvent = this.getModifiedEvent(e);
     if (e.target == this.canvas.current) {
       this.tools[this.activeTool].onCanvasMouseDown(modifiedEvent);
     } else this.tools[this.activeTool].onOtherMouseDown(modifiedEvent);
   }
   onMouseUp(e: MouseEvent) {
-    let modifiedEvent;
-    if (this.activeTool == "grab") modifiedEvent = e;
-    else modifiedEvent = getGlobalMouseEvent(e);
+    let modifiedEvent = this.getModifiedEvent(e);
 
     if (e.target == this.canvas.current)
       this.tools[this.activeTool].onCanvasMouseUp(modifiedEvent);

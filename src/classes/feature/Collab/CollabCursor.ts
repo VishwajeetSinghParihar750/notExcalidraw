@@ -1,5 +1,6 @@
 import z from "zod";
 import { playerPosition, type playerName } from "../../../types/wsZodSchemas";
+import { useGrabToolPosition } from "../../../store/Tools.store";
 
 type playerType = z.infer<typeof playerName>;
 type playerPosition = z.infer<typeof playerPosition>;
@@ -78,6 +79,8 @@ export default class CollabCursor {
   draw(ctx: CanvasRenderingContext2D): void {
     //
     ctx.save();
+    const { x: offsetX, y: offsetY } = useGrabToolPosition.getState();
+    ctx.transform(1, 0, 0, 1, offsetX, offsetY);
     //
     ctx.beginPath();
 

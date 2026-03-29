@@ -43,9 +43,14 @@ interface themeState {
   setCurrentTheme: (theme: theme) => void;
 }
 
+let localStorageTheme = window.localStorage.getItem("theme");
+if (localStorageTheme != "light" && localStorageTheme != "dark")
+  localStorageTheme = null;
+if (localStorageTheme == "dark") document.documentElement.classList.add("dark");
+
 const useTheme = create<themeState>()(
   subscribeWithSelector((set) => ({
-    currentTheme: "light",
+    currentTheme: localStorageTheme || "light",
     setCurrentTheme: (newTheme) => {
       set(() => ({ currentTheme: newTheme }));
     },

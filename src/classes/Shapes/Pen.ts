@@ -104,6 +104,7 @@ export class Pen implements Shape {
   draw(ctx: CanvasRenderingContext2D) {
     const { x: offsetX, y: offsetY } = useGrabToolPosition.getState();
     ctx.save();
+    ctx.transform(1, 0, 0, 1, offsetX, offsetY);
 
     {
       ctx.globalAlpha = this._opacity / 100;
@@ -118,12 +119,12 @@ export class Pen implements Shape {
           ctx.lineWidth = this._strokeWidth * 2;
           ctx.lineCap = "round";
           ctx.lineJoin = "round";
-          ctx.moveTo(this._points[0].x + offsetX, this._points[0].y + offsetY);
+          ctx.moveTo(this._points[0].x, this._points[0].y);
 
           for (let i = 1; i < len; i++) {
             ctx.lineTo(
-              this._points[i].x + offsetX,
-              this._points[i].y + offsetY,
+              this._points[i].x,
+              this._points[i].y,
             );
           }
 
@@ -152,8 +153,8 @@ export class Pen implements Shape {
 
             let gap = this._strokeWidth * 5;
             for (let pos = gap; pos < d * 2; pos += gap) {
-              ctx.moveTo(x1 + offsetX + pos, y1 + offsetY);
-              ctx.lineTo(x1 + offsetX, y1 + offsetY + pos);
+              ctx.moveTo(x1 + pos, y1);
+              ctx.lineTo(x1, y1 + pos);
             }
             ctx.stroke();
           } else if (this._fillStyle == "crosslines") {
@@ -168,12 +169,12 @@ export class Pen implements Shape {
 
             let gap = this._strokeWidth * 5;
             for (let pos = gap; pos < d * 2; pos += gap) {
-              ctx.moveTo(x1 + offsetX + pos, y1 + offsetY);
-              ctx.lineTo(x1 + offsetX, y1 + offsetY + pos);
+              ctx.moveTo(x1 + pos, y1);
+              ctx.lineTo(x1, y1 + pos);
             }
             for (let pos = gap; pos < d * 2; pos += gap) {
-              ctx.moveTo(x2 + offsetX, y1 + offsetY + pos);
-              ctx.lineTo(x2 + offsetX - pos, y1 + offsetY);
+              ctx.moveTo(x2, y1 + pos);
+              ctx.lineTo(x2 - pos, y1);
             }
             ctx.stroke();
           }
@@ -183,8 +184,8 @@ export class Pen implements Shape {
       } else if (len == 0) {
         ctx.beginPath();
         ctx.arc(
-          this._points[0].x + offsetX,
-          this._points[0].y + offsetY,
+          this._points[0].x,
+          this._points[0].y,
           this._strokeWidth,
           0,
           Math.PI * 2,

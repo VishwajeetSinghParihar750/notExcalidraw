@@ -5,6 +5,7 @@ import type {
   shapeUpdateEvent,
   shapeUpdateEventId,
 } from "../../types/shapeUpdateEvents";
+import { deserializeShape } from "../../utils/Deserialization";
 
 type shapeUpdateSubId = string;
 type shapeUpdateSubCallback = (
@@ -16,11 +17,8 @@ type subsEventMapping = Partial<Record<"all" | eventType, subsInfo>>;
 type shapeUpdateSubs = Partial<Record<"all" | shapeId, subsEventMapping>>;
 
 export default class ShapeManager {
-  // keeping this as singleton
-
   shapes: Record<shapeId, Shape> = {};
 
-  addOrDeleteShapeUpdateEvents: shapeUpdateEvent[] = [];
   perShapeUpdateEvents: Record<string, shapeUpdateEvent[]> = {};
   shapeUpdateEvents: [shapeUpdateEvent, ShapeType][] = [];
 
@@ -35,6 +33,15 @@ export default class ShapeManager {
       cb: shapeUpdateSubCallback;
     }
   > = {};
+
+  draw(ctx: CanvasRenderingContext2D) {
+    const selectionShapes: Shape[] = [];
+    Object.values(this.shapes).forEach((shape) => {
+      if (shape.shapeType == "selection") selectionShapes.push(shape);
+      else shape.draw(ctx);
+    });
+    selectionShapes.forEach((shape) => shape.draw(ctx));
+  }
 
   subsribeShapeUpdateEvents(
     shape: "all" | shapeId,
@@ -104,9 +111,7 @@ export default class ShapeManager {
     }
   }
   handleShapeUpdateEvent(op: shapeUpdateEvent) {
-    // console.log(this.shapes);
     let shapetype = this.shapes[op.shapeId]?.shapeType;
-    // console.log(op);
     switch (op.eventType) {
       case "addShape":
         {
@@ -182,5 +187,40 @@ export default class ShapeManager {
     return Object.values(this.shapes).filter((shape) =>
       shape.liesInside(point1, point2),
     );
+  }
+
+  saveStateLocalStorage() {
+    //
+    let eventsToSave: { type: string; payload: any }[] = [];
+
+    Object.values(this.shapes).forEach((shape) => {
+      if (shape.shapeType != "selection") {
+        eventsToSave.push({
+          type: "addShape",
+          payload: {
+            shape: shape.serialize(),
+          },
+        });
+      }
+    });
+    localStorage.setItem(
+      "shapeManagerLocalState",
+      JSON.stringify(eventsToSave),
+    );
+  }
+  loadStateLocalStorage() {
+    let savedEvents: any[] = JSON.parse(
+      localStorage.getItem("shapeManagerLocalState") || "[]",
+    );
+
+    savedEvents.forEach((ev) => {
+      let newshape = deserializeShape(ev.payload.shape!);
+      this.handleShapeUpdateEvent({
+        _id: crypto.randomUUID(),
+        eventType: "addShape",
+        shapeId: newshape!.shapeId,
+        payload: { shape: newshape! },
+      });
+    });
   }
 }

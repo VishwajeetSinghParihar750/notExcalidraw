@@ -98,6 +98,7 @@ export default function Home() {
   });
 
   const handleshare = () => {
+    console.log("handleshare", canvasManager);
     if (!canvasManager) return;
 
     console.log(collabState);

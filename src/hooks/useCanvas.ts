@@ -72,8 +72,8 @@ export default function useCanvas(props: useCanvasProps) {
     return () => {
       cancelAnimationFrame(animationid);
       window.removeEventListener("resize", handleDocumentResize);
-      setCanvasManager(null);
       canvasManager.destructor();
+      setCanvasManager(null);
     };
   }, []);
 }

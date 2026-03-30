@@ -45,30 +45,12 @@ export default class GrabTool implements Tool {
     document.body.style.cursor = "default";
   }
 
-  // updateScreenEmpty() {
-  //   if (
-  //     Object.values(this.shapeManager.shapes).some((shape) =>
-  //       shape.liesInside(
-  //         { x: -this.totalMovementX, y: -this.totalMovementY },
-  //         {
-  //           x: -this.totalMovementX + document.body.clientWidth,
-  //           y: -this.totalMovementY + document.body.clientHeight,
-  //         },
-  //       ),
-  //     )
-  //   ) {
-  //     this.isScreenEmpty = false;
-  //   } else this.isScreenEmpty = true;
-  // }
-
   onCanvasMouseDown(e: globalMouseEvent) {
     if (this.curState == "idle") {
       this.curState = "moving";
 
       this.lastMouseMove.x = e.clientX;
       this.lastMouseMove.y = e.clientY;
-
-      // this.updateScreenEmpty();
     }
   }
 

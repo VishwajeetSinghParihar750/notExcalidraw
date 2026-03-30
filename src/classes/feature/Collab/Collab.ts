@@ -211,23 +211,35 @@ export default class Collab {
       case "getCurrentState":
         {
           this.setRoomId(message.payload.roomId);
+
+          let eventsWeNeed = this.shapeManager.shapeUpdateEvents
+            .filter((tuple) => {
+              return tuple[1] != "selection";
+            })
+            .map((tuple) => {
+              let ev = tuple[0];
+              let evToReturn;
+              if (ev.eventType == "addShape") {
+                evToReturn = {
+                  ...ev,
+                  payload: { shape: ev.payload.shape.serialize() },
+                };
+              } else evToReturn = ev;
+
+              if (evToReturn.eventType == "addShape")
+                this.addShapeEvents.push(evToReturn);
+
+              if (!this.perShapeEvents[ev.shapeId])
+                this.perShapeEvents[ev.shapeId] = [];
+              this.perShapeEvents[ev.shapeId].push(evToReturn);
+
+              return evToReturn;
+            }); // here we need to get from local storage or something ,coz shape manager we will keep clean
+
           this.sendMessage({
             type: "setCurrentState",
             payload: {
-              events: this.shapeManager.shapeUpdateEvents
-                .filter((tuple) => {
-                  return tuple[1] != "selection";
-                })
-                .map((tuple) => {
-                  let ev = tuple[0];
-                  if (ev.eventType == "addShape") {
-                    return {
-                      ...ev,
-                      payload: { shape: ev.payload.shape.serialize() },
-                    };
-                  }
-                  return ev;
-                }), // here we need to get from local storage or something ,coz shape manager we will keep clean
+              events: eventsWeNeed,
             },
           });
         }

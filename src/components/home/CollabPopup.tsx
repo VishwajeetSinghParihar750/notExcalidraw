@@ -47,7 +47,8 @@ export default function CollabPopup(props: propsType) {
           Stopping the session will disconnect you from the room, but you'll be
           able to continue working with the scene, locally. Note that this won't
           affect other people, and they'll still be able to collaborate on their
-          version.
+          version. If you wanna revert back to your previous local scene, just
+          close this window, and open another.
         </div>
         <button
           className="text-red-400 flex gap-3 items-center justify-center px-4 py-3 border border-red-400 w-fit m-auto mt-4 rounded-lg text-sm font-semibold cursor-pointer"

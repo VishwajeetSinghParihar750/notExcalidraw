@@ -3,9 +3,12 @@ import ShapeManager from "./ShapeManager";
 import ToolManager from "./ToolManager";
 
 export default class CanvasManager {
-  private shapeManger: ShapeManager = new ShapeManager();
+  private shapeManager: ShapeManager = new ShapeManager();
   private toolManager: ToolManager;
   private collab: Collab | null = null;
+
+  private saveShapeManagerStateLocalStorage: boolean = false;
+  private setInvervals: number[] = [];
 
   private handleMouseDown = (e: MouseEvent) => {
     this.toolManager.onMouseDown(e);
@@ -23,10 +26,29 @@ export default class CanvasManager {
     this.toolManager.onKeyPress(e);
   };
 
-  draw(ctx: CanvasRenderingContext2D) {
-    for (let shape of Object.values(this.shapeManger.shapes)) {
-      shape.draw(ctx);
+  private saveShapeManagerLocalStorageIfValid = () => {
+    if (this.saveShapeManagerStateLocalStorage) {
+      this.shapeManager.saveStateLocalStorage();
     }
+  };
+  private handlePageHide = () => {
+    // localStorage.setItem(
+    //   "debug_pagehide",
+    //   JSON.stringify({
+    //     flag: this.saveShapeManagerStateLocalStorage,
+    //     shapes: this.shapeManager.shapes,
+    //     time: Date.now(),
+    //   }),
+    // );
+    // this.saveShapeManagerLocalStorageIfValid();
+    //
+    //
+    // FUKCEDDDDDDDDDDDDD UPPPPPPPPPPP
+    // this is clearing out localstorage on closing window when colab is on, need to check some destructors chain etc, that might be fucking it up, leaving for now
+  };
+
+  draw(ctx: CanvasRenderingContext2D) {
+    this.shapeManager.draw(ctx);
     this.collab?.draw(ctx);
   }
 
@@ -35,29 +57,45 @@ export default class CanvasManager {
     document.addEventListener("pointerup", this.handleMouseup);
     document.addEventListener("pointermove", this.handleMouseMove);
     window.addEventListener("keydown", this.handleKeyDown);
+    window.addEventListener("pagehide", this.handlePageHide);
+
+    let id = setInterval(() => {
+      this.saveShapeManagerLocalStorageIfValid();
+    }, 5000);
+    this.setInvervals.push(id);
   }
   private removeEventListeners() {
     document.removeEventListener("pointerdown", this.handleMouseDown);
     document.removeEventListener("pointerup", this.handleMouseup);
     document.removeEventListener("pointermove", this.handleMouseMove);
     window.removeEventListener("keydown", this.handleKeyDown);
+
+    this.setInvervals.forEach((id) => clearInterval(id));
   }
 
   stopCurrentCollab() {
     this.collab?.destructor();
     this.collab = null;
-    return;
+
+    this.shapeManager.saveStateLocalStorage();
+    this.saveShapeManagerStateLocalStorage = true;
   }
+
   startCollab() {
     if (this.collab) return;
-    this.collab = new Collab(this.shapeManger);
+
+    this.shapeManager.saveStateLocalStorage();
+    this.saveShapeManagerStateLocalStorage = false;
+
+    this.collab = new Collab(this.shapeManager);
   }
+
   constructor(
     canvasRef: React.RefObject<HTMLCanvasElement | null>,
     editableTextContainerRef: React.RefObject<HTMLDivElement | null>,
   ) {
     this.toolManager = new ToolManager(
-      this.shapeManger,
+      this.shapeManager,
       canvasRef,
       editableTextContainerRef,
     );
@@ -66,10 +104,12 @@ export default class CanvasManager {
 
     const params = new URLSearchParams(window.location.search);
     const roomId = params.get("roomId");
-    console.log(roomId);
     if (roomId) {
       // try connecting to collab
-      this.collab = new Collab(this.shapeManger, roomId);
+      this.collab = new Collab(this.shapeManager, roomId);
+    } else {
+      this.saveShapeManagerStateLocalStorage = true;
+      this.shapeManager.loadStateLocalStorage();
     }
   }
 
@@ -78,6 +118,6 @@ export default class CanvasManager {
 
     this.collab?.destructor();
     this.toolManager.destructor();
-    this.shapeManger.destructor();
+    this.shapeManager.destructor();
   }
 }

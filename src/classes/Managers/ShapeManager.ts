@@ -22,7 +22,7 @@ export default class ShapeManager {
 
   addOrDeleteShapeUpdateEvents: shapeUpdateEvent[] = [];
   perShapeUpdateEvents: Record<string, shapeUpdateEvent[]> = {};
-  shapeUpdateEvents: shapeUpdateEvent[] = [];
+  shapeUpdateEvents: [shapeUpdateEvent, ShapeType][] = [];
 
   shapeUpdateEventsInverse: Record<shapeUpdateEventId, shapeUpdateEvent> = {}; // og event id mapped to inverse event
 
@@ -166,9 +166,9 @@ export default class ShapeManager {
         return;
     }
 
-    this.shapeUpdateEvents.push(op);
-
     if (!shapetype) shapetype = this.shapes[op.shapeId]?.shapeType;
+
+    this.shapeUpdateEvents.push([op, shapetype]);
     this.passEventToSubscribers(shapetype, op);
   }
   destructor() {}

@@ -7,6 +7,7 @@ import type { theme } from "../store/UiActions.store";
 import { useCanvasManager } from "../store/CanvasManager.store";
 import CollabPopup from "../components/home/CollabPopup";
 import type { collabState } from "../classes/feature/Collab/Collab";
+import { useNavigate } from "react-router";
 
 type themeInfo = { name: theme; element: ReactElement };
 let themeInfoList: themeInfo[] = [
@@ -54,6 +55,7 @@ let themeInfoList: themeInfo[] = [
 ];
 
 export default function Home() {
+  const navigate = useNavigate();
   let editableTextContainer = useRef<HTMLDivElement>(null);
 
   const handleCanvasReset = () => {
@@ -61,7 +63,9 @@ export default function Home() {
   };
 
   const collabPopupRef = useRef<HTMLDialogElement>(null);
-  const { canvasManager, collabState, collabLink } = useCanvasManager();
+  const { canvasManager, collabState, roomId } = useCanvasManager();
+
+  let collabLink = window.location.origin + `/?roomId=${roomId}`;
 
   let toOpenShareModal = useRef<boolean>(false);
 
@@ -69,12 +73,16 @@ export default function Home() {
     newVal: collabState,
     oldVal: collabState,
   ) => {
-    console.log(newVal, oldVal);
     if (newVal == "active") {
-      console.log("aya", toOpenShareModal);
+      if (oldVal == "creatingRoom") {
+        navigate(`/?roomId=${roomId}`, {
+          replace: true,
+        });
+      }
       if (toOpenShareModal.current == true) collabPopupRef.current?.showModal();
       toOpenShareModal.current = false;
     } else if (newVal == "closed") {
+      navigate("/", { replace: true });
       collabPopupRef.current?.close();
     }
   };

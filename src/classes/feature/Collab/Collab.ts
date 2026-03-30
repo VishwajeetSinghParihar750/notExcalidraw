@@ -40,13 +40,12 @@ export default class Collab {
     this.curState = newState;
     useCanvasManager.setState({ collabState: newState });
   }
+
   private setRoomId(roomID: string | null) {
     this.roomId = roomID;
 
     useCanvasManager.setState({
-      collabLink: this.roomId
-        ? "http://" + window.location.host + `/?roomId=${this.roomId}`
-        : "",
+      roomId: roomID,
     });
   }
 
@@ -215,7 +214,20 @@ export default class Collab {
           this.sendMessage({
             type: "setCurrentState",
             payload: {
-              events: [], // here we need to get from local storage or something ,coz shape manager we will keep clean
+              events: this.shapeManager.shapeUpdateEvents
+                .filter((tuple) => {
+                  return tuple[1] != "selection";
+                })
+                .map((tuple) => {
+                  let ev = tuple[0];
+                  if (ev.eventType == "addShape") {
+                    return {
+                      ...ev,
+                      payload: { shape: ev.payload.shape.serialize() },
+                    };
+                  }
+                  return ev;
+                }), // here we need to get from local storage or something ,coz shape manager we will keep clean
             },
           });
         }
@@ -264,24 +276,29 @@ export default class Collab {
       //
 
       if (ev.eventType == "addShape") {
-        let curEvent = ev;
-        let newShape = deserializeShape(curEvent.payload.shape);
-        if (newShape) {
-          curEvent = {
-            ...curEvent,
-            payload: { shape: newShape as any },
-          };
+        console.log(ev.payload.shape);
+        let newShape = deserializeShape(ev.payload.shape);
 
-          this.addShapeEvents.push(curEvent as any);
-          this.perShapeEvents[ev.shapeId] = [curEvent as any];
+        this.eventsToIgnore.add(ev._id);
+        this.shapeManager.handleShapeUpdateEvent({
+          ...ev,
+          payload: { shape: newShape! },
+        });
 
-          this.eventsToIgnore.add(ev._id);
-          this.shapeManager.handleShapeUpdateEvent(curEvent as any);
-        } else console.error("deserializeShape gives undefined");
+        let toSaveEvent = {
+          ...ev,
+          payload: { shape: newShape! },
+        };
+
+        this.eventsToIgnore.add(toSaveEvent._id);
+        this.addShapeEvents.push(toSaveEvent);
+
+        this.perShapeEvents[ev.shapeId] = [toSaveEvent];
       } else {
-        this.perShapeEvents[ev.shapeId].push(ev as any);
         this.eventsToIgnore.add(ev._id);
         this.shapeManager.handleShapeUpdateEvent(ev as any);
+
+        this.perShapeEvents[ev.shapeId].push(ev as any);
       }
     });
 
@@ -325,6 +342,7 @@ export default class Collab {
     } catch (error) {
       // REDZONE - THIS SHOULD NOT HAPPEN , SOMETHING GOT FUCKED UP RELOAD WHOLE STATE
       console.error("REDZONE 4 : wrong request format Zod", error);
+      // here we should try to reload state from server
     }
   }
 

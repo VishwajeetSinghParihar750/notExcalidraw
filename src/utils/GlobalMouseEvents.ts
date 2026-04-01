@@ -5,6 +5,8 @@ export type globalMouseEvent = {
   clientY: number;
   x: number;
   y: number;
+  ogX: number;
+  ogY?: number;
 };
 
 export function getGlobalMouseEvent(e: MouseEvent): globalMouseEvent {
@@ -14,5 +16,7 @@ export function getGlobalMouseEvent(e: MouseEvent): globalMouseEvent {
     clientY: e.clientY - grabshiftY,
     x: e.x - grabshiftX,
     y: e.y - grabshiftY,
+    ogX: e.x,
+    ogY: e.y,
   };
 }

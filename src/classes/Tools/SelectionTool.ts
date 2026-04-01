@@ -3,6 +3,7 @@ import type Tool from "./Tool";
 import type { EventType } from "../Managers/ToolManager";
 
 import {
+  useGrabToolPosition,
   useSelectedShapes,
   useToolStyle,
   type Tool as ToolType,
@@ -501,16 +502,17 @@ export default class SelectionTool implements Tool {
 
   updateCurrentTextEnclosingRectangle() {
     let rect = this.currentInputElement.getBoundingClientRect();
+    const [x, y] = this.curText!.getEnclosingRectangle();
     this.shapeManager.handleShapeUpdateEvent({
       _id: crypto.randomUUID(),
       eventType: "updateEnclosingRectangle",
       shapeId: this.curText!.shapeId,
       payload: {
         toUpdate: "updateFull",
-        x1: rect.x,
-        y1: rect.y,
-        x2: rect.x + rect.width,
-        y2: rect.y + rect.height,
+        x1: x,
+        y1: y,
+        x2: x + rect.width,
+        y2: y + rect.height,
       },
     });
   }
@@ -1382,8 +1384,10 @@ export default class SelectionTool implements Tool {
               this.currentInputElement.value = this.curText.text;
 
               this.currentInputElement.style.position = "absolute";
-              this.currentInputElement.style.top = `${this.curText.getEnclosingRectangle()[1]}px`;
-              this.currentInputElement.style.left = `${this.curText.getEnclosingRectangle()[0]}px`;
+
+              const { x: offsetX, y: offsetY } = useGrabToolPosition.getState();
+              this.currentInputElement.style.top = `${this.curText.getEnclosingRectangle()[1] + offsetY}px`;
+              this.currentInputElement.style.left = `${this.curText.getEnclosingRectangle()[0] + offsetX}px`;
 
               this.currentInputElement.style.color = getStrokeColorString(
                 this.curText.strokeColor,

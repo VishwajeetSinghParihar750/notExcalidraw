@@ -1,5 +1,4 @@
 import {
-  useGrabToolPosition,
   useLock,
   useTool,
   useToolStyle,
@@ -123,9 +122,12 @@ export default class ToolManager {
   }
 
   getModifiedEvent(e: MouseEvent) {
-    let modifiedEvent;
-    if (this.activeTool == "grab") modifiedEvent = e;
-    else modifiedEvent = getGlobalMouseEvent(e);
+    let modifiedEvent: any = null;
+    if (this.activeTool == "grab") {
+      modifiedEvent = e;
+      modifiedEvent.ogX = e.x;
+      modifiedEvent.ogY = e.y;
+    } else modifiedEvent = getGlobalMouseEvent(e);
     return modifiedEvent;
   }
   onMouseMove(e: MouseEvent) {

@@ -1,15 +1,3 @@
-import type {
-  arrowType,
-  backgroundColor,
-  edgeRadius,
-  fillStyle,
-  fontFamily,
-  fontSize,
-  opacity,
-  strokeColor,
-  strokeStyle,
-  strokeWidth,
-} from "../../store/Tools.store";
 import type { shapeUpdateEvent } from "../../types/shapeUpdateEvents";
 import type { Point } from "./Point";
 
@@ -23,26 +11,6 @@ export type ShapeType =
   | "text"
   | "circle"
   | "selection";
-
-export type ShapeData = {
-  shapeType: ShapeType;
-  shapeId: shapeId;
-
-  //styles
-  opacity?: opacity;
-  fillStyle?: fillStyle;
-  strokeStyle?: strokeStyle;
-  arrowType?: arrowType;
-  strokeWidth?: strokeWidth;
-  edgeRadius?: edgeRadius;
-  backgroundColor?: backgroundColor;
-  strokeColor?: strokeColor;
-  fontFamily?: fontFamily;
-  fontSize?: fontSize;
-
-  // properties
-  points?: Point[];
-};
 
 export abstract class Shape {
   abstract shapeType: ShapeType;

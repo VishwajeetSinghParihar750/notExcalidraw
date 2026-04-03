@@ -169,10 +169,33 @@ const addEventFailedSchema = z.object({
   }),
 });
 
+const playerName = z.string();
+
+const playerDisconnectedPayload = z.object({
+  playerName: playerName,
+});
+const playerDisconnectedSchema = z.object({
+  type: z.literal("playerDisconnected"),
+  payload: playerDisconnectedPayload,
+});
+
+const playerPosition = z.object({
+  x: z.number(),
+  y: z.number(),
+});
+const playerPositionUpdatePayload = z.object({
+  playerPosition: playerPosition,
+  playerName: playerName,
+});
+const playerPositionUpdateSchema = z.object({
+  type: z.literal("playerPositionUpdate"),
+  payload: playerPositionUpdatePayload,
+});
 const setCurrentStateSchema = z.object({
   type: z.literal("setCurrentState"),
   payload: z.object({
     events: z.array(shapeUpdateEvent),
+    players: z.array(playerPositionUpdatePayload),
   }),
 });
 
@@ -190,6 +213,9 @@ const serverErrorSchema = z.object({
 });
 const roomJoinedSchema = z.object({
   type: z.literal("roomJoined"),
+  payload: z.object({
+    playerName: playerName,
+  }),
 });
 
 const webSocketMessageSchema = z.union([
@@ -200,6 +226,8 @@ const webSocketMessageSchema = z.union([
   eventAddedSchema,
   getCurrentStateSchema,
   roomJoinedSchema,
+  playerDisconnectedSchema,
+  playerPositionUpdateSchema,
 ]);
 
 export {
@@ -213,4 +241,9 @@ export {
   getCurrentStateSchema,
   roomJoinedSchema,
   webSocketMessageSchema,
+  playerPosition,
+  playerName,
+  playerPositionUpdatePayload,
+  playerDisconnectedSchema,
+  playerPositionUpdateSchema,
 };

@@ -1,5 +1,5 @@
 import type { Point } from "../Shapes/Point";
-import type { Shape, shapeId } from "../Shapes/Shape";
+import type { Shape, shapeId, ShapeType } from "../Shapes/Shape";
 import type {
   eventType,
   shapeUpdateEvent,
@@ -7,12 +7,17 @@ import type {
 } from "../../types/shapeUpdateEvents";
 
 type shapeUpdateSubId = string;
-type shapeUpdateSubCallback = (event: shapeUpdateEvent) => void;
+type shapeUpdateSubCallback = (
+  shapeType: ShapeType,
+  event: shapeUpdateEvent,
+) => void;
 type subsInfo = shapeUpdateSubCallback[];
 type subsEventMapping = Partial<Record<"all" | eventType, subsInfo>>;
 type shapeUpdateSubs = Partial<Record<"all" | shapeId, subsEventMapping>>;
 
 export default class ShapeManager {
+  // keeping this as singleton
+
   shapes: Record<shapeId, Shape> = {};
 
   addOrDeleteShapeUpdateEvents: shapeUpdateEvent[] = [];
@@ -85,16 +90,16 @@ export default class ShapeManager {
       }
     }
   }
-  passEventToSubscribers(op: shapeUpdateEvent) {
+  passEventToSubscribers(shapeType: ShapeType, op: shapeUpdateEvent) {
     this.shapeUpdateEventSubscriptions?.["all"]?.["all"]?.forEach((cb) =>
-      cb(op),
+      cb(shapeType, op),
     );
     if (op.eventType != "addShape") {
       this.shapeUpdateEventSubscriptions?.[op.shapeId]?.["all"]?.forEach((cb) =>
-        cb(op),
+        cb(shapeType, op),
       );
       this.shapeUpdateEventSubscriptions?.[op.shapeId]?.[op.eventType]?.forEach(
-        (cb) => cb(op),
+        (cb) => cb(shapeType, op),
       );
     }
   }
@@ -164,7 +169,7 @@ export default class ShapeManager {
     this.shapeUpdateEvents.push(op);
 
     if (!shapetype) shapetype = this.shapes[op.shapeId]?.shapeType;
-    if (shapetype != "selection") this.passEventToSubscribers(op);
+    this.passEventToSubscribers(shapetype, op);
   }
   destructor() {}
 

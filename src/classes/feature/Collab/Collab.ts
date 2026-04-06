@@ -4,7 +4,6 @@ import {
 } from "../../../types/shapeUpdateEvents";
 import type ShapeManager from "../../Managers/ShapeManager";
 import {
-  playerName,
   playerPositionUpdatePayload,
   shapeUpdateEventId as shapeUpdateEventIdZod,
   shapeUpdateEvent as shapeUpdateEventZod,
@@ -14,33 +13,47 @@ import type z from "zod";
 import { deserializeShape } from "../../../utils/Deserialization";
 import CollabCursorManager from "./CollabCursorManager";
 import { getGlobalMouseEvent } from "../../../utils/GlobalMouseEvents";
-// you wait for collab to join room before you start tool manager
-// need some form of global management , whihc doesnt exist rn
+import type { ShapeType } from "../../Shapes/Shape";
+import { useCanvasManager } from "../../../store/CanvasManager.store";
 
-type collabState = "closed" | "joiningRoom" | "active";
-type playerName = z.infer<typeof playerName>;
+export type collabState = "closed" | "joiningRoom" | "creatingRoom" | "active";
 export default class Collab {
   //
-  playerName: playerName | null = null;
-  curState: collabState = "closed";
-  roomId: string;
-  ws: WebSocket;
-  shapeManager: ShapeManager;
+  private curState: collabState = "closed";
+  private roomId: string | null = null;
+  private ws: WebSocket;
+  private shapeManager: ShapeManager;
 
-  addShapeEvents: shapeUpdateEvent[] = [];
-  perShapeEvents: Record<string, shapeUpdateEvent[]> = {};
+  private addShapeEvents: shapeUpdateEvent[] = [];
+  private perShapeEvents: Record<string, shapeUpdateEvent[]> = {};
 
-  collabCursors = new CollabCursorManager([]);
-
+  private collabCursors = new CollabCursorManager([]);
   sendMessage(payload: any) {
     this.ws.send(JSON.stringify({ roomId: this.roomId, payload }));
-    console.log("sending", payload);
+    console.log("sending", JSON.stringify({ roomId: this.roomId, payload }));
   }
 
-  eventsToIgnore = new Set<shapeUpdateEventId>();
+  private subscriptionsId: string[] = [];
+  private eventsToIgnore = new Set<shapeUpdateEventId>();
 
-  handleLocalShapeUpdateEvent(event: shapeUpdateEvent) {
-    // we dont want seleciton events, so handle that
+  private setCurrentState(newState: collabState) {
+    this.curState = newState;
+    useCanvasManager.setState({ collabState: newState });
+  }
+  private setRoomId(roomID: string | null) {
+    this.roomId = roomID;
+
+    useCanvasManager.setState({
+      collabLink: this.roomId
+        ? "http://" + window.location.host + `/?roomId=${this.roomId}`
+        : "",
+    });
+  }
+
+  handleLocalShapeUpdateEvent(shapeType: ShapeType, event: shapeUpdateEvent) {
+    if (this.curState != "active") return;
+
+    if (shapeType == "selection") return;
 
     if (this.eventsToIgnore.has(event._id)) {
       this.eventsToIgnore.delete(event._id);
@@ -132,6 +145,8 @@ export default class Collab {
     event: z.infer<typeof shapeUpdateEventZod>,
     prevEventId: z.infer<typeof shapeUpdateEventIdZod> | null,
   ) {
+    if (this.curState != "active") return;
+
     if (this.isEventLocalAndOrdered(prevEventId, event)) return;
 
     this.revertNecessaryEvents(prevEventId, event);
@@ -167,10 +182,11 @@ export default class Collab {
     switch (message.type) {
       case "roomJoined":
         {
-          this.curState = "active";
-          this.playerName = message.payload.playerName;
+          this.setCurrentState("active");
+          this.setRoomId(message.payload.roomId);
         }
         break;
+
       case "eventAdded":
         {
           this.handleRemoteShapeUpdateEvent(
@@ -181,10 +197,12 @@ export default class Collab {
         break;
       case "serverError":
         {
+          this.destructor();
         }
         break;
       case "clientError":
         {
+          this.destructor();
         }
         break;
       case "addEventFailed":
@@ -193,6 +211,7 @@ export default class Collab {
         break;
       case "getCurrentState":
         {
+          this.setRoomId(message.payload.roomId);
           this.sendMessage({
             type: "setCurrentState",
             payload: {
@@ -230,6 +249,9 @@ export default class Collab {
         }
         break;
       default:
+        {
+          this.destructor();
+        }
         break;
     }
   }
@@ -270,18 +292,27 @@ export default class Collab {
 
   setupSubscriptions() {
     // need to get events from shape manager, but keeping emppty for now
-    this.shapeManager.subsribeShapeUpdateEvents(
+    let subid = this.shapeManager.subsribeShapeUpdateEvents(
       "all",
       "all",
       this.handleLocalShapeUpdateEvent.bind(this),
     );
+    this.subscriptionsId.push(subid);
   }
 
   onWebsocketOpen() {
-    this.sendMessage({
-      type: "joinRoom",
-    });
-    this.curState = "joiningRoom";
+    if (this.roomId) {
+      this.sendMessage({
+        type: "joinRoom",
+        payload: {
+          roomId: this.roomId,
+        },
+      });
+      this.setCurrentState("joiningRoom");
+    } else {
+      this.sendMessage({ type: "createRoom" });
+      this.setCurrentState("creatingRoom");
+    }
   }
   onWebsocketMessage(ev: MessageEvent<any>) {
     const parsedData = JSON.parse(ev.data);
@@ -310,18 +341,31 @@ export default class Collab {
     this.ws.onclose = (ev) => {};
   }
 
-  constructor(shapeManager: ShapeManager, roomId: string) {
-    this.roomId = roomId;
+  stopCollab() {
+    this.destructor();
+  }
+  constructor(shapeManager: ShapeManager, roomId?: string) {
+    if (roomId) this.setRoomId(roomId);
 
     this.shapeManager = shapeManager;
-    this.setupSubscriptions();
 
     this.ws = new WebSocket(import.meta.env.VITE_BACKEND_WEBSOCKET_URL);
     this.setupWebSocket();
+    this.setupSubscriptions();
   }
+
   destructor() {
+    this.setCurrentState("closed");
+    this.subscriptionsId.forEach((sub) =>
+      this.shapeManager.unsubsribeShapeUpdateEvents(sub),
+    );
     this.ws.close();
-    this.collabCursors.players = {};
+    this.addShapeEvents = [];
+    this.perShapeEvents = {};
+    this.eventsToIgnore.clear();
+
+    this.collabCursors.destructor();
+    this.setRoomId(null);
   }
 
   draw(ctx: CanvasRenderingContext2D) {

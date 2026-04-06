@@ -154,6 +154,9 @@ const shapeUpdateEvent = z.union([
 // actual types
 const getCurrentStateSchema = z.object({
   type: z.literal("getCurrentState"),
+  payload: z.object({
+    roomId: z.string(),
+  }),
 });
 const eventAddedSchema = z.object({
   type: z.literal("eventAdded"),
@@ -214,7 +217,7 @@ const serverErrorSchema = z.object({
 const roomJoinedSchema = z.object({
   type: z.literal("roomJoined"),
   payload: z.object({
-    playerName: playerName,
+    roomId: z.string(),
   }),
 });
 

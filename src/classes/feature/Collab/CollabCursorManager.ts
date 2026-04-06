@@ -22,6 +22,9 @@ export default class CollabCursorManager {
       );
     });
   }
+  destructor() {
+    this.players = {};
+  }
 
   addNewPlayer(player: playerType, position: playerPositionType) {
     let newShape = new CollabCursor(player, position);

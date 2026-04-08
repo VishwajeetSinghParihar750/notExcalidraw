@@ -5,7 +5,7 @@ import type { collabState } from "../classes/feature/Collab/Collab";
 
 interface canvasManagerState {
   collabState: collabState;
-  collabLink: string;
+  roomId: string | null;
   canvasManager: CanvasManager | null;
   setCanvasManager: (manager: CanvasManager | null) => void;
   setCollabState: (state: collabState) => void;
@@ -14,7 +14,7 @@ interface canvasManagerState {
 const useCanvasManager = create<canvasManagerState>()(
   subscribeWithSelector((set) => ({
     collabState: "closed",
-    collabLink: "",
+    roomId: null,
     canvasManager: null,
     setCanvasManager: (manager: CanvasManager | null) =>
       set({
@@ -24,7 +24,7 @@ const useCanvasManager = create<canvasManagerState>()(
       set({
         collabState: state,
       }),
-    setCollabLink: (link: string) => set({ collabLink: link }),
+    setRoomId: (roomId: string | null) => set({ roomId: roomId }),
   })),
 );
 

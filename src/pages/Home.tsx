@@ -98,13 +98,13 @@ export default function Home() {
   });
 
   const handleshare = () => {
-    console.log("handleshare", canvasManager);
+    // console.log("handleshare", canvasManager);
     if (!canvasManager) return;
 
-    console.log(collabState);
+    // console.log(collabState);
     if (collabState == "closed") {
       toOpenShareModal.current = true;
-      console.log(toOpenShareModal);
+      // console.log(toOpenShareModal);
 
       canvasManager.startCollab();
     } else if (collabState == "active") collabPopupRef.current?.showModal();

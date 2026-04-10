@@ -5,6 +5,7 @@ import {
   type playerName,
 } from "../../../types/wsZodSchemas";
 import CollabCursor from "./CollabCursor";
+import { toast } from "sonner";
 //
 type playerType = z.infer<typeof playerName>;
 type playerPositionType = z.infer<typeof playerPosition>;
@@ -27,6 +28,8 @@ export default class CollabCursorManager {
   }
 
   addNewPlayer(player: playerType, position: playerPositionType) {
+    toast.success(player + " joined room");
+
     let newShape = new CollabCursor(player, position);
     this.players[player] = newShape;
   }
@@ -40,6 +43,8 @@ export default class CollabCursorManager {
     this.players[player].setPlayerPosition(position);
   }
   handlePlayerDisconnected(player: playerType) {
+    toast.error(player + " left room");
+
     delete this.players[player];
   }
 }

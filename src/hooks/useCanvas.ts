@@ -1,30 +1,11 @@
 import type React from "react";
 import { useEffect } from "react";
-import { Rectangle } from "../classes/Shapes/Rectangle";
-import { RotatedRecangle } from "../classes/Shapes/RotatedRectangle";
-import { Circle } from "../classes/Shapes/Circle";
-import { Arrow } from "../classes/Shapes/Arrow";
-import { Line } from "../classes/Shapes/Line";
-import { Pen } from "../classes/Shapes/Pen";
-import { Selection } from "../classes/Shapes/Selection";
-import { Text } from "../classes/Shapes/Text";
 import CanvasManager from "../classes/Managers/CanvasManager";
 import { useCanvasManager } from "../store/CanvasManager.store";
 
 type useCanvasProps = {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   editableTextContainerRef: React.RefObject<HTMLDivElement | null>;
-};
-
-let shapeTypeToPrototype = {
-  rect: Rectangle,
-  circle: Circle,
-  rotrect: RotatedRecangle,
-  arrow: Arrow,
-  line: Line,
-  pen: Pen,
-  selection: Selection,
-  text: Text,
 };
 
 export default function useCanvas(props: useCanvasProps) {

@@ -70,6 +70,7 @@ export default function Home() {
 
   let toOpenShareModal = useRef<boolean>(false);
 
+  
   const handleCollabStateUpdate = (
     newVal: collabState,
     oldVal: collabState,
@@ -96,7 +97,8 @@ export default function Home() {
     return () => {
       collabStateSub();
     };
-  });
+  }, []);
+  
 
   const handleshare = () => {
     // console.log("handleshare", canvasManager);

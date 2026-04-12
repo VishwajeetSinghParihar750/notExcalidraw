@@ -181,8 +181,8 @@ export default class Collab {
     switch (message.type) {
       case "roomJoined":
         {
-          this.setCurrentState("active");
           this.setRoomId(message.payload.roomId);
+          this.setCurrentState("active");
         }
         break;
 

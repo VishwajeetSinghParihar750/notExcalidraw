@@ -82,7 +82,7 @@ export default function Home() {
       if (toOpenShareModal.current == true) collabPopupRef.current?.showModal();
       toOpenShareModal.current = false;
     } else if (newVal == "closed") {
-      navigate("/", { replace: true });
+      navigate("/");
       collabPopupRef.current?.close();
     }
   };

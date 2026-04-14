@@ -12,11 +12,11 @@ export default class CanvasManager {
 
   private handleMouseDown = (e: MouseEvent) => {
     this.toolManager.onMouseDown(e);
-    this.collab?.onMouseDown(e);
+    this.collab?.onMouseDown();
   };
   private handleMouseup = (e: MouseEvent) => {
     this.toolManager.onMouseUp(e);
-    this.collab?.onMouseUp(e);
+    this.collab?.onMouseUp();
   };
   private handleMouseMove = (e: MouseEvent) => {
     this.toolManager.onMouseMove(e);

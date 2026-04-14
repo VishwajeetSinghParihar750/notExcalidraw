@@ -359,7 +359,7 @@ export default class Collab {
   }
 
   setupWebSocket() {
-    this.ws.onopen = (ev) => {
+    this.ws.onopen = () => {
       this.onWebsocketOpen();
     };
 
@@ -367,8 +367,8 @@ export default class Collab {
       this.onWebsocketMessage(ev);
     };
 
-    this.ws.onerror = (ev) => {};
-    this.ws.onclose = (ev) => {};
+    this.ws.onerror = () => {};
+    this.ws.onclose = () => {};
   }
 
   stopCollab() {
@@ -404,7 +404,7 @@ export default class Collab {
     );
   }
 
-  onMouseDown(e: MouseEvent) {}
+  onMouseDown() {}
   onMouseMove(e: MouseEvent) {
     if (this.curState != "active") return;
 
@@ -420,5 +420,5 @@ export default class Collab {
       },
     });
   }
-  onMouseUp(e: MouseEvent) {}
+  onMouseUp() {}
 }

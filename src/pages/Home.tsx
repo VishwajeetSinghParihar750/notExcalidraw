@@ -1,7 +1,7 @@
 import Tools from "../components/home/Tools";
 import Canvas from "../components/home/Canvas";
 import ToolStyleMenu from "../components/home/ToolStyleMenu";
-import { useEffect, useRef, useState, type ReactElement } from "react";
+import { useEffect, useRef, type ReactElement } from "react";
 import { useResetCanvas, useTheme } from "../store/UiActions.store";
 import type { theme } from "../store/UiActions.store";
 import { useCanvasManager } from "../store/CanvasManager.store";

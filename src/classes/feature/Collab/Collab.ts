@@ -30,7 +30,7 @@ export default class Collab {
   private collabCursors = new CollabCursorManager([]);
   sendMessage(payload: any) {
     this.ws.send(JSON.stringify({ roomId: this.roomId, payload }));
-    console.log("sending", JSON.stringify({ roomId: this.roomId, payload }));
+    // // console.log("sending", JSON.stringify({ roomId: this.roomId, payload }));
   }
 
   private subscriptionsId: string[] = [];
@@ -151,7 +151,7 @@ export default class Collab {
     this.revertNecessaryEvents(prevEventId, event);
 
     if (event.eventType == "addShape") {
-      console.log(event.payload.shape);
+      // // console.log(event.payload.shape);
       let newShape = deserializeShape(event.payload.shape);
 
       this.eventsToIgnore.add(event._id);
@@ -288,7 +288,7 @@ export default class Collab {
       //
 
       if (ev.eventType == "addShape") {
-        console.log(ev.payload.shape);
+        // console.log(ev.payload.shape);
         let newShape = deserializeShape(ev.payload.shape);
 
         this.eventsToIgnore.add(ev._id);
@@ -348,12 +348,12 @@ export default class Collab {
 
     try {
       const data = webSocketMessageSchema.parse(parsedData);
-      console.log("recieved", parsedData);
+      // console.log("recieved", parsedData);
 
       this.handleIncomingMessage(data);
     } catch (error) {
       // REDZONE - THIS SHOULD NOT HAPPEN , SOMETHING GOT FUCKED UP RELOAD WHOLE STATE
-      console.error("REDZONE 4 : wrong request format Zod", error);
+      // console.error("REDZONE 4 : wrong request format Zod", error);
       // here we should try to reload state from server
     }
   }

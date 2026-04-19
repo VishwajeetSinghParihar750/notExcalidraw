@@ -8,6 +8,7 @@ import { useCanvasManager } from "../store/CanvasManager.store";
 import CollabPopup from "../components/home/CollabPopup";
 import type { collabState } from "../classes/feature/Collab/Collab";
 import { useNavigate } from "react-router";
+import { Toaster } from "sonner";
 
 type themeInfo = { name: theme; element: ReactElement };
 let themeInfoList: themeInfo[] = [
@@ -136,6 +137,7 @@ export default function Home() {
 
   return (
     <>
+      <Toaster duration={5000} position="bottom-right" />
       <CollabPopup
         ref={collabPopupRef}
         collabLink={collabLink}

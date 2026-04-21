@@ -137,7 +137,7 @@ export default function Home() {
 
   return (
     <>
-      <Toaster duration={5000} position="bottom-right" />
+      <Toaster duration={5000} position="bottom-right" theme={currentTheme} />
       <CollabPopup
         ref={collabPopupRef}
         collabLink={collabLink}

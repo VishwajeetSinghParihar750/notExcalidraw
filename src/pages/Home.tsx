@@ -83,8 +83,8 @@ export default function Home() {
       if (toOpenShareModal.current == true) collabPopupRef.current?.showModal();
       toOpenShareModal.current = false;
     } else if (newVal == "closed") {
-      navigate("/");
       collabPopupRef.current?.close();
+      window.location.href = "/";
     }
   };
 

@@ -70,12 +70,12 @@ export default function Home() {
 
   let toOpenShareModal = useRef<boolean>(false);
 
-  
   const handleCollabStateUpdate = (
     newVal: collabState,
     oldVal: collabState,
   ) => {
     if (newVal == "active") {
+      console.log(roomId);
       if (oldVal == "creatingRoom") {
         navigate(`/?roomId=${roomId}`, {
           replace: true,
@@ -97,8 +97,7 @@ export default function Home() {
     return () => {
       collabStateSub();
     };
-  }, []);
-  
+  });
 
   const handleshare = () => {
     // console.log("handleshare", canvasManager);
@@ -110,7 +109,9 @@ export default function Home() {
       // console.log(toOpenShareModal);
 
       canvasManager.startCollab();
-    } else if (collabState == "active") collabPopupRef.current?.showModal();
+    } else if (collabState == "active") {
+      collabPopupRef.current?.showModal();
+    }
   };
   const handleCloseSession = () => {
     collabPopupRef.current?.close();

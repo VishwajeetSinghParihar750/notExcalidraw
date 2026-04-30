@@ -66,7 +66,7 @@ export default function Home() {
   const collabPopupRef = useRef<HTMLDialogElement>(null);
   const { canvasManager, collabState, roomId } = useCanvasManager();
 
-  let collabLink = window.location.origin + `/?roomId=${roomId}`;
+  let collabLink = roomId ? window.location.origin + `/?roomId=${roomId}` : "";
 
   let toOpenShareModal = useRef<boolean>(false);
 
@@ -105,11 +105,9 @@ export default function Home() {
 
     // console.log(collabState);
     if (collabState == "closed") {
-      toOpenShareModal.current = true;
       // console.log(toOpenShareModal);
 
       canvasManager.startCollab();
-    } else if (collabState == "active") {
       collabPopupRef.current?.showModal();
     }
   };

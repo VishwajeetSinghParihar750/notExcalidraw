@@ -109,6 +109,8 @@ export default function Home() {
 
       canvasManager.startCollab();
       collabPopupRef.current?.showModal();
+    } else {
+      collabPopupRef.current?.showModal();
     }
   };
   const handleCloseSession = () => {

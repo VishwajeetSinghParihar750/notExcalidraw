@@ -81,9 +81,14 @@ export default function CollabPopup(props: propsType) {
         ) : (
           <div className="flex flex-col items-center justify-center gap-4 py-10 min-h-[14rem]">
             <div className="h-10 w-10 rounded-full border-2 border-brand-muted2 border-t-brand animate-spin" />
-            <p className="text-sm text-fg/80 text-center px-2">
-              Preparing your collaboration link…
-            </p>
+            <div>
+              <p className="text-sm text-fg/80 text-center px-2">
+                Preparing your collaboration link…
+              </p>
+              <p className="text-sm text-fg/80 text-center px-2">
+                ( might take upto 60 seconds )
+              </p>
+            </div>
           </div>
         )}
       </div>

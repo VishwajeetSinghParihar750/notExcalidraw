@@ -75,7 +75,7 @@ export default function Home() {
     oldVal: collabState,
   ) => {
     if (newVal == "active") {
-      console.log(roomId);
+      // console.log(roomId);
       if (oldVal == "creatingRoom") {
         navigate(`/?roomId=${roomId}`, {
           replace: true,

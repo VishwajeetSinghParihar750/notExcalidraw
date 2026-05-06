@@ -1,73 +1,133 @@
-# React + TypeScript + Vite
+# notExcalidraw
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A hand-drawn style whiteboard built from scratch — an [Excalidraw](https://excalidraw.com)-inspired drawing app with real-time collaboration.
 
-Currently, two official plugins are available:
+**Live demo:** [not-excalidraw.vercel.app](https://not-excalidraw.vercel.app)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## React Compiler
+### Drawing tools
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Tool | Description |
+|------|-------------|
+| **Selection** | Select, move, resize, and delete shapes |
+| **Hand (Grab)** | Pan the canvas |
+| **Rectangle** | Axis-aligned rectangles |
+| **Diamond** | Rotated rectangles |
+| **Circle** | Ellipses |
+| **Arrow** | Straight, curved, or snake-style arrows |
+| **Line** | Simple lines |
+| **Pen** | Freehand drawing |
+| **Text** | Editable text with multiple font styles |
+| **Eraser** | Remove shapes |
 
-## Expanding the ESLint configuration
+Additional UX: **tool lock** keeps the active tool selected after each draw action.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Styling
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Stroke and fill colors (theme-aware palette)
+- Stroke width and style (solid / dotted)
+- Fill style (solid / hachure / cross-hatch)
+- Corner radius and opacity
+- Font family (hand-drawn, monospace, normal) and size for text
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Collaboration
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- Create a room and share a link (`/?roomId=...`)
+- Real-time shape sync over WebSockets
+- Live cursor presence for other participants
+- Event-sourced updates with conflict resolution
+
+### Other
+
+- Light / dark theme (persisted in `localStorage`)
+- Local canvas persistence when not in a collab session
+- Responsive layout for mobile and desktop
+
+## Tech stack
+
+| Layer | Technology |
+|-------|------------|
+| UI | React 19, TypeScript, Tailwind CSS 4 |
+| Build | Vite 7 |
+| State | Zustand |
+| Routing | React Router 7 |
+| Validation | Zod |
+| Rendering | HTML Canvas 2D |
+| Notifications | Sonner |
+
+## Architecture
+
+```
+React UI (Tools, StyleMenu, CollabPopup)
+        ↕ Zustand stores
+CanvasManager
+  ├── ShapeManager   — shapes, event log, localStorage persistence
+  ├── ToolManager    — active tool routing, input handling
+  └── Collab         — WebSocket sync, remote cursors
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Every shape change is recorded as a `shapeUpdateEvent`. During collaboration, events are synced over WebSocket and applied with inverse events for conflict resolution. Shape schemas and message types are defined in `src/types/`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Getting started
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Prerequisites
+
+- Node.js 18+
+- npm
+
+### Install and run
+
+```bash
+git clone https://github.com/VishwajeetSinghParihar750/notExcalidraw.git
+cd notExcalidraw
+npm install
+npm run dev
 ```
+
+Open [http://localhost:5173](http://localhost:5173).
+
+### Environment variables
+
+Create a `.env` file in the project root:
+
+```env
+VITE_BACKEND_WEBSOCKET_URL=wss://your-collab-server.example/ws
+```
+
+Collaboration requires a WebSocket backend that implements the protocol in `src/types/wsZodSchemas.ts`. Drawing works locally without this variable.
+
+### Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start dev server with HMR |
+| `npm run build` | Type-check and build for production |
+| `npm run preview` | Preview the production build |
+| `npm run lint` | Run ESLint |
+
+## Project structure
+
+```
+src/
+├── classes/
+│   ├── Shapes/          # Shape classes (Rect, Circle, Arrow, Pen, Text, …)
+│   ├── Tools/           # Tool handlers (one per drawing tool)
+│   ├── Managers/        # CanvasManager, ShapeManager, ToolManager
+│   └── feature/Collab/  # Real-time collaboration + cursors
+├── components/home/     # Canvas, toolbar, style menu, collab popup
+├── store/               # Zustand stores (tools, theme, canvas manager)
+├── hooks/               # useCanvas — render loop, device-pixel-ratio scaling
+├── types/               # WebSocket schemas, shape update events
+└── utils/               # Theme helpers, deserialization, mouse coords
+```
+
+## Keyboard shortcuts
+
+| Key | Action |
+|-----|--------|
+| `Delete` / `Backspace` | Delete selected shapes (selection tool active) |
+
+## Acknowledgements
+
+Inspired by [Excalidraw](https://excalidraw.com). Built as a learning project to implement a collaborative canvas from the ground up.

@@ -34,7 +34,7 @@ Additional UX: **tool lock** keeps the active tool selected after each draw acti
 ### Collaboration
 
 - Create a room and share a link (`/?roomId=...`)
-- Real-time shape sync over WebSockets
+- Real-time shape sync over WebSockets via [notExcalidrawBackend](https://github.com/VishwajeetSinghParihar750/notExcalidrawBackend)
 - Live cursor presence for other participants
 - Event-sourced updates with conflict resolution
 
@@ -89,13 +89,13 @@ Open [http://localhost:5173](http://localhost:5173).
 
 ### Environment variables
 
-Create a `.env` file in the project root:
+Collaboration requires the [notExcalidrawBackend](https://github.com/VishwajeetSinghParihar750/notExcalidrawBackend) WebSocket server. Create a `.env` file in the project root:
 
 ```env
-VITE_BACKEND_WEBSOCKET_URL=wss://your-collab-server.example/ws
+VITE_BACKEND_WEBSOCKET_URL=ws://localhost:3001
 ```
 
-Collaboration requires a WebSocket backend that implements the protocol in `src/types/wsZodSchemas.ts`. Drawing works locally without this variable.
+Point this at your running backend instance (e.g. `ws://localhost:3001` locally, or your deployed `wss://` URL in production). Drawing works locally without this variable.
 
 ### Scripts
 
